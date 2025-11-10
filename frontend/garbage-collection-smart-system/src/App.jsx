@@ -1,14 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-    Home, Users, Globe, ChevronDown, Check, X, Scale, FileText, Smartphone, Mail, MapPin,
-    Lock, Calendar, Clock, Trash2, Gauge, LineChart, PieChart, BarChart, Download, Plus,
-    Minus, Search, Upload, Sliders, MessageSquare, Menu, X as Close, Star, Volume2, Video
+import { 
+    Home, Users, Globe, ChevronDown, Check, X, Scale, FileText, Smartphone, Mail, MapPin, 
+    Lock, Calendar, Clock, Trash2, Gauge, LineChart, PieChart, BarChart, Download, Plus, 
+    Minus, Search, Upload, Sliders, MessageSquare, Menu, X as Close, Star, Volume2, Video 
 } from 'lucide-react';
 
 // --- Configuration Data ---
 
 const PRIMARY_COLOR = 'indigo-600';
 const ACCENT_COLOR = 'emerald-500';
+
+// --- Tailwind Utility Map (Explicitly defined for safety) ---
+const PRIMARY_HOVER = 'hover:bg-indigo-700';
+const ACCENT_HOVER = 'hover:bg-emerald-600';
+const PRIMARY_LIGHT_BG = 'bg-indigo-100';
+const PRIMARY_FOCUS_RING = 'focus:ring-indigo-500';
+const ACCENT_LIGHT_BG = 'bg-emerald-500';
+const ACCENT_BORDER = 'border-emerald-300';
+const ACCENT_TEXT = 'text-emerald-500';
+
 
 const quickLinks = [
     { name: 'How it works', view: 'howItWorks' },
@@ -49,6 +59,9 @@ const eventsData = new Array(9).fill(0).map((_, i) => ({
 
 const Button = ({ children, onClick, primary = true, outline = false, small = false, className = '' }) => {
     let style = '';
+    
+    // NOTE: Tailwind class strings must be literal.
+    
     if (outline) {
         style = `border-2 border-${PRIMARY_COLOR} text-${PRIMARY_COLOR} hover:bg-${PRIMARY_COLOR}/10`;
     } else if (primary) {
@@ -74,7 +87,7 @@ const Breadcrumb = ({ path, navigate }) => {
         <div className="flex text-sm text-gray-500 mb-6 px-4 sm:px-6 lg:px-8">
             {path.map((item, index) => (
                 <React.Fragment key={index}>
-                    <button
+                    <button 
                         onClick={() => item.view && navigate(item.view)}
                         className={`hover:text-${PRIMARY_COLOR} ${!item.view ? 'cursor-default' : ''}`}
                     >
@@ -86,6 +99,24 @@ const Breadcrumb = ({ path, navigate }) => {
         </div>
     );
 };
+
+// ToggleSwitch component moved here to be shared across pages (Fixes ReferenceError)
+const ToggleSwitch = ({ label, description, state, setState }) => (
+    <div className="flex justify-between items-center p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+        <div>
+            <p className="font-semibold text-gray-800">{label}</p>
+            <p className="text-sm text-gray-500">{description}</p>
+        </div>
+        <button 
+            onClick={() => setState(!state)}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${state ? `bg-${PRIMARY_COLOR}` : 'bg-gray-300'}`}
+        >
+            <span 
+                className={`absolute left-0 top-0 w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${state ? 'translate-x-full' : 'translate-x-0'}`}
+            />
+        </button>
+    </div>
+);
 
 // --- Header Component ---
 
@@ -100,7 +131,7 @@ const Header = ({ currentPage, navigate }) => {
         { name: 'Contact', view: 'contact' },
     ];
 
-    const getLinkClass = (view) =>
+    const getLinkClass = (view) => 
         currentPage === view ? `text-${PRIMARY_COLOR} font-semibold border-b-2 border-${PRIMARY_COLOR} pb-1` : 'text-gray-600 hover:text-indigo-600';
 
     const handleQuickLinkClick = (view) => {
@@ -108,7 +139,7 @@ const Header = ({ currentPage, navigate }) => {
         setIsDropdownOpen(false);
         setIsMobileMenuOpen(false);
     }
-   
+    
     // Custom handlers to implement the delay
     const handleMouseEnter = () => {
         if (dropdownTimeout) {
@@ -123,7 +154,7 @@ const Header = ({ currentPage, navigate }) => {
         }, 150); // 150ms delay to allow cursor to enter the menu area
         setDropdownTimeout(timeout);
     };
-   
+    
     // Cleanup timeout on component unmount
     useEffect(() => {
         return () => {
@@ -148,19 +179,19 @@ const Header = ({ currentPage, navigate }) => {
                 <nav className="hidden md:flex flex-grow justify-center">
                     <div className="space-x-8 flex items-center">
                         {navItems.map(item => (
-                            <button
-                                key={item.name}
-                                onClick={() => navigate(item.view)}
+                            <button 
+                                key={item.name} 
+                                onClick={() => navigate(item.view)} 
                                 className={getLinkClass(item.view)}
                             >
                                 {item.name}
                             </button>
                         ))}
-                       
+                        
                         {/* Quick Links Dropdown - NOW USING DELAYED HOVER LOGIC */}
-                        <div
-                            className="relative inline-block"
-                            onMouseEnter={handleMouseEnter}
+                        <div 
+                            className="relative inline-block" 
+                            onMouseEnter={handleMouseEnter} 
                             onMouseLeave={handleMouseLeave}
                         >
                             <button className={`text-gray-600 hover:text-${PRIMARY_COLOR} transition duration-150 flex items-center focus:outline-none`}>
@@ -170,9 +201,9 @@ const Header = ({ currentPage, navigate }) => {
                             {isDropdownOpen && (
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 bg-white shadow-2xl rounded-lg mt-3 py-2 w-56 z-30 transition duration-300 origin-top">
                                     {quickLinks.map(link => (
-                                        <button
+                                        <button 
                                             key={link.name}
-                                            onClick={() => handleQuickLinkClick(link.view)}
+                                            onClick={() => handleQuickLinkClick(link.view)} 
                                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
                                             {link.name}
@@ -192,10 +223,10 @@ const Header = ({ currentPage, navigate }) => {
                     <Button onClick={() => navigate('registration')} outline={true} primary={false} className="hidden sm:block text-sm">
                         Register
                     </Button>
-                   
+                    
                     {/* Mobile Menu Button */}
-                    <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
                         className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100"
                     >
                         {isMobileMenuOpen ? <Close className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -207,9 +238,9 @@ const Header = ({ currentPage, navigate }) => {
             {isMobileMenuOpen && (
                 <div className="absolute top-full left-0 w-full bg-white shadow-xl md:hidden pb-4 z-10">
                     {navItems.map(item => (
-                        <button
-                            key={item.name}
-                            onClick={() => { navigate(item.view); setIsMobileMenuOpen(false); }}
+                        <button 
+                            key={item.name} 
+                            onClick={() => { navigate(item.view); setIsMobileMenuOpen(false); }} 
                             className={`block w-full text-left px-6 py-3 text-gray-700 hover:bg-gray-100 ${getLinkClass(item.view)}`}
                         >
                             {item.name}
@@ -217,9 +248,9 @@ const Header = ({ currentPage, navigate }) => {
                     ))}
                     <div className="px-6 py-2 font-semibold text-gray-800 border-t mt-2">Quick Links</div>
                     {quickLinks.map(link => (
-                        <button
-                            key={link.name}
-                            onClick={() => handleQuickLinkClick(link.view)}
+                        <button 
+                            key={link.name} 
+                            onClick={() => handleQuickLinkClick(link.view)} 
                             className="block w-full text-left pl-10 pr-6 py-2 text-sm text-gray-600 hover:bg-gray-50"
                         >
                             {link.name}
@@ -276,7 +307,7 @@ const HomePage = ({ navigate }) => {
     );
 
     return (
-        <div className="pt-10">
+        <div className="pt-4"> {/* Reduced top padding here as well for overall layout */}
             {/* 2. Hero/Slider Section */}
             <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-16">
                 <div className="relative overflow-hidden rounded-xl shadow-2xl bg-gray-200">
@@ -302,7 +333,7 @@ const HomePage = ({ navigate }) => {
                     {/* Pagination Dots */}
                     <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
                         {[...Array(totalSlides)].map((_, i) => (
-                            <button
+                            <button 
                                 key={i}
                                 onClick={() => setCurrentSlide(i)}
                                 className={`w-3 h-3 rounded-full transition duration-300 ${i === currentSlide ? `bg-${PRIMARY_COLOR}` : 'bg-gray-400'}`}
@@ -315,7 +346,7 @@ const HomePage = ({ navigate }) => {
             {/* 3. Key Metrics Section */}
             <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">Key Metrics</h2>
-               
+                
                 <div className="flex flex-col md:flex-row items-center justify-between bg-white p-8 rounded-xl shadow-xl max-w-4xl mx-auto">
                     {['Households registered', 'Waste collected', 'Segregation rate'].map((label, index) => (
                         <React.Fragment key={index}>
@@ -334,7 +365,7 @@ const HomePage = ({ navigate }) => {
             {/* 4. Committee Members Section */}
             <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-gray-50">
                 <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">Committee Members</h2>
-               
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
                     {committeeMembers.map((member, index) => (
                         <MemberCard key={index} member={member} />
@@ -358,7 +389,7 @@ const RegistrationPage = ({ navigate }) => {
                 <input
                     type={type}
                     placeholder={placeholder}
-                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 transition duration-150"
+                    className={`w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING} transition duration-150`}
                 />
                 <Icon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
@@ -389,12 +420,12 @@ const RegistrationPage = ({ navigate }) => {
     );
 
     return (
-        <div className="container mx-auto pt-10 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto pt-4 px-4 sm:px-6 lg:px-8"> {/* Reduced top padding */}
             <div className="flex flex-wrap shadow-2xl rounded-xl overflow-hidden min-h-[80vh]">
                 {/* A. Left Panel: Registration Form */}
                 <div className="w-full lg:w-3/5 bg-white p-6 md:p-12">
                     <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-10">Register</h2>
-                   
+                    
                     <form className="flex flex-wrap -m-2">
                         {/* Input Fields */}
                         <IconInput icon={Users} label="Username" placeholder="Enter Username" />
@@ -410,13 +441,13 @@ const RegistrationPage = ({ navigate }) => {
                         <div className="w-full p-2 mt-6">
                             <h3 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4">Upload Documents</h3>
                             <div className="flex flex-wrap -m-2">
-                                <FileUpload
+                                <FileUpload 
                                     title="Proof of Identity"
                                     documentsAccepted={['Aadhaar Card, Voter ID, Driving License, Passport, Enrollment Card, or any other government document.']}
                                     setFile={setIdentityFile}
                                     file={identityFile}
                                 />
-                                <FileUpload
+                                <FileUpload 
                                     title="Proof of Premises"
                                     documentsAccepted={['House registration document, House tax receipt (latest), Electricity bill (not older than 3 months), Rent/Lease agreement, Transfer of property document, or any other document...']}
                                     setFile={setPremisesFile}
@@ -425,25 +456,41 @@ const RegistrationPage = ({ navigate }) => {
                             </div>
                         </div>
 
-                        {/* Action Button & Link */}
+                        {/* Action Button & Link - UPDATED FOR LINE BREAK */}
                         <div className="w-full p-2 mt-8 text-center">
-                            <Button primary={false} className="w-full max-w-sm" onClick={(e) => { e.preventDefault(); alert('Registration simulated!'); }}>
+                            <Button 
+                                primary={false} 
+                                className="w-full max-w-sm block mx-auto" // Added block mx-auto for centering/line break
+                                onClick={(e) => { e.preventDefault(); alert('Registration simulated!'); }}
+                            >
                                 Register
                             </Button>
-                            <button onClick={(e) => { e.preventDefault(); alert('Need Help? Contact support at 9999999999'); }} className={`mt-4 text-sm text-${PRIMARY_COLOR} hover:underline`}>
+                            <button 
+                                onClick={(e) => { e.preventDefault(); alert('Need Help? Contact support at 9999999999'); }} 
+                                className={`mt-4 block mx-auto text-sm text-${PRIMARY_COLOR} hover:underline`} // Added block mx-auto for line break and centering
+                            >
                                 Need help?
                             </button>
                         </div>
                     </form>
                 </div>
 
-                {/* B. Right Panel: Login Prompt */}
-                <div className={`hidden lg:flex lg:w-2/5 flex-col items-center justify-center p-8 text-white bg-emerald-500 bg-opacity-90`}>
-                    <h3 className="text-4xl font-extrabold mb-4">Welcome Back!</h3>
-                    <p className="text-lg mb-8 text-center">Already have an account?</p>
-                    <Button primary={false} onClick={() => navigate('login')} className="px-8 py-2 bg-white text-emerald-600 hover:bg-gray-100 shadow-xl">
+                {/* B. Right Panel: Login Prompt - UPDATED TEXT/BUTTON COLOR TO BLACK */}
+                <div className={`hidden lg:flex lg:w-2/5 flex-col items-center justify-center p-8 bg-emerald-500 bg-opacity-90`}>
+                    {/* Text changed from white (implied) to text-gray-900 */}
+                    <h3 className="text-4xl font-extrabold mb-4 text-white">Welcome Back!</h3>
+                    <p className="text-lg mb-8 text-center text-white">Already have an account?</p>
+                    <Button
+                        primary={false}
+                        onClick={() => navigate('login')}
+                        className="px-8 py-2 !bg-white !text-black hover:!bg-gray-100 shadow-xl"
+                    >
                         Login
                     </Button>
+
+
+
+
                 </div>
             </div>
         </div>
@@ -457,20 +504,26 @@ const LoginPage = ({ navigate }) => {
             <input
                 type={type}
                 placeholder={placeholder}
-                className="w-full p-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 transition duration-150"
+                className={`w-full p-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 ${PRIMARY_FOCUS_RING} transition duration-150`}
             />
             <Icon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
         </div>
     );
 
     return (
-        <div className="container mx-auto pt-10 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto pt-4 px-4 sm:px-6 lg:px-8"> {/* Reduced top padding */}
             <div className="flex flex-wrap shadow-2xl rounded-xl overflow-hidden min-h-[60vh]">
-                {/* A. Left Panel: Welcome & Register Prompt */}
-                <div className={`hidden lg:flex lg:w-2/5 flex-col items-center justify-center p-8 text-white bg-emerald-500 bg-opacity-90`}>
-                    <h3 className="text-4xl font-extrabold mb-4">Hello, Welcome!</h3>
-                    <p className="text-lg mb-8 text-center">Don't have an account?</p>
-                    <Button primary={false} onClick={() => navigate('registration')} className="px-8 py-2 bg-white text-emerald-600 hover:bg-gray-100 shadow-xl">
+                {/* A. Left Panel: Welcome & Register Prompt - UPDATED TEXT/BUTTON COLOR TO BLACK */}
+                <div className={`hidden lg:flex lg:w-2/5 flex-col items-center justify-center p-8 bg-emerald-500 bg-opacity-90`}>
+                    {/* Text changed from white (implied) to text-gray-900 */}
+                    <h3 className="text-4xl font-extrabold mb-4 text-white">Hello, Welcome!</h3>
+                    <p className="text-lg mb-8 text-center text-white">Don't have an account?</p>
+                    {/* Button text explicitly set to black/gray-900 */}
+                    <Button 
+                        primary={false} 
+                        onClick={() => navigate('registration')} 
+                        className="px-8 py-2 !bg-white !text-black hover:!bg-gray-100 shadow-xl"
+                    >
                         Register
                     </Button>
                 </div>
@@ -478,14 +531,14 @@ const LoginPage = ({ navigate }) => {
                 {/* B. Right Panel: Login Form */}
                 <div className="w-full lg:w-3/5 bg-white p-6 md:p-12 flex flex-col justify-center">
                     <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-10">Login</h2>
-                   
+                    
                     <form className="max-w-md mx-auto w-full">
                         <IconInput icon={Users} placeholder="Username" />
                         <IconInput icon={Lock} placeholder="Password" type="password" />
-                       
+                        
                         <div className="text-right mb-8">
-                            <button
-                                onClick={(e) => { e.preventDefault(); navigate('forgotPassword'); }}
+                            <button 
+                                onClick={(e) => { e.preventDefault(); navigate('forgotPassword'); }} 
                                 className={`text-sm text-${PRIMARY_COLOR} hover:underline`}
                             >
                                 Forgot Password?
@@ -505,13 +558,13 @@ const LoginPage = ({ navigate }) => {
 // 4. Forgot Password
 const ForgotPasswordPage = ({ navigate }) => {
     return (
-        <div className="container mx-auto pt-10 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto pt-4 px-4 sm:px-6 lg:px-8"> {/* Reduced top padding */}
             <div className="flex flex-wrap shadow-2xl rounded-xl overflow-hidden min-h-[60vh]">
                 {/* A. Left Panel: Forgot Password Info */}
                 <div className={`hidden lg:flex lg:w-2/5 flex-col items-center justify-center p-8 text-white bg-emerald-500 bg-opacity-90`}>
                     <h3 className="text-4xl font-extrabold mb-4">Forgot Password</h3>
                     <p className="text-lg mb-8 text-center">Remember your account details?</p>
-                    <Button primary={false} onClick={() => navigate('login')} className="px-8 py-2 bg-white text-emerald-600 hover:bg-gray-100 shadow-xl">
+                    <Button primary={false} onClick={() => navigate('login')} className="px-8 py-2 bg-white text-black hover:bg-gray-100 shadow-xl">
                         Login
                     </Button>
                 </div>
@@ -519,7 +572,7 @@ const ForgotPasswordPage = ({ navigate }) => {
                 {/* B. Right Panel: Reset Password Form */}
                 <div className="w-full lg:w-3/5 bg-gray-50 p-6 md:p-12 flex flex-col justify-center">
                     <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-10">Reset Password</h2>
-                   
+                    
                     <form className="max-w-md mx-auto w-full">
                         <div className="flex items-end mb-6">
                             <div className="flex-grow mr-2">
@@ -540,15 +593,15 @@ const ForgotPasswordPage = ({ navigate }) => {
                                 Verify OTP
                             </Button>
                         </div>
-                       
+                        
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
-                            <input type="password" className="w-full p-3 border border-gray-300 rounded-lg" placeholder="New password" />
+                            <input type="password" className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`} placeholder="New password" />
                         </div>
-                       
+                        
                         <div className="mb-8">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Confirm new password</label>
-                            <input type="password" className="w-full p-3 border border-gray-300 rounded-lg" placeholder="Confirm new password" />
+                            <input type="password" className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`} placeholder="Confirm new password" />
                         </div>
 
                         <Button primary={false} className="w-full" onClick={(e) => { e.preventDefault(); alert('Password Reset Successful!'); navigate('login'); }}>
@@ -567,7 +620,7 @@ const AboutPage = ({ navigate }) => {
 
     const AccordionItem = ({ id, title, children }) => (
         <div className="border-b border-gray-200">
-            <button
+            <button 
                 className="flex justify-between items-center w-full p-5 text-left font-semibold text-gray-800 hover:bg-gray-50 transition duration-150"
                 onClick={() => setExpanded(expanded === id ? null : id)}
             >
@@ -591,11 +644,11 @@ const AboutPage = ({ navigate }) => {
             </Button>
         </div>
     );
-   
+    
     return (
-        <div className="container mx-auto pt-10 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto pt-4 px-4 sm:px-6 lg:px-8"> {/* Reduced top padding */}
             <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-12">About Us</h1>
-           
+            
             {/* 3. Core Information Section (Accordion Structure) */}
             <div className="max-w-4xl mx-auto mb-16 rounded-xl overflow-hidden shadow-xl bg-white">
                 <AccordionItem id="mission" title="Our Mission">
@@ -696,19 +749,19 @@ const LegalTransparencyPage = ({ navigate }) => {
     const policyContent = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nVivamus sagittis, sem sed feugiat dictum, nulla tellus luctus ligula, sed varius quam odio sed dolor. Suspendisse potenti. Nam et est sed sem pretium egestas. Nulla facilisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur blandit, ipsum et vehicula volutpat, ipsum elit euismod enim, ac posuere leo nisl vel elit.";
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
 
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
                 {/* Privacy Policy */}
-                <PolicySection
+                <PolicySection 
                     title="Privacy Policy"
                     summary="Summary: We collect minimal personal data required for registration and complaint resolution. You can request access, correction, or deletion at any time."
                     content={policyContent}
                 />
 
                 {/* Terms of Use */}
-                <PolicySection
+                <PolicySection 
                     title="Terms of Use"
                     content={policyContent}
                 />
@@ -743,27 +796,11 @@ const AccessibilityLanguagePage = ({ navigate }) => {
     const [isHighContrast, setIsHighContrast] = useState(false);
     const [isDyslexiaFriendly, setIsDyslexiaFriendly] = useState(false);
 
-    const ToggleSwitch = ({ label, description, state, setState }) => (
-        <div className="flex justify-between items-center p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
-            <div>
-                <p className="font-semibold text-gray-800">{label}</p>
-                <p className="text-sm text-gray-500">{description}</p>
-            </div>
-            <button
-                onClick={() => setState(!state)}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${state ? `bg-${PRIMARY_COLOR}` : 'bg-gray-300'}`}
-            >
-                <span
-                    className={`absolute left-0 top-0 w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ${state ? 'translate-x-full' : 'translate-x-0'}`}
-                />
-            </button>
-        </div>
-    );
 
     const FontSizeButton = ({ label }) => (
-        <button
+        <button 
             onClick={() => setTextSize(label)}
-            className={`w-1/4 p-2 rounded-lg border-2 text-sm font-semibold transition duration-150
+            className={`w-1/4 p-2 rounded-lg border-2 text-sm font-semibold transition duration-150 
                 ${textSize === label ? 'border-yellow-500 bg-yellow-50 text-yellow-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
         >
             {label}
@@ -771,7 +808,7 @@ const AccessibilityLanguagePage = ({ navigate }) => {
     );
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
 
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
@@ -789,7 +826,7 @@ const AccessibilityLanguagePage = ({ navigate }) => {
                                 const id = label.toLowerCase().replace(/\s/g, '-');
                                 const Icon = label === 'Text Size' ? 'T' : label === 'Contrast' ? Volume2 : Globe;
                                 return (
-                                    <button
+                                    <button 
                                         key={id}
                                         onClick={() => setActiveSection(id)}
                                         className={`w-full text-left p-4 rounded-xl font-semibold transition duration-150 flex items-center shadow-md ${activeSection === id ? `bg-emerald-500 text-white` : `bg-white text-gray-700 border border-emerald-500 hover:bg-emerald-50`}`}
@@ -809,7 +846,7 @@ const AccessibilityLanguagePage = ({ navigate }) => {
                             <h3 className="text-2xl font-bold text-gray-800 flex items-center mb-4">
                                 <span className="text-2xl font-black mr-3">T</span> Text Size
                             </h3>
-                           
+                            
                             {/* Slider (Simulated) */}
                             <div className="flex items-center space-x-4 mb-6 p-4 border rounded-lg bg-gray-50">
                                 <Minus className="w-6 h-6 text-gray-600" />
@@ -839,17 +876,17 @@ const AccessibilityLanguagePage = ({ navigate }) => {
                                 <Volume2 className="w-6 h-6 mr-3" /> Contrast & Color
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <ToggleSwitch
-                                    label="High Contrast"
-                                    description="Increases text and UI Contrast."
-                                    state={isHighContrast}
-                                    setState={setIsHighContrast}
+                                <ToggleSwitch 
+                                    label="High Contrast" 
+                                    description="Increases text and UI Contrast." 
+                                    state={isHighContrast} 
+                                    setState={setIsHighContrast} 
                                 />
-                                <ToggleSwitch
-                                    label="Dyslexia-Friendly"
-                                    description="Improved spacing for readability."
-                                    state={isDyslexiaFriendly}
-                                    setState={setIsDyslexiaFriendly}
+                                <ToggleSwitch 
+                                    label="Dyslexia-Friendly" 
+                                    description="Improved spacing for readability." 
+                                    state={isDyslexiaFriendly} 
+                                    setState={setIsDyslexiaFriendly} 
                                 />
                             </div>
                         </div>
@@ -862,7 +899,7 @@ const AccessibilityLanguagePage = ({ navigate }) => {
                                 <Globe className="w-6 h-6 mr-3" /> Language
                             </h3>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Language</label>
-                            <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <select className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`}>
                                 <option>English (Default)</option>
                                 <option>Hindi</option>
                                 <option>Marathi</option>
@@ -890,7 +927,7 @@ const ContactPage = ({ navigate }) => {
             <div className="w-full">
                 <p className="text-xl font-bold text-gray-900">{member.name}</p>
                 <p className={`text-sm text-${PRIMARY_COLOR} font-medium mb-3`}>{member.designation}</p>
-               
+                
                 <div className="flex flex-col space-y-2">
                     <div className={`flex items-center p-2 rounded-lg border border-${PRIMARY_COLOR} text-${PRIMARY_COLOR}`}>
                         <Smartphone className="w-4 h-4 mr-2" />
@@ -914,7 +951,7 @@ const ContactPage = ({ navigate }) => {
     );
 
     return (
-        <div className="container mx-auto pt-10 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto pt-4 px-4 sm:px-6 lg:px-8"> {/* Reduced top padding */}
             <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-12">Contact Us</h1>
 
             {/* 2. Committee Member Directory (Top Section) */}
@@ -954,11 +991,11 @@ const ContactPage = ({ navigate }) => {
                 <div className="w-full lg:w-1/2 p-4">
                     <div className="bg-white p-6 rounded-xl shadow-xl h-full">
                         <h3 className="text-2xl font-bold text-gray-800 border-b border-gray-200 pb-3 mb-4">Office Location</h3>
-                       
+                        
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Search Ward</label>
                             <div className="relative">
-                                <input type="text" placeholder="Enter Ward name..." className="w-full p-3 border rounded-lg pr-10" />
+                                <input type="text" placeholder="Enter Ward name..." className={`w-full p-3 border rounded-lg pr-10 focus:ring-2 ${PRIMARY_FOCUS_RING}`} />
                                 <Search className="w-5 h-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             </div>
                         </div>
@@ -1005,10 +1042,10 @@ const HowItWorksPage = ({ navigate }) => {
 
     const FAQItem = ({ question, answer, isExpanded }) => (
         <div className="border-b border-gray-200">
-            <button
+            <button 
                 className="flex justify-between items-center w-full p-4 text-left font-semibold text-gray-800 hover:bg-gray-50 transition duration-150"
                 // Simulate state change if this were a real component
-                onClick={() => alert(isExpanded ? "Collapsing answer..." : answer)}
+                onClick={() => alert(isExpanded ? "Collapsing answer..." : answer)} 
             >
                 {question}
                 <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
@@ -1022,7 +1059,7 @@ const HowItWorksPage = ({ navigate }) => {
     );
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
                 <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-12">Garbage Collection - Smart Reporting System</h1>
@@ -1062,9 +1099,10 @@ const SubmitComplaintPage = ({ navigate }) => {
     ];
 
     const [isUploaded, setIsUploaded] = useState(false);
+    const [isSmsEnabled, setIsSmsEnabled] = useState(false); // State for SMS toggle
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
                 <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-12">Complaint form</h1>
@@ -1074,12 +1112,12 @@ const SubmitComplaintPage = ({ navigate }) => {
                     <div className="w-full lg:w-2/3 p-6 md:p-10 border-r border-gray-100">
                         <form className="space-y-4">
                             <h2 className="text-2xl font-bold text-gray-800 mb-4">Complaint Details</h2>
-                           
+                            
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="text" placeholder="Enter Your Name" className="p-3 border rounded-lg" />
-                                <input type="text" placeholder="Enter Ward/Locality" className="p-3 border rounded-lg" />
-                                <input type="text" placeholder="Enter House No." className="p-3 border rounded-lg" />
-                                <select className="p-3 border rounded-lg bg-white">
+                                <input type="text" placeholder="Enter Your Name" className={`p-3 border rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`} />
+                                <input type="text" placeholder="Enter Ward/Locality" className={`p-3 border rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`} />
+                                <input type="text" placeholder="Enter House No." className={`p-3 border rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`} />
+                                <select className={`p-3 border rounded-lg bg-white focus:ring-2 ${PRIMARY_FOCUS_RING}`}>
                                     <option>Complain subject</option>
                                     <option>Damaged Dustbin</option>
                                     <option selected>Misbehavior of labour</option>
@@ -1087,15 +1125,15 @@ const SubmitComplaintPage = ({ navigate }) => {
                                     <option>Other (Please Specify)</option>
                                 </select>
                             </div>
-                           
+                            
                             <div>
                                 <label className="block text-sm font-medium mb-1">Describe the complaint in brief to help us understand the complaint better and for a faster resolution.</label>
-                                <textarea rows="4" className="w-full p-3 border rounded-lg" placeholder="Describe your complaint..."></textarea>
+                                <textarea rows="4" className={`w-full p-3 border rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`} placeholder="Describe your complaint..."></textarea>
                             </div>
 
                             <div className="flex space-x-4 pt-4">
-                                <Button
-                                    primary={false}
+                                <Button 
+                                    primary={false} 
                                     className="bg-emerald-500 hover:bg-emerald-600 w-full"
                                     onClick={(e) => { e.preventDefault(); navigate('complaintSubmitted'); }}
                                 >
@@ -1117,7 +1155,7 @@ const SubmitComplaintPage = ({ navigate }) => {
                     <div className="w-full lg:w-1/3 p-6 md:p-10 bg-gray-50">
                         {/* A. Proof Upload */}
                         <h3 className="text-xl font-bold text-gray-800 mb-4">Proof (upload picture) (if Any)</h3>
-                        <div
+                        <div 
                             className={`h-40 border-2 border-dashed ${isUploaded ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'} rounded-lg flex flex-col items-center justify-center text-gray-500 mb-8 cursor-pointer`}
                             onClick={() => setIsUploaded(!isUploaded)}
                         >
@@ -1128,7 +1166,7 @@ const SubmitComplaintPage = ({ navigate }) => {
 
                         {/* B. WhatsApp/SMS Integration */}
                         <div className="space-y-4">
-                            <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between border border-emerald-300">
+                            <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between border-2 border-emerald-300">
                                 <div className="flex items-center">
                                     <MessageSquare className="w-6 h-6 text-emerald-500 mr-3" />
                                     <p className="text-sm">Link WhatsApp. Receive complaint updates...</p>
@@ -1141,7 +1179,12 @@ const SubmitComplaintPage = ({ navigate }) => {
                                     <Smartphone className="w-6 h-6 text-gray-500 mr-3" />
                                     <p className="text-sm">Enable SMS Alerts.</p>
                                 </div>
-                                <ToggleSwitch state={false} setState={() => alert('SMS alerts toggled (simulated)')} />
+                                <ToggleSwitch 
+                                    label="" // Empty label since we already have text
+                                    description="" // Empty description
+                                    state={isSmsEnabled} 
+                                    setState={setIsSmsEnabled}
+                                />
                             </div>
                         </div>
                     </div>
@@ -1154,10 +1197,10 @@ const SubmitComplaintPage = ({ navigate }) => {
 // 11. Complaint Submitted Page
 const ComplaintSubmittedPage = ({ navigate }) => {
     return (
-        <div className="container mx-auto pt-10 px-4 sm:px-6 lg:px-8 bg-gray-100 min-h-[80vh] flex items-center justify-center">
+        <div className="container mx-auto pt-4 px-4 sm:px-6 lg:px-8 bg-gray-100 min-h-[80vh] flex items-center justify-center"> {/* Reduced top padding */}
             <div className="bg-white p-10 rounded-xl shadow-2xl max-w-lg w-full text-center border-t-8 border-red-500">
                 <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Complaint Submitted</h1>
-               
+                
                 <div className="space-y-3 text-left bg-gray-50 p-6 rounded-lg mb-8 border">
                     <p className="text-sm"><span className="font-bold text-gray-700">Name:</span> S. Kumar</p>
                     <p className="text-sm"><span className="font-bold text-gray-700">Subject:</span> There is Hazardous waste in my locality which has not been collected</p>
@@ -1227,7 +1270,7 @@ const StatisticsReportsPage = ({ navigate }) => {
             <svg width="150" height="150" viewBox="0 0 100 100">
                 <circle r="50" cx="50" cy="50" fill="#a7f3d0" />
                 {/* 23% contamination starting at 12 o'clock */}
-                <path d="M50 50 L50 0 A50 50 0 0 1 73.5 12.5 Z" fill="#f87171" />
+                <path d="M50 50 L50 0 A50 50 0 0 1 73.5 12.5 Z" fill="#f87171" /> 
                 <text x="50" y="50" textAnchor="middle" fill="#065f46" className="font-bold text-sm">77%</text>
             </svg>
             <div className="flex space-x-4 mt-4 text-sm">
@@ -1249,7 +1292,7 @@ const StatisticsReportsPage = ({ navigate }) => {
                 ].map((quarter) => (
                     <div key={quarter.q} className="flex h-full items-end justify-center w-1/4">
                         {quarter.d.map((bar, i) => (
-                            <div
+                            <div 
                                 key={i}
                                 className={`w-4 mx-1 rounded-t-sm`}
                                 style={{ height: `${bar.y}%`, backgroundColor: bar.c.includes('indigo') ? '#4f46e5' : '#6b7280' }}
@@ -1272,7 +1315,7 @@ const StatisticsReportsPage = ({ navigate }) => {
     );
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
                 {/* 2. Date Selection and Page Title */}
@@ -1299,7 +1342,7 @@ const StatisticsReportsPage = ({ navigate }) => {
                                 <PieChart className="w-6 h-6 mr-2 text-teal-500" />
                                 Segregation compliance rates
                             </h3>
-                           
+                            
                             <div className="flex flex-col md:flex-row gap-6">
                                 {/* Text Breakdowns */}
                                 <div className="text-sm md:w-1/2 space-y-2">
@@ -1316,7 +1359,7 @@ const StatisticsReportsPage = ({ navigate }) => {
                                         <li>Wet-cycling (Wrong Materials) - 25%</li>
                                     </ul>
                                 </div>
-                               
+                                
                                 {/* Pie Chart & Summary */}
                                 <div className="md:w-1/2 flex flex-col justify-center items-center">
                                     <PieChartVisual />
@@ -1328,7 +1371,7 @@ const StatisticsReportsPage = ({ navigate }) => {
                         </div>
                     </div>
                 </div>
-               
+                
                 {/* 4. Bottom Reporting Section (Year-on-Year Bar Chart) */}
                 <div className="w-full">
                     <ChartPlaceholder title="Year-on-year performance charts" Icon={BarChart} color={PRIMARY_COLOR}>
@@ -1359,7 +1402,7 @@ const ViewSchedulePage = ({ navigate }) => {
     ];
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
                 <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-12">Garbage Collection Schedule</h1>
@@ -1426,7 +1469,7 @@ const GuidesResourcesPage = ({ navigate }) => {
     const dontsContent = "Don't mix waste types.\nDon't put e-waste in regular bins.\nDon't use thin plastic bags.\nDon't throw medical waste with regular garbage.";
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
                 <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-12">Waste Segregation Guide</h1>
@@ -1499,7 +1542,7 @@ const EventsWorkshopsPage = ({ navigate }) => {
             <div className="p-4 flex-grow flex flex-col">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{event.title}</h3>
                 <p className="text-sm text-gray-600 mb-4 line-clamp-2">{event.description}</p>
-               
+                
                 <div className="space-y-1 text-sm text-gray-700 flex-grow">
                     <p className="flex items-center"><Calendar className="w-4 h-4 mr-2 text-indigo-500" /> Date: {event.date}</p>
                     <p className="flex items-center"><Clock className="w-4 h-4 mr-2 text-indigo-500" /> Time: {event.time}</p>
@@ -1515,7 +1558,7 @@ const EventsWorkshopsPage = ({ navigate }) => {
     );
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
                 <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-12">Featured Events</h1>
@@ -1533,10 +1576,10 @@ const EventsWorkshopsPage = ({ navigate }) => {
 // 16. Volunteer Form Page (Modal Style)
 const VolunteerFormPage = ({ navigate }) => {
     return (
-        <div className="container mx-auto pt-10 px-4 sm:px-6 lg:px-8 bg-gray-100 min-h-[80vh] flex items-center justify-center">
+        <div className="container mx-auto pt-4 px-4 sm:px-6 lg:px-8 bg-gray-100 min-h-[80vh] flex items-center justify-center"> {/* Reduced top padding */}
             <div className={`bg-white p-10 rounded-xl shadow-2xl max-w-md w-full text-center border-t-8 border-${PRIMARY_COLOR}`}>
                 <h1 className="text-3xl font-extrabold text-gray-800 mb-8">SignUp volunteer Form</h1>
-               
+                
                 <form className="space-y-6 text-left">
                     {/* Name */}
                     <div>
@@ -1553,7 +1596,7 @@ const VolunteerFormPage = ({ navigate }) => {
                         <label className="block text-sm font-semibold mb-1">3.Enter your Phone no.:</label>
                         <input type="tel" className="w-full p-3 border rounded-lg" />
                     </div>
-                   
+                    
                     {/* Event Selection */}
                     <div>
                         <label className="block text-sm font-semibold mb-2">Select Event :</label>
@@ -1625,13 +1668,13 @@ const NewsUpdatesPage = ({ navigate }) => {
     );
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-               
+                
                 {/* News & Updates Section */}
                 <h1 className="text-4xl font-extrabold text-gray-800 mb-8">News & Updates</h1>
-               
+                
                 {/* Filter Tabs */}
                 <div className="flex space-x-2 sm:space-x-4 mb-10 overflow-x-auto pb-2">
                     {['All', 'Announcements', 'Press releases', 'Success stories'].map(filter => (
@@ -1639,8 +1682,8 @@ const NewsUpdatesPage = ({ navigate }) => {
                             key={filter}
                             onClick={() => setActiveFilter(filter)}
                             className={`px-4 py-2 rounded-full text-sm font-semibold transition duration-150 flex-shrink-0 ${
-                                activeFilter === filter
-                                ? `bg-${PRIMARY_COLOR} text-white shadow-md`
+                                activeFilter === filter 
+                                ? `bg-${PRIMARY_COLOR} text-white shadow-md` 
                                 : `bg-white text-gray-700 border border-${PRIMARY_COLOR} hover:bg-gray-50`
                             }`}
                         >
@@ -1683,14 +1726,14 @@ const FAQsFeedbackPage = ({ navigate }) => {
         { question: 'Can I submit photos with complaints?', answer: "Yes, you can upload photos as proof directly in the 'Submit Complaint' form.", expanded: false },
         { question: 'Where do I see collection schedules?', answer: "The schedules are available on the 'View Schedule' page under Quick Links.", expanded: false },
     ];
-   
+    
     const [openFaq, setOpenFaq] = useState(faqs[0].question);
     const [rating, setRating] = useState(3);
 
     const StarRating = () => (
         <div className="flex space-x-1 cursor-pointer">
             {[1, 2, 3, 4, 5].map(i => (
-                <Star
+                <Star 
                     key={i}
                     onClick={() => setRating(i)}
                     className={`w-6 h-6 transition duration-150 ${i <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
@@ -1700,16 +1743,16 @@ const FAQsFeedbackPage = ({ navigate }) => {
     );
 
     return (
-        <div className="container mx-auto pt-10">
+        <div className="container mx-auto pt-4"> {/* Reduced top padding */}
             <Breadcrumb path={path} navigate={navigate} />
             <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-               
+                
                 {/* 2. Frequently Asked Questions (FAQ) Section */}
                 <h1 className="text-4xl font-extrabold text-gray-800 mb-8">FAQ's</h1>
                 <div className="bg-white rounded-xl shadow-xl mb-16 border border-gray-100 overflow-hidden">
                     {faqs.map((faq, index) => (
                         <div key={index} className="border-b border-gray-100 last:border-b-0">
-                            <button
+                            <button 
                                 className="flex justify-between items-center w-full p-4 text-left font-semibold text-gray-800 hover:bg-gray-50 transition duration-150"
                                 onClick={() => setOpenFaq(faq.question === openFaq ? null : faq.question)}
                             >
@@ -1731,10 +1774,10 @@ const FAQsFeedbackPage = ({ navigate }) => {
                     {/* A. Left Column: Feedback Form */}
                     <div className="w-full lg:w-2/3 p-6 md:p-10 border-r border-gray-100">
                         <form className="space-y-4">
-                            <div><label className="block text-sm font-medium">Name:</label><input type="text" className="w-full p-3 border rounded-lg" /></div>
-                            <div><label className="block text-sm font-medium">Email:</label><input type="email" className="w-full p-3 border rounded-lg" /></div>
-                            <div><label className="block text-sm font-medium">Your Feedback:</label><textarea rows="4" className="w-full p-3 border rounded-lg"></textarea></div>
-                           
+                            <div><label className="block text-sm font-medium">Name:</label><input type="text" className={`w-full p-3 border rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`} /></div>
+                            <div><label className="block text-sm font-medium">Email:</label><input type="email" className={`w-full p-3 border rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`} /></div>
+                            <div><label className="block text-sm font-medium">Your Feedback:</label><textarea rows="4" className={`w-full p-3 border rounded-lg focus:ring-2 ${PRIMARY_FOCUS_RING}`}></textarea></div>
+                            
                             <div className="pt-2">
                                 <label className="block text-sm font-medium mb-2">Rate Our Service:</label>
                                 <StarRating />
@@ -1817,7 +1860,7 @@ const App = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <Header currentPage={currentPage} navigate={navigate} />
-            <main className="pt-20">
+            <main className="pt-20"> {/* This padding is overridden below by individual page containers */}
                 {renderPage()}
             </main>
             <Footer />
