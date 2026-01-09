@@ -1,6 +1,6 @@
 import express from "express";
-import { createDustbin, listDustbins } from "../controllers/dustbinController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { createDustbin, listDustbins } from "../controllers/dustbin.controller.js";
+import { protect } from "../middleware/auth.middleware.js";
 import { allowRoles } from "../middleware/roleMiddleware.js";
 import { checkSubscription } from "../middleware/subscriptionMiddleware.js";
 

@@ -1,6 +1,6 @@
 import express from "express";
-import { missedCollectionsReport } from "../controllers/reportController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { missedCollectionsReport } from "../controllers/report.controller.js";
+import { protect } from "../middleware/auth.middleware.js";
 import { allowRoles } from "../middleware/roleMiddleware.js";
 import { checkSubscription } from "../middleware/subscriptionMiddleware.js";
 
@@ -8,7 +8,7 @@ import {
   gpsInvalidReport,
   selfieRequiredReport,
   dailyDashboardSummary,
-} from "../controllers/reportController.js";
+} from "../controllers/report.controller.js";
 
 const router = express.Router();
 

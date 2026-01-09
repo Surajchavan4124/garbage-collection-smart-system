@@ -17,7 +17,9 @@ export const scanDustbin = async (req, res) => {
   });
 
   if (!dustbin) {
-    return res.status(404).json({ message: "Invalid QR code" });
+    return res.status(404).json({ message: "Invalid QR code",
+      success: false,
+     });
   }
 
   // 2️⃣ Calculate distance
@@ -84,5 +86,7 @@ export const bulkSyncCollections = async (req, res) => {
   // iterate and call same scan logic
   // mark as offline=true
 
-  res.json({ message: "Offline scans synced", count: scans.length });
+  res.status(200).json({ message: "Offline scans synced", count: scans.length,
+    success: true,
+   });
 };

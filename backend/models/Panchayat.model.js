@@ -1,37 +1,52 @@
 import mongoose from "mongoose";
+
 const PanchayatSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
     },
+
     address: {
       type: String,
+      required: true,
     },
+
+    inchargeName: {
+      type: String,
+      required: true,
+    },
+
+    contactPhone: {
+      type: String,
+      required: true,
+    },
+
     contactEmail: {
       type: String,
     },
-    contactPhone: {
+
+    website: {
       type: String,
     },
+
+    estHouseholds: {
+      type: String,
+    },
+
+    estLabours: {
+      type: String,
+    },
+
+   documents: {
+      inchargeIdProof: { type: String },        // filename
+      registrationLetter: { type: String },     // filename
+    },
+
     status: {
       type: String,
-      enum: ["pending", "active", "suspended"],
+      enum: ["pending", "active", "rejected"],
       default: "pending",
-    },
-
-    householdLimit: {
-      type: Number,
-      default: 0,
-    },
-    labourLimit: {
-      type: Number,
-      default: 0,
-    },
-
-    subscriptionActive: {
-      type: Boolean,
-      default: false,
     },
   },
   { timestamps: true }
