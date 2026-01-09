@@ -1,35 +1,24 @@
 import mongoose from "mongoose";
-const SubscriptionSchema = new mongoose.Schema(
+
+const subscriptionSchema = new mongoose.Schema(
   {
-    panchayatId: {
+    panchayat: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Panchayat",
       required: true,
+      unique: true,
     },
 
     planName: {
       type: String,
+      enum: ["BASIC", "STANDARD", "PREMIUM"],
       required: true,
-    },
-
-    householdLimit: {
-      type: Number,
-      required: true,
-    },
-
-    labourLimit: {
-      type: Number,
-      required: true,
-    },
-
-    features: {
-      type: [String], // e.g. ["CMS", "REPORTS", "SMS"]
-      default: [],
     },
 
     startDate: {
       type: Date,
       required: true,
+      default: Date.now,
     },
 
     endDate: {
@@ -37,17 +26,13 @@ const SubscriptionSchema = new mongoose.Schema(
       required: true,
     },
 
-    graceEndDate: {
-      type: Date,
-    },
-
     status: {
       type: String,
-      enum: ["active", "expired", "grace"],
+      enum: ["active", "expired"],
       default: "active",
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Subscription", SubscriptionSchema);
+export default mongoose.model("Subscription", subscriptionSchema);

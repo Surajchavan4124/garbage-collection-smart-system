@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
 import { protect } from "./middleware/auth.middleware.js";
 import panchayatRoutes from "./routes/panchayat.routes.js";
-import subscriptionRoutes from "./routes/subscriptionRoutes.js";
+import subscriptionRoutes from "./routes/subscription.routes.js";
 import dustbinRoutes from "./routes/dustbinRoutes.js";
 import collectionRoutes from "./routes/collectionRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";

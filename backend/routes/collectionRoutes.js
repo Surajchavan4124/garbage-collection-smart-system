@@ -2,7 +2,7 @@ import express from "express";
 import { scanDustbin } from "../controllers/collection.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { allowRoles } from "../middleware/roleMiddleware.js";
-import { checkSubscription } from "../middleware/subscriptionMiddleware.js";
+import { checkSubscription } from "../middleware/subscription.middleware.js";
 
 const router = express.Router();
 
