@@ -9,10 +9,12 @@ import dustbinRoutes from "./routes/dustbinRoutes.js";
 import collectionRoutes from "./routes/collectionRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import companyRoutes from "./routes/company.routes.js";
-
+import path from "path";
 const app = express();
 app.use(express.json());  
-app.use("/uploads", express.static("uploads"));
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), "uploads")));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 const corsOptions = {
