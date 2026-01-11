@@ -49,13 +49,12 @@ export const createSubscription = async (req, res) => {
       return res.status(400).json({ message: "Invalid data" });
     }
 
-    let subscription = await Subscription.findOne({ panchayatId });
-
     const startDate = new Date();
     const endDate = addDays(startDate, 30);
     const graceEndDate = addDays(endDate, 7);
 
-    // 🔥 IF EXISTS → ACTIVATE IT
+    let subscription = await Subscription.findOne({ panchayatId });
+
     if (subscription) {
       subscription.planName = planKey;
       subscription.householdLimit = plan.householdLimit;
@@ -66,27 +65,26 @@ export const createSubscription = async (req, res) => {
       subscription.graceEndDate = graceEndDate;
 
       await subscription.save();
-
-      return res.json({
-        message: "Subscription activated (30 days)",
-        subscription,
+    } else {
+      subscription = await Subscription.create({
+        panchayatId,
+        planName: planKey,
+        householdLimit: plan.householdLimit,
+        labourLimit: plan.labourLimit,
+        features: plan.features,
+        startDate,
+        endDate,
+        graceEndDate,
       });
     }
 
-    // 🔥 IF NOT EXISTS → CREATE
-    subscription = await Subscription.create({
-      panchayatId,
-      planName: planKey,
-      householdLimit: plan.householdLimit,
-      labourLimit: plan.labourLimit,
-      features: plan.features,
-      startDate,
-      endDate,
-      graceEndDate,
+    // 🔑 THIS WAS MISSING
+    await Panchayat.findByIdAndUpdate(panchayatId, {
+      subscriptionId: subscription._id,
     });
 
     res.status(201).json({
-      message: "Subscription activated (30 days)",
+      message: "Subscription activated",
       subscription,
     });
   } catch (err) {
@@ -195,6 +193,7 @@ export const upgradeSubscription = async (req, res) => {
     sub.graceEndDate = addDays(sub.endDate, 7)
 
     await sub.save()
+    
 
     res.json({ message: `Plan changed to ${planKey}`, subscription: sub })
   } catch (err) {

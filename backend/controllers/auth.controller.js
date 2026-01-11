@@ -1,4 +1,5 @@
 import User from "../models/User.model.js";
+import Panchayat from "../models/Panchayat.model.js";
 import { generateOTP, verifyOTP } from "../utils/otpService.js";
 import { generateToken } from "../utils/jwt.js";
 
@@ -25,10 +26,12 @@ export const sendOtp = async (req, res) => {
 
 /**
  * Verify OTP & Login
+ * OPTION 2: Fallback to Panchayat if User not found
  */
 export const verifyOtpAndLogin = async (req, res) => {
   const { mobile, otp } = req.body;
 
+  // 1️⃣ Verify OTP
   if (!verifyOTP(mobile, otp)) {
     return res.status(401).json({
       message: "Invalid OTP",
@@ -36,22 +39,39 @@ export const verifyOtpAndLogin = async (req, res) => {
     });
   }
 
-  const user = await User.findOne({ mobile });
+  // 2️⃣ Try User login
+  let user = await User.findOne({ mobile });
 
+  // 3️⃣ Fallback → Panchayat ADMIN
   if (!user) {
-    return res.status(404).json({
-      message: "User not found",
-      success: false,
+    const panchayat = await Panchayat.findOne({
+      contactPhone: mobile,
+      status: "active",
     });
+
+    if (!panchayat) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    user = {
+      _id: panchayat._id,
+      name: panchayat.name,
+      role: "ADMIN",
+      panchayatId: panchayat._id,
+    };
   }
 
+  // 4️⃣ Generate JWT
   const token = generateToken({
     userId: user._id,
     role: user.role,
     panchayatId: user.panchayatId,
   });
 
-  // ✅ SET COOKIE ONCE
+  // 5️⃣ Set cookie
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -59,7 +79,7 @@ export const verifyOtpAndLogin = async (req, res) => {
     maxAge: 24 * 60 * 60 * 1000, // 1 day
   });
 
-  // ✅ SEND RESPONSE ONCE
+  // 6️⃣ Response
   return res.status(200).json({
     message: "Login successful",
     success: true,
@@ -72,6 +92,9 @@ export const verifyOtpAndLogin = async (req, res) => {
   });
 };
 
+/**
+ * Logout
+ */
 export const logout = (req, res) => {
   return res
     .clearCookie("token", {
@@ -86,6 +109,9 @@ export const logout = (req, res) => {
     });
 };
 
+/**
+ * Check session
+ */
 export const checkSession = (req, res) => {
   res.status(200).json({
     success: true,
@@ -96,4 +122,3 @@ export const checkSession = (req, res) => {
     },
   });
 };
-
