@@ -5,11 +5,9 @@ import authRoutes from "./routes/auth.routes.js";
 import { protect } from "./middleware/auth.middleware.js";
 import panchayatRoutes from "./routes/panchayat.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
-import dustbinRoutes from "./routes/dustbinRoutes.js";
-import collectionRoutes from "./routes/collectionRoutes.js";
-import reportRoutes from "./routes/reportRoutes.js";
 import companyRoutes from "./routes/company.routes.js";
 import path from "path";
+import employeeRoutes from "./routes/employee.routes.js";
 const app = express();
 app.use(express.json());  
 app.use(
@@ -32,12 +30,9 @@ app.use(cors(corsOptions));
 app.use("/api/panchayat", panchayatRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/dustbins", dustbinRoutes);
-app.use("/api/collections", collectionRoutes);
-app.use("/api/reports", reportRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/auth", authRoutes);
-
+app.use("/api/employees", employeeRoutes);
 
 
 export default app;

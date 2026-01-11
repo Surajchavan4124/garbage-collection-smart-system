@@ -2,6 +2,7 @@ import User from "../models/User.model.js";
 import Panchayat from "../models/Panchayat.model.js";
 import { generateOTP, verifyOTP } from "../utils/otpService.js";
 import { generateToken } from "../utils/jwt.js";
+import Subscription from "../models/subscription.model.js";
 
 /**
  * Send OTP
@@ -120,5 +121,57 @@ export const checkSession = (req, res) => {
       role: req.user.role,
       panchayatId: req.user.panchayatId,
     },
+  });
+};
+
+export const getProfile = async (req, res) => {
+  const panchayat = await Panchayat.findById(req.user.panchayatId)
+    .populate("subscriptionId");
+
+  if (!panchayat) {
+    return res.status(404).json({ message: "Profile not found" });
+  }
+
+  const sub = panchayat.subscriptionId;
+
+  res.json({
+    name: panchayat.name,
+    contact: panchayat.contactPhone,
+    email: panchayat.contactEmail,
+    status: panchayat.status === "active",
+
+    // 👇 subscription details
+    subscription: sub
+      ? {
+          plan: sub.planName,
+          status: sub.status, // active | expired | cancelled
+          startDate: sub.startDate,
+          endDate: sub.endDate,
+        }
+      : "Contact your provider for subscription details",
+  });
+};
+
+/**
+ * UPDATE PROFILE
+ */
+export const updateProfile = async (req, res) => {
+  const { name, contact, email, status } = req.body;
+
+  const panchayat = await Panchayat.findByIdAndUpdate(
+    req.user.panchayatId,
+    {
+      name,
+      contactPhone: contact,
+      contactEmail: email,
+      status: status ? "active" : "inactive",
+    },
+    { new: true }
+  );
+
+  res.json({
+    success: true,
+    message: "Profile updated",
+    profile: panchayat,
   });
 };

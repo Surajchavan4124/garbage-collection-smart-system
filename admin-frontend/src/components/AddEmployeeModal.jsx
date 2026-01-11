@@ -1,278 +1,259 @@
-import { useState } from 'react'
-import { X, Upload, Calendar } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { toast } from "react-toastify";
+import api from "../api/axios";
 
-export default function AddEmployeeModal({ isOpen, onClose }) {
-  const [formData, setFormData] = useState({
-    name: '',
-    employeeId: '',
-    contactNumber: '',
-    address: '',
-    joiningDate: '',
-    passportPhoto: null,
+export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
+  const [loading, setLoading] = useState(false);
+  
+
+  const [form, setForm] = useState({
+    name: "",
+    employeeCode: "",
+    phone: "",
+    address: "",
+    role: "Collector",
+    ward: "",
+    joiningDate: "", // DOB
+  });
+
+  const [files, setFiles] = useState({
+    photo: null,
     idProof: null,
     license: null,
-    role: 'Collector',
-    ward: '',
-  })
+  });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+  const [preview, setPreview] = useState({
+    photo: null,
+    idProof: null,
+    license: null,
+  });
 
-  const handleFileChange = (e, fileType) => {
-    const file = e.target.files[0]
-    if (file) {
-      setFormData(prev => ({ ...prev, [fileType]: file }))
+  /* cleanup preview URLs */
+  useEffect(() => {
+    return () => {
+      Object.values(preview).forEach((p) => {
+        if (p?.url) URL.revokeObjectURL(p.url);
+      });
+    };
+  }, [preview]);
+
+  if (!isOpen) return null;
+
+  const handleChange = (e) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const name = e.target.name;
+
+    setFiles((p) => ({ ...p, [name]: file }));
+    setPreview((p) => ({
+      ...p,
+      [name]: {
+        url: URL.createObjectURL(file),
+        type: file.type,
+        name: file.name,
+        key: Date.now(),
+      },
+    }));
+
+    e.target.value = "";
+  };
+
+  const validate = () => {
+    if (!form.name.trim()) return "Employee name is required";
+    if (!form.employeeCode.trim()) return "Employee code is required";
+    if (!form.phone.trim()) return "Phone number is required";
+    if (!form.address.trim()) return "Address is required";
+    if (!form.ward.trim()) return "Ward is required";
+    if (!form.joiningDate) return "Date of birth is required";
+    if (!files.photo) return "Photo is required";
+    if (!files.idProof) return "ID proof is required";
+    if (form.role === "Driver" && !files.license)
+      return "Driving license is required";
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    const error = validate();
+    if (error) return toast.error(error);
+
+    try {
+      setLoading(true);
+      const fd = new FormData();
+      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+      fd.append("photo", files.photo);
+      fd.append("idProof", files.idProof);
+      if (files.license) fd.append("license", files.license);
+
+      await api.post("/employees", fd);
+
+      toast.success("Employee added successfully");
+      onClose();
+      onSuccess?.();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Add employee failed");
+    } finally {
+      setLoading(false);
     }
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log('Form Data:', formData)
-    // Reset form
-    setFormData({
-      name: '',
-      employeeId: '',
-      contactNumber: '',
-      address: '',
-      joiningDate: '',
-      passportPhoto: null,
-      idProof: null,
-      license: null,
-      role: 'Collector',
-      ward: '',
-    })
-    onClose()
-  }
-
-  if (!isOpen) return null
+  };
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-40 z-40"
-        onClick={onClose}
-      ></div>
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+      <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg p-6 relative max-h-[90vh] overflow-y-auto">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500">
+          <X size={20} />
+        </button>
 
-      {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between px-8 py-6 border-b border-gray-200 sticky top-0 bg-white">
-            <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide">Add New Employee Details</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 transition"
+        <h2 className="text-lg font-bold mb-6">Add Employee</h2>
+
+        {/* FORM */}
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Employee Name">
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            />
+          </Field>
+
+          <Field label="Employee Code">
+            <input
+              name="employeeCode"
+              value={form.employeeCode}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            />
+          </Field>
+
+          <Field label="Phone Number">
+            <input
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            />
+          </Field>
+
+          <Field label="Ward">
+            <input
+              name="ward"
+              value={form.ward}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            />
+          </Field>
+
+          <Field label="Role" full>
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white"
             >
-              <X size={24} />
-            </button>
-          </div>
+              <option>Collector</option>
+              <option>Driver</option>
+              <option>Supervisor</option>
+              <option>Helper</option>
+            </select>
+          </Field>
 
-          {/* Form Content */}
-          <form onSubmit={handleSubmit} className="p-8">
-            <div className="grid grid-cols-2 gap-8">
-              {/* Left Column - Basic Information */}
-              <div>
-                <h3 className="text-base font-bold text-gray-900 mb-6">Basic Information</h3>
+          <Field label="Date of Birth" full>
+            <input
+              type="date"
+              name="joiningDate"
+              value={form.joiningDate}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            />
+          </Field>
 
-                {/* Name */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter the full name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm"
-                  />
-                </div>
+          <Field label="Address" full>
+            <textarea
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              rows={3}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            />
+          </Field>
+        </div>
 
-                {/* Employee ID */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Employee ID</label>
-                  <input
-                    type="text"
-                    name="employeeId"
-                    placeholder="Enter Employee ID"
-                    value={formData.employeeId}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm"
-                  />
-                </div>
+        {/* DOCUMENTS */}
+        <div className="mt-6 space-y-4">
+          <FileBlock label="Photo" name="photo" preview={preview.photo} onChange={handleFileChange} />
+          <FileBlock label="ID Proof" name="idProof" preview={preview.idProof} onChange={handleFileChange} />
+          {form.role === "Driver" && (
+            <FileBlock label="Driving License" name="license" preview={preview.license} onChange={handleFileChange} />
+          )}
+        </div>
 
-                {/* Contact Number */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
-                  <input
-                    type="tel"
-                    name="contactNumber"
-                    placeholder="Enter Contact Number"
-                    value={formData.contactNumber}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm"
-                  />
-                </div>
-
-                {/* Address */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
-                  <textarea
-                    name="address"
-                    placeholder="Enter Address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    rows="3"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm resize-none"
-                  ></textarea>
-                </div>
-
-                {/* Joining Date */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Joining Date</label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      name="joiningDate"
-                      value={formData.joiningDate}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm"
-                    />
-                    <Calendar size={18} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Roles & Responsibilities */}
-                <div className="mt-8">
-                  <h3 className="text-base font-bold text-gray-900 mb-6">Roles & Responsibilities</h3>
-
-                  {/* Assign Role */}
-                  <div className="mb-5">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Role</label>
-                    <select
-                      name="role"
-                      value={formData.role}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm bg-white"
-                    >
-                      <option>Collector</option>
-                      <option>Driver</option>
-                      <option>Sanitation Worker</option>
-                      <option>Supervisor</option>
-                    </select>
-                  </div>
-
-                  {/* Assign Ward */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Ward</label>
-                    <input
-                      type="text"
-                      name="ward"
-                      placeholder="Select a ward"
-                      value={formData.ward}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Photo & Documents */}
-              <div>
-                <h3 className="text-base font-bold text-gray-900 mb-6">Photo & Documents</h3>
-
-                {/* Passport Photo */}
-                <div className="mb-8">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Upload Passport Size Photo</label>
-                  <label className="flex items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#1f9e9a] hover:bg-gray-50 transition">
-                    <div className="flex flex-col items-center justify-center">
-                      {formData.passportPhoto ? (
-                        <>
-                          <span className="text-sm font-semibold text-gray-700">{formData.passportPhoto.name}</span>
-                        </>
-                      ) : (
-                        <>
-                          <div className="text-4xl text-gray-400 mb-2">📄</div>
-                          <span className="text-sm text-gray-500">JPG</span>
-                        </>
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'passportPhoto')}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-
-                {/* Upload ID Proof */}
-                <div className="mb-8">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Upload ID proof</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      placeholder="Upload ID proof"
-                      readOnly
-                      value={formData.idProof ? formData.idProof.name : ''}
-                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm bg-gray-50"
-                    />
-                    <label className="cursor-pointer">
-                      <Upload size={20} className="text-gray-600 hover:text-[#1f9e9a] transition" />
-                      <input
-                        type="file"
-                        onChange={(e) => handleFileChange(e, 'idProof')}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* License (only for drivers) */}
-                <div className="mb-8">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">License (only for drivers)</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      placeholder="Upload License"
-                      readOnly
-                      value={formData.license ? formData.license.name : ''}
-                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:border-[#1f9e9a] focus:ring-2 focus:ring-[#1f9e9a] focus:ring-opacity-20 text-sm bg-gray-50"
-                    />
-                    <label className="cursor-pointer">
-                      <Upload size={20} className="text-gray-600 hover:text-[#1f9e9a] transition" />
-                      <input
-                        type="file"
-                        onChange={(e) => handleFileChange(e, 'license')}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4 mt-10 pt-6 border-t border-gray-200">
-              <button
-                type="submit"
-                className="flex-1 bg-[#1f9e9a] hover:bg-[#198a87] text-white font-bold py-3 rounded-lg transition"
-              >
-                Add & Save
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+        {/* ACTIONS */}
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm bg-gray-200 rounded"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className={`px-4 py-2 text-sm rounded text-white ${
+              loading ? "bg-gray-400" : "bg-[#1f9e9a] hover:bg-[#198a87]"
+            }`}
+          >
+            {loading ? "Saving..." : "Add Employee"}
+          </button>
         </div>
       </div>
-    </>
-  )
+    </div>
+  );
+}
+
+/* ---------- REUSABLE FIELD ---------- */
+function Field({ label, children, full }) {
+  return (
+    <div className={full ? "col-span-2" : ""}>
+      <label className="block text-xs font-semibold text-gray-700 mb-1">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+/* ---------- FILE PREVIEW ---------- */
+function FileBlock({ label, name, preview, onChange }) {
+  return (
+    <div className="border border-gray-300 rounded p-3">
+      <label className="block text-sm font-semibold mb-2">{label}</label>
+      <input type="file" name={name} onChange={onChange} />
+
+      {preview && (
+        <div className="mt-3">
+          {preview.type.startsWith("image/") && (
+            <img src={preview.url} alt="preview" className="h-28 rounded border" />
+          )}
+
+          {preview.type === "application/pdf" && (
+            <iframe
+              key={preview.key}
+              src={preview.url}
+              className="w-full h-40 border rounded"
+            />
+          )}
+
+          {!preview.type.startsWith("image/") &&
+            preview.type !== "application/pdf" && (
+              <p className="text-xs text-gray-600">{preview.name}</p>
+            )}
+        </div>
+      )}
+    </div>
+  );
 }

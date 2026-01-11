@@ -1,42 +1,96 @@
-import { useState } from 'react'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
-import { Edit2 } from 'lucide-react'
-import DeactivateProfileModal from '../components/DeactivateProfileModal'
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+import Sidebar from "../components/Sidebar";
+import TopHeader from "../components/TopHeader";
+import { Edit2 } from "lucide-react";
+import DeactivateProfileModal from "../components/DeactivateProfileModal";
+import { toast } from "react-toastify";
 
 export default function ProfileSettings() {
-  const [profile, setProfile] = useState({
-    name: 'Aakash Singh',
-    contact: 'xxxxxxxxxx',
-    email: 'a@gmail.com',
-    password: '••••••••',
-    role: 'Admin',
-    status: true,
-    preferences: ['View', 'Edit', 'Delete'],
-    notification: 'email/sms',
-    theme: 'Dark',
-  })
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState({});
+  const [isDeactivateOpen, setIsDeactivateOpen] = useState(false);
 
-  const [isEditing, setIsEditing] = useState({})
+  /* ================= LOAD PROFILE ================= */
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { data } = await api.get("/auth/profile");
+        setProfile(data);
+      } catch (err) {
+        toast.error("Failed to load profile");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, []);
 
-  const handleEditToggle = (field) => {
-    setIsEditing(prev => ({ ...prev, [field]: !prev[field] }))
-  }
+  /* ================= HELPERS ================= */
+  const toggleEdit = (field) => {
+    setIsEditing((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
 
-  const handlePreferenceChange = (pref) => {
-    setProfile(prev => ({
-      ...prev,
-      preferences: prev.preferences.includes(pref)
-        ? prev.preferences.filter(p => p !== pref)
-        : [...prev.preferences, pref],
-    }))
-  }
+  const validateProfile = () => {
+    if (!profile.contact?.trim()) {
+      toast.error("Contact number is required");
+      return false;
+    }
+    if (!profile.email?.trim()) {
+      toast.error("Email is required");
+      return false;
+    }
+    return true;
+  };
 
-  const [isDeactivateOpen, setIsDeactivateOpen] = useState(false)
-  const handleDeleteProfile = () => {
-  setIsDeactivateOpen(true)
-}
+  const formatDate = (date) =>
+    date ? new Date(date).toLocaleDateString() : "—";
 
+  /* ================= SAVE PROFILE ================= */
+  const saveProfile = async () => {
+    if (saving) return;
+    if (!validateProfile()) return;
+
+    const payload = {
+      contact: profile.contact,
+      email: profile.email,
+    };
+
+    setSaving(true);
+    toast.loading("Saving profile...", { toastId: "profile-save" });
+
+    try {
+      await api.put("/auth/profile", payload);
+
+      toast.update("profile-save", {
+        render: "Profile updated successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } catch (err) {
+      toast.update("profile-save", {
+        render: err.response?.data?.message || "Profile update failed",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* ================= UI STATES ================= */
+  if (loading) return <div className="p-6">Loading profile…</div>;
+  if (!profile) return <div className="p-6">Failed to load profile</div>;
+
+  const sub = profile.subscription;
+  const isActive = sub?.status?.toLowerCase() === "active";
+
+  /* ================= RENDER ================= */
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar />
@@ -44,313 +98,152 @@ export default function ProfileSettings() {
       <div className="ml-64 flex-1 flex flex-col overflow-hidden">
         <TopHeader />
 
-        {/* Page Content */}
-        <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
-          <div className="mb-4 text-sm text-gray-600">
-            <span>Analytics & Settings</span> &gt;{' '}
-            <span>User Management & Settings</span> &gt;{' '}
-            <span className="font-semibold text-gray-800">Profile Settings</span>
-          </div>
+        <div className="mt-16 flex-1 overflow-y-auto p-6">
+          <h1 className="text-2xl font-bold text-gray-700 mb-6">
+            Profile Settings
+          </h1>
 
-          <h1 className="text-2xl font-bold text-gray-700 mb-6">Your profile settings</h1>
+          <div className="bg-white rounded-lg shadow p-6 space-y-4 max-w-3xl">
+            {/* PANCHAYAT NAME (READ ONLY) */}
+            <ReadOnlyField label="Panchayat Name" value={profile.name} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Left: Form */}
-            <div className="lg:col-span-3 bg-white rounded-lg shadow p-6 space-y-4">
-              <h2 className="text-lg font-bold text-gray-800 bg-gray-200 px-4 py-3 rounded -m-6 mb-4">
-                YOUR PROFILE
-              </h2>
+            {/* CONTACT */}
+            <EditableField
+              label="Contact"
+              value={profile.contact}
+              editing={isEditing.contact}
+              onEdit={() => toggleEdit("contact")}
+            >
+              <input
+                value={profile.contact}
+                onChange={(e) =>
+                  setProfile({ ...profile, contact: e.target.value })
+                }
+                onBlur={() => toggleEdit("contact")}
+                className="w-full border px-3 py-1 rounded"
+                autoFocus
+              />
+            </EditableField>
 
-              {/* Name */}
-              <div className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Name:</label>
-                  {isEditing.name ? (
-                    <input
-                      type="text"
-                      value={profile.name}
-                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                      onBlur={() => handleEditToggle('name')}
-                      className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className="text-sm text-gray-800">{profile.name}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleEditToggle('name')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
+            {/* EMAIL */}
+            <EditableField
+              label="Email"
+              value={profile.email}
+              editing={isEditing.email}
+              onEdit={() => toggleEdit("email")}
+            >
+              <input
+                type="email"
+                value={profile.email}
+                onChange={(e) =>
+                  setProfile({ ...profile, email: e.target.value })
+                }
+                onBlur={() => toggleEdit("email")}
+                className="w-full border px-3 py-1 rounded"
+                autoFocus
+              />
+            </EditableField>
 
-              {/* Contact */}
-              <div className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Contact:</label>
-                  {isEditing.contact ? (
-                    <input
-                      type="text"
-                      value={profile.contact}
-                      onChange={(e) => setProfile({ ...profile, contact: e.target.value })}
-                      onBlur={() => handleEditToggle('contact')}
-                      className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className="text-sm text-gray-800">{profile.contact}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleEditToggle('contact')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
+            {/* SUBSCRIPTION STATUS */}
+            <div className="border rounded px-4 py-3 bg-gray-50">
+              <label className="block text-xs font-bold mb-2">
+                Subscription Status
+              </label>
 
-              {/* Email */}
-              <div className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Email:</label>
-                  {isEditing.email ? (
-                    <input
-                      type="email"
-                      value={profile.email}
-                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      onBlur={() => handleEditToggle('email')}
-                      className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className="text-sm text-gray-800">{profile.email}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleEditToggle('email')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
+              {sub ? (
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Plan</span>
+                    <span className="font-semibold">{sub.plan}</span>
+                  </div>
 
-              {/* Password */}
-              <div className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Password:</label>
-                  {isEditing.password ? (
-                    <input
-                      type="password"
-                      value={profile.password}
-                      onChange={(e) => setProfile({ ...profile, password: e.target.value })}
-                      onBlur={() => handleEditToggle('password')}
-                      className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className="text-sm text-gray-800">{profile.password}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleEditToggle('password')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
-
-              {/* Role */}
-              <div className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Role:</label>
-                  {isEditing.role ? (
-                    <select
-                      value={profile.role}
-                      onChange={(e) => setProfile({ ...profile, role: e.target.value })}
-                      onBlur={() => handleEditToggle('role')}
-                      className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      autoFocus
-                    >
-                      <option>Admin</option>
-                      <option>Manager</option>
-                      <option>Staff</option>
-                      <option>Supervisor</option>
-                    </select>
-                  ) : (
-                    <span className="text-sm text-gray-800">{profile.role}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleEditToggle('role')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
-
-              {/* Status */}
-              <div className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Status:</label>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`relative w-12 h-6 rounded-full transition ${
-                        profile.status ? 'bg-teal-500' : 'bg-gray-300'
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status</span>
+                    <span
+                      className={`font-bold ${
+                        isActive ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      <button
-                        onClick={() => setProfile({ ...profile, status: !profile.status })}
-                        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition ${
-                          profile.status ? 'translate-x-6' : ''
-                        }`}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-800">
-                      {profile.status ? 'Active' : 'Inactive'}
+                      {sub.status}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Valid From</span>
+                    <span>
+                      {formatDate(sub.startDate)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Valid Till</span>
+                    <span>
+                      {formatDate(sub.endDate)}
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleEditToggle('status')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
-
-              {/* Preference */}
-              <div className="flex items-start justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-2">Preference:</label>
-                  <div className="flex gap-4">
-                    {['View', 'Edit', 'Delete'].map((pref) => (
-                      <label key={pref} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={profile.preferences.includes(pref)}
-                          onChange={() => handlePreferenceChange(pref)}
-                          className="w-4 h-4 accent-teal-500"
-                        />
-                        <span className="text-xs text-gray-700">{pref}</span>
-                      </label>
-                    ))}
-                  </div>
+              ) : (
+                <div className="text-sm font-semibold text-red-600">
+                  No active subscription
                 </div>
-                <button
-                  onClick={() => handleEditToggle('preferences')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
-
-              {/* Notification preferences */}
-              <div className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Notification Preferences:
-                  </label>
-                  {isEditing.notification ? (
-                    <select
-                      value={profile.notification}
-                      onChange={(e) =>
-                        setProfile({ ...profile, notification: e.target.value })
-                      }
-                      onBlur={() => handleEditToggle('notification')}
-                      className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      autoFocus
-                    >
-                      <option>email/sms</option>
-                      <option>email only</option>
-                      <option>sms only</option>
-                      <option>none</option>
-                    </select>
-                  ) : (
-                    <span className="text-sm text-gray-800">{profile.notification}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleEditToggle('notification')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
-
-              {/* Theme */}
-              <div className="flex items-start justify-between bg-gray-50 px-4 py-3 rounded border border-gray-200">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-700 mb-2">
-                    Theme Settings:
-                  </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="theme"
-                        checked={profile.theme === 'Dark'}
-                        onChange={() => setProfile({ ...profile, theme: 'Dark' })}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-xs text-gray-700">Dark</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="theme"
-                        checked={profile.theme === 'Light'}
-                        onChange={() => setProfile({ ...profile, theme: 'Light' })}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-xs text-gray-700">Light</span>
-                    </label>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleEditToggle('theme')}
-                  className="ml-4 p-2 text-gray-600 hover:text-gray-800"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
-            </div>
-
-            {/* Right: Photo */}
-            <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
-              <label className="block text-xs font-bold text-gray-700 mb-3">Photo:</label>
-              <div className="w-40 h-40 bg-white border-2 border-gray-400 rounded flex items-center justify-center mb-4">
-                <div className="text-center">
-                  <div className="w-10 h-10 bg-gray-700 rounded-full mx-auto mb-2" />
-                  <div className="w-16 h-8 bg-gray-600 rounded mx-auto" />
-                </div>
-              </div>
-              <button className="p-2 text-gray-600 hover:text-gray-800 mb-6">
-                <Edit2 size={18} />
-              </button>
+              )}
             </div>
           </div>
 
-          {/* Bottom buttons */}
-          <div className="flex gap-3 mt-8 justify-end">
+          <div className="flex justify-end gap-3 mt-6">
             <button
-              onClick={handleDeleteProfile}
-              className="px-6 py-2 bg-red-600 text-white rounded font-semibold text-sm hover:bg-red-700 transition"
+              onClick={() => {
+                toast.warn("Profile deactivation requested");
+                setIsDeactivateOpen(true);
+              }}
+              className="px-6 py-2 bg-red-600 text-white rounded"
             >
-              Delete Your Profile
+              Delete Profile
             </button>
-            <button className="px-6 py-2 bg-teal-600 text-white rounded font-semibold text-sm hover:bg-teal-700 transition">
-              Save changes
+
+            <button
+              onClick={saveProfile}
+              disabled={saving}
+              className={`px-6 py-2 rounded text-white ${
+                saving ? "bg-gray-400" : "bg-teal-600"
+              }`}
+            >
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </div>
       </div>
+
       <DeactivateProfileModal
-  isOpen={isDeactivateOpen}
-  onClose={() => setIsDeactivateOpen(false)}
-  profile={profile}
-/>
+        isOpen={isDeactivateOpen}
+        onClose={() => setIsDeactivateOpen(false)}
+        profile={profile}
+      />
     </div>
-  )
+  );
+}
+
+/* ================= FIELD COMPONENTS ================= */
+
+function EditableField({ label, value, editing, onEdit, children }) {
+  return (
+    <div className="flex items-center justify-between border rounded px-4 py-3">
+      <div className="flex-1">
+        <label className="block text-xs font-bold mb-1">{label}</label>
+        {editing ? children : <span className="text-sm">{value}</span>}
+      </div>
+      <button onClick={onEdit}>
+        <Edit2 size={18} />
+      </button>
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value }) {
+  return (
+    <div className="border rounded px-4 py-3 bg-gray-50">
+      <label className="block text-xs font-bold mb-1">{label}</label>
+      <span className="text-sm text-gray-800">{value}</span>
+    </div>
+  );
 }

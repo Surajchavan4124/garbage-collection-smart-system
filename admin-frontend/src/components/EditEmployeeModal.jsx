@@ -1,267 +1,267 @@
-import { useState, useEffect } from 'react'
-import { X, Edit2, Download, User } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { toast } from "react-toastify";
+import api from "../api/axios";
 
-export default function EditEmployeeModal({ isOpen, onClose, employee }) {
-  // Use a useEffect or direct initialization to ensure the form updates when a new employee is selected
+
+export default function EditEmployeeModal({
+  isOpen,
+  onClose,
+  employee,
+  onSuccess,
+}) {
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    name: '',
-    employeeId: '',
-    contactNumber: '',
-    address: '',
-    joiningDate: '',
-    passportPhoto: null,
-    idProof: '',
-    license: '',
-    role: '',
-    ward: '',
-  })
+    name: "",
+    employeeCode: "",
+    phone: "",
+    address: "",
+    role: "Collector",
+    ward: "",
+    joiningDate: "",
+  });
 
-  // Sync state with the selected employee whenever the modal opens or employee changes
+  const [files, setFiles] = useState({
+    photo: null,
+    idProof: null,
+    license: null,
+  });
+
+  /* ---------- PREFILL ---------- */
   useEffect(() => {
-    if (employee) {
-      setFormData({
-        name: employee.name || '',
-        employeeId: employee.id || '',
-        contactNumber: employee.contact || '',
-        address: employee.address || '',
-        joiningDate: employee.joiningDate || '',
-        passportPhoto: employee.photoUrl || null,
-        idProof: employee.idProof || 'id.pdf',
-        license: employee.license || 'license.pdf',
-        role: employee.role || '',
-        ward: employee.ward || '',
-      })
+    if (!employee) return;
+
+    setFormData({
+      name: employee.name || "",
+      employeeCode: employee.employeeCode || "",
+      phone: employee.phone || "",
+      address: employee.address || "",
+      role: employee.role || "Collector",
+      ward: employee.ward || "",
+      joiningDate: employee.joiningDate
+        ? employee.joiningDate.split("T")[0]
+        : "",
+    });
+
+    setFiles({ photo: null, idProof: null, license: null });
+  }, [employee]);
+
+  if (!isOpen || !employee) return null;
+
+  /* ---------- HANDLERS ---------- */
+  const handleChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFiles((p) => ({ ...p, [e.target.name]: file }));
+  };
+
+  const validate = () => {
+    if (!formData.name.trim()) return "Name is required";
+    if (!formData.employeeCode.trim()) return "Employee code is required";
+    if (!formData.phone.trim()) return "Phone number is required";
+    if (!formData.address.trim()) return "Address is required";
+    if (!formData.ward.trim()) return "Ward is required";
+    if (!formData.joiningDate) return "Joining date is required";
+    return null;
+  };
+
+  /* ---------- UPDATE ---------- */
+  const handleUpdate = async () => {
+    const error = validate();
+    if (error) return toast.error(error);
+
+    try {
+      setLoading(true);
+
+      const fd = new FormData();
+      Object.entries(formData).forEach(([k, v]) => fd.append(k, v));
+
+      if (files.photo) fd.append("photo", files.photo);
+      if (files.idProof) fd.append("idProof", files.idProof);
+      if (files.license) fd.append("license", files.license);
+
+      await api.put(`/employees/${employee._id}`, fd);
+
+      toast.success("Employee updated successfully");
+      onClose();
+      onSuccess?.();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Update failed");
+    } finally {
+      setLoading(false);
     }
-  }, [employee, isOpen])
+  };
 
-  const [editingFields, setEditingFields] = useState({
-    contactNumber: false,
-    address: false,
-    role: false,
-    ward: false,
-  })
+  /* ---------- UI ---------- */
+return (
+  <div className="fixed inset-0 z-50 bg-black/40 overflow-y-auto">
+    <div className="flex justify-center py-10 px-4">
+      <div className="bg-white w-full max-w-xl rounded-lg shadow-xl p-6 relative max-h-[90vh] overflow-y-auto">
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+        >
+          <X size={20} />
+        </button>
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+        <h2 className="text-lg font-bold mb-6">Edit Employee</h2>
 
-  const toggleEditField = (fieldName) => {
-    setEditingFields(prev => ({
-      ...prev,
-      [fieldName]: !prev[fieldName]
-    }))
-  }
+        {/* FORM */}
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Employee Name">
+            <Input name="name" value={formData.name} onChange={handleChange} />
+          </Field>
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0]
-    if (file) setFormData(prev => ({ ...prev, passportPhoto: file.name }))
-  }
+          <Field label="Employee Code">
+            <Input
+              name="employeeCode"
+              value={formData.employeeCode}
+              onChange={handleChange}
+            />
+          </Field>
 
-  const handleFileChange = (e, fileType) => {
-    const file = e.target.files[0]
-    if (file) setFormData(prev => ({ ...prev, [fileType]: file.name }))
-  }
+          <Field label="Phone Number">
+            <Input
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+            />
+          </Field>
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Logic to save updated formData
-    onClose()
-  }
+          <Field label="Ward">
+            <Input
+              name="ward"
+              value={formData.ward}
+              onChange={handleChange}
+            />
+          </Field>
 
-  if (!isOpen || !employee) return null
+          <Field label="Role" full>
+            <Select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+            >
+              <option>Collector</option>
+              <option>Driver</option>
+              <option>Supervisor</option>
+              <option>Helper</option>
+            </Select>
+          </Field>
 
-  return (
-    <>
-      <div className="fixed inset-0 bg-black bg-opacity-40 z-40" onClick={onClose}></div>
+          <Field label="Joining Date" full>
+            <Input
+              type="date"
+              name="joiningDate"
+              value={formData.joiningDate}
+              onChange={handleChange}
+            />
+          </Field>
 
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between px-8 py-6 border-b border-gray-200 sticky top-0 bg-white">
-            <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide">Edit Employee Details</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 transition">
-              <X size={24} />
-            </button>
-          </div>
+          <Field label="Address" full>
+            <Textarea
+              name="address"
+              rows={3}
+              value={formData.address}
+              onChange={handleChange}
+            />
+          </Field>
+        </div>
 
-          <form onSubmit={handleSubmit} className="p-8">
-            <div className="grid grid-cols-2 gap-12">
-              {/* Left Column - Basic Info */}
-              <div>
-                <h3 className="text-base font-bold text-gray-900 mb-6">Basic Information</h3>
+        {/* DOCUMENTS */}
+        <div className="mt-6 border-t pt-4 space-y-4">
+          <Field label="Replace Photo (optional)" full>
+            <FileInput name="photo" onChange={handleFileChange} />
+          </Field>
 
-                {/* Name - NO EDIT ICON */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Name:</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    disabled
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 text-sm cursor-not-allowed"
-                  />
-                </div>
+          <Field label="Replace ID Proof (optional)" full>
+            <FileInput name="idProof" onChange={handleFileChange} />
+          </Field>
 
-                {/* Employee ID - NO EDIT ICON */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Employee ID:</label>
-                  <input
-                    type="text"
-                    value={formData.employeeId}
-                    disabled
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 text-sm cursor-not-allowed"
-                  />
-                </div>
+          {formData.role === "Driver" && (
+            <Field label="Replace License (optional)" full>
+              <FileInput name="license" onChange={handleFileChange} />
+            </Field>
+          )}
+        </div>
 
-                {/* Contact Number - Editable */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number:</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="tel"
-                      name="contactNumber"
-                      value={formData.contactNumber}
-                      onChange={handleInputChange}
-                      disabled={!editingFields.contactNumber}
-                      className={`flex-1 px-4 py-2.5 border rounded-lg text-sm outline-none transition ${
-                        editingFields.contactNumber ? 'border-[#1f9e9a] bg-white' : 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                      }`}
-                    />
-                    <button type="button" onClick={() => toggleEditField('contactNumber')} className="text-gray-600 hover:text-[#1f9e9a]">
-                      <Edit2 size={16} />
-                    </button>
-                  </div>
-                </div>
+        {/* ACTIONS */}
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 rounded"
+          >
+            Cancel
+          </button>
 
-                {/* Address - Editable */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Address:</label>
-                  <div className="flex gap-2">
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      disabled={!editingFields.address}
-                      rows="2"
-                      className={`flex-1 px-4 py-2.5 border rounded-lg text-sm outline-none transition resize-none ${
-                        editingFields.address ? 'border-[#1f9e9a] bg-white' : 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                      }`}
-                    ></textarea>
-                    <button type="button" onClick={() => toggleEditField('address')} className="text-gray-600 hover:text-[#1f9e9a] self-start mt-2">
-                      <Edit2 size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Joining Date - NO EDIT ICON */}
-                <div className="mb-8">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Joining Date:</label>
-                  <input
-                    type="text"
-                    value={formData.joiningDate}
-                    disabled
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 text-sm cursor-not-allowed"
-                  />
-                </div>
-
-                <h3 className="text-base font-bold text-gray-900 mb-6">Roles & Responsibilities</h3>
-                {/* Role - Editable */}
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Assigned Role:</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      name="role"
-                      value={formData.role}
-                      onChange={handleInputChange}
-                      disabled={!editingFields.role}
-                      className={`flex-1 px-4 py-2.5 border rounded-lg text-sm outline-none transition ${
-                        editingFields.role ? 'border-[#1f9e9a] bg-white' : 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                      }`}
-                    />
-                    <button type="button" onClick={() => toggleEditField('role')} className="text-gray-600 hover:text-[#1f9e9a]">
-                      <Edit2 size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Ward - Editable */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Assigned Ward:</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      name="ward"
-                      value={formData.ward}
-                      onChange={handleInputChange}
-                      disabled={!editingFields.ward}
-                      className={`flex-1 px-4 py-2.5 border rounded-lg text-sm outline-none transition ${
-                        editingFields.ward ? 'border-[#1f9e9a] bg-white' : 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                      }`}
-                    />
-                    <button type="button" onClick={() => toggleEditField('ward')} className="text-gray-600 hover:text-[#1f9e9a]">
-                      <Edit2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div>
-                <h3 className="text-base font-bold text-gray-900 mb-6">Photo & Documents</h3>
-                <div className="mb-8">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Employee Photo</label>
-                  <label className="flex items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50">
-                    <div className="flex flex-col items-center justify-center">
-                      <User size={50} className="text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-500">Click to upload photo</span>
-                    </div>
-                    <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
-                  </label>
-                </div>
-
-                {/* ID Proof - NO EDIT ICON */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">ID Proof</label>
-                  <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
-                    <span className="text-gray-600 font-semibold">📄</span>
-                    <span className="flex-1 text-sm text-gray-800">{formData.idProof}</span>
-                    <button type="button" className="text-[#1f9e9a] hover:text-[#198a87]">
-                      <Download size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* License - Editable only if Role is Driver */}
-                {formData.role === 'Driver' && (
-                  <div className="mb-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">License (only for drivers)</label>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-3 flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
-                        <span className="text-gray-600 font-semibold">📄</span>
-                        <span className="flex-1 text-sm text-gray-800">{formData.license}</span>
-                      </div>
-                      <label className="cursor-pointer text-gray-600 hover:text-[#1f9e9a]">
-                        <Edit2 size={18} />
-                        <input type="file" onChange={(e) => handleFileChange(e, 'license')} className="hidden" />
-                      </label>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-4 mt-10 pt-6 border-t border-gray-200 justify-end">
-              <button type="submit" className="px-8 py-3 bg-[#1f9e9a] hover:bg-[#198a87] text-white font-bold rounded-lg transition">
-                Update & Save
-              </button>
-              <button type="button" onClick={onClose} className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition">
-                Cancel
-              </button>
-            </div>
-          </form>
+          <button
+            onClick={handleUpdate}
+            disabled={loading}
+            className={`px-4 py-2 rounded text-white ${
+              loading ? "bg-gray-400" : "bg-[#1f9e9a] hover:bg-[#198a87]"
+            }`}
+          >
+            {loading ? "Saving..." : "Update Employee"}
+          </button>
         </div>
       </div>
-    </>
-  )
+    </div>
+  </div>
+);
+
+}
+
+/* ---------- REUSABLE UI ---------- */
+
+function Field({ label, children, full }) {
+  return (
+    <div className={full ? "col-span-2" : ""}>
+      <label className="block text-xs font-semibold text-gray-700 mb-1">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function Input(props) {
+  return (
+    <input
+      {...props}
+      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f9e9a]"
+    />
+  );
+}
+
+function Textarea(props) {
+  return (
+    <textarea
+      {...props}
+      className="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1f9e9a]"
+    />
+  );
+}
+
+function Select(props) {
+  return (
+    <select
+      {...props}
+      className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1f9e9a]"
+    />
+  );
+}
+
+function FileInput(props) {
+  return (
+    <input
+      type="file"
+      {...props}
+      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
+    />
+  );
 }

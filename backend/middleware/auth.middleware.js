@@ -1,35 +1,38 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
+import Panchayat from "../models/Panchayat.model.js";
 
 export const protect = async (req, res, next) => {
   try {
-    const token = req.cookies?.token;
-
+    const token = req.cookies.token;
     if (!token) {
-      return res.status(401).json({
-        message: "Not authorized, no token",
-      });
+      return res.status(401).json({ message: "No token" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await User.findById(decoded.userId);
+    let authEntity = null;
 
-    if (!user) {
-      return res.status(401).json({
-        message: "User not found",
-      });
+    // 1. Try User (super admin)
+    authEntity = await User.findById(decoded.userId);
+
+    // 2. Fallback to Panchayat (admin)
+    if (!authEntity) {
+      const panchayat = await Panchayat.findById(decoded.userId);
+      if (!panchayat || panchayat.status !== "active") {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      authEntity = {
+        _id: panchayat._id,
+        role: "ADMIN",
+        panchayatId: panchayat._id,
+      };
     }
 
-    req.user = user;
-
-    console.log("PROTECT MIDDLEWARE HIT:", user.role); // 🔥 MUST PRINT
-
+    req.user = authEntity;
     next();
   } catch (err) {
-    console.error("AUTH ERROR:", err.message);
-    return res.status(401).json({
-      message: "Not authorized",
-    });
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
