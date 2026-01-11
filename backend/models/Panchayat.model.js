@@ -42,6 +42,11 @@ const PanchayatSchema = new mongoose.Schema(
       inchargeIdProof: { type: String },        // filename
       registrationLetter: { type: String },     // filename
     },
+    subscriptionId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Subscription",
+  default: null,
+},
 
     status: {
       type: String,
@@ -52,4 +57,4 @@ const PanchayatSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Panchayat", PanchayatSchema);
+export default mongoose.models.Panchayat || mongoose.model("Panchayat", PanchayatSchema);

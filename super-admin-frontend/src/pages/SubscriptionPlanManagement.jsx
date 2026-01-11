@@ -1,13 +1,11 @@
-import { useEffect, useState } from "react";
-import api from "../api/axios";
 import Sidebar from "../components/Sidebar";
 import TopHeader from "../components/TopHeader";
 import PlanCard from "../components/PlanCard";
 import SubscriptionTable from "../components/SubscriptionTable";
+import { useEffect, useState } from "react";
+import api from "../api/axios";
 
 export default function SubscriptionPlanManagement({ onPageChange }) {
-  const [subscriptions, setSubscriptions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const plans = [
     {
       id: 1,
@@ -23,7 +21,6 @@ export default function SubscriptionPlanManagement({ onPageChange }) {
         "Waste tracking",
         "Email support",
       ],
-      actions: ["Edit", "Disable"],
     },
     {
       id: 2,
@@ -40,7 +37,6 @@ export default function SubscriptionPlanManagement({ onPageChange }) {
         "Complaint & support ticket system",
         "Monthly performance reports",
       ],
-      actions: ["Edit", "Disable"],
     },
     {
       id: 3,
@@ -56,77 +52,55 @@ export default function SubscriptionPlanManagement({ onPageChange }) {
         "Priority support team",
         "Dedicated account manager",
       ],
-      actions: ["Edit", "Disable"],
     },
   ];
 
-  const subscriptions = [
-    {
-      id: 1,
-      panchayat: "Mapusa Panchayat",
-      currentPlan: "Basic",
-      expiryDate: "12 Apr 2026",
-      status: "Active",
-      action: "Change Plan",
-      actionType: "primary",
-    },
-    {
-      id: 2,
-      panchayat: "Verma Panchayat",
-      currentPlan: "Standard",
-      expiryDate: "15 Apr 2026",
-      status: "Active",
-      action: "Change Plan",
-      actionType: "primary",
-    },
-    {
-      id: 3,
-      panchayat: "Navelim Panchayat",
-      currentPlan: "Standard",
-      expiryDate: "01 Apr 2026",
-      status: "Active",
-      action: "Change Plan",
-      actionType: "primary",
-    },
-    {
-      id: 4,
-      panchayat: "Varca Panchayat",
-      currentPlan: "Premium",
-      expiryDate: "22 Apr 2025",
-      status: "Expired",
-      action: "Reactivate",
-      actionType: "warning",
-    },
-  ];
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSubscriptions();
+    api
+      .get("/subscriptions") // backend listAllSubscriptions
+      .then((res) => setSubscriptions(res.data))
+      .catch((err) => {
+        console.error("Failed to fetch subscriptions", err);
+      })
+      .finally(() => setLoading(false));
   }, []);
-
   const fetchSubscriptions = async () => {
     try {
-      const res = await api.get("/subscriptions/panchayats");
+      const res = await api.get("/subscriptions");
       setSubscriptions(res.data);
+    } catch (err) {
+      console.error("Failed to fetch subscriptions", err);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchSubscriptions();
+  }, []);
+
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar onPageChange={onPageChange} />
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopHeader />
+
         {/* Breadcrumbs */}
         <div className="px-6 pt-4 pb-2 bg-gray-100 text-sm text-gray-600 border-t border-gray-200">
           Main &gt; Subscription Plan Management
         </div>
+
         <div className="flex-1 overflow-auto p-6">
           {/* Available Plans Section */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               Available Plans
             </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {plans.map((plan) => (
                 <PlanCard key={plan.id} plan={plan} />
@@ -139,10 +113,16 @@ export default function SubscriptionPlanManagement({ onPageChange }) {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               Panchayat Subscriptions
             </h2>
+
             {loading ? (
-              <div className="text-gray-500">Loading subscriptions...</div>
+              <p>Loading...</p>
             ) : (
-              <SubscriptionTable subscriptions={subscriptions} />
+              <SubscriptionTable
+                subscriptions={subscriptions}
+                plans={plans}
+                onSubscriptionUpdated={fetchSubscriptions}
+
+              />
             )}
           </div>
         </div>

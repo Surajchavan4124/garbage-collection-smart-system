@@ -14,18 +14,8 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: [
         "COMPANY_ADMIN",
-        "PANCHAYAT_ADMIN",
-        "SUPERVISOR",
-        "LABOUR",
-        "PUBLIC",
       ],
       required: true,
-    },
-
-    panchayatId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Panchayat",
-      default: null, // null only for COMPANY_ADMIN
     },
 
     profilePhoto: {

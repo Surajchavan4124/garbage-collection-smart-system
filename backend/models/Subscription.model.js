@@ -1,24 +1,44 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose'
 
-const subscriptionSchema = new mongoose.Schema(
+const SubscriptionSchema = new mongoose.Schema(
   {
-    panchayat: {
+    panchayatId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Panchayat",
+      ref: 'Panchayat',
       required: true,
       unique: true,
     },
 
     planName: {
       type: String,
-      enum: ["BASIC", "STANDARD", "PREMIUM"],
+      enum: ['BASIC', 'STANDARD', 'PREMIUM'],
       required: true,
+    },
+    status: {
+  type: String,
+  enum: ["ACTIVE", "INACTIVE", "EXPIRED"],
+  default: "ACTIVE",
+},
+
+
+    householdLimit: {
+      type: Number,
+      required: true,
+    },
+
+    labourLimit: {
+      type: Number,
+      required: true,
+    },
+
+    features: {
+      type: [String],
+      default: [],
     },
 
     startDate: {
       type: Date,
       required: true,
-      default: Date.now,
     },
 
     endDate: {
@@ -26,13 +46,13 @@ const subscriptionSchema = new mongoose.Schema(
       required: true,
     },
 
-    status: {
-      type: String,
-      enum: ["active", "expired"],
-      default: "active",
+    graceEndDate: {
+      type: Date,
+      required: true,
     },
   },
   { timestamps: true }
-);
+)
 
-export default mongoose.model("Subscription", subscriptionSchema);
+export default mongoose.models.Subscription ||
+  mongoose.model('Subscription', SubscriptionSchema)

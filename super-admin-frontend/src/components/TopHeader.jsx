@@ -1,27 +1,38 @@
 import { Search, Bell, User, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
+import ProfileSettingsModal from "../components/ProfileSettingsModal";
+import api from "../api/axios";
 
-export default function TopHeader({ onLogout }) {
+export default function TopHeader() {
   const [searchValue, setSearchValue] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [openProfile, setOpenProfile] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  try {
+    await api.post("/auth/logout", {}, { withCredentials: true });
+  } catch (error) {
+    console.error("Logout failed", error);
+  } finally {
     setDropdownOpen(false);
-    if (onLogout) {
-      onLogout();
-    }
+
+    // HARD redirect to kill React state + cache
+    window.location.href = "/login";
+  }
+};
+
+
+  const handleProfileOpen = () => {
+    setDropdownOpen(false);
+    setOpenProfile(true);
   };
 
   return (
     <div className="bg-white border-b border-gray-200">
-      {/* Top Bar */}
       <div className="px-8 py-4 flex items-center justify-between">
         {/* Search Bar */}
         <div className="flex-1 max-w-2xl relative">
-          <Search
-            size={20}
-            className="absolute left-3 top-3 text-gray-400"
-          />
+          <Search size={20} className="absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
             placeholder="Search complaints, households, bins...."
@@ -33,13 +44,11 @@ export default function TopHeader({ onLogout }) {
 
         {/* Right Section */}
         <div className="flex items-center gap-4 ml-6">
-          {/* Alerts Badge */}
           <div className="flex items-center gap-2 bg-gray-200 rounded-full px-4 py-2">
             <Bell size={18} className="text-gray-600" />
             <span className="text-sm font-medium text-gray-700">3 Alerts</span>
           </div>
 
-          {/* User Profile Dropdown */}
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -48,18 +57,18 @@ export default function TopHeader({ onLogout }) {
               <User size={20} className="text-white" />
             </button>
 
-            {/* Dropdown Menu */}
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                {/* Profile Settings */}
-                <button className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-200 transition">
+                <button
+                  onClick={handleProfileOpen}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-200 transition"
+                >
                   <Settings size={18} className="text-gray-600" />
                   <span className="text-sm font-medium text-gray-700">
                     Profile Settings
                   </span>
                 </button>
 
-                {/* Logout */}
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-3 hover:bg-red-50 flex items-center gap-3 transition"
@@ -75,7 +84,11 @@ export default function TopHeader({ onLogout }) {
         </div>
       </div>
 
-      
+      {/* MODAL (this is the ONLY thing TopHeader should render) */}
+      <ProfileSettingsModal
+        open={openProfile}
+        onClose={() => setOpenProfile(false)}
+      />
     </div>
   );
 }

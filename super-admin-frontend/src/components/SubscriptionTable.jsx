@@ -1,15 +1,24 @@
 import { useState } from "react";
 import { Search, ChevronDown } from "lucide-react";
+import ReactivateSubscriptionModal from "./ReactivateSubscriptionModal";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import api from "../api/axios";
 
-export default function SubscriptionTable({ subscriptions }) {
+export default function SubscriptionTable({
+  subscriptions,
+  plans,
+  onSubscriptionUpdated,
+}) {
   const [searchValue, setSearchValue] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [modalMode, setModalMode] = useState(null);
 
   /* -------------------- FILTER -------------------- */
   const filteredData = subscriptions.filter((row) =>
-    row.panchayatName
-      ?.toLowerCase()
-      .includes(searchValue.toLowerCase())
+    row.panchayatName?.toLowerCase().includes(searchValue.toLowerCase())
   );
 
   /* -------------------- BADGE COLORS -------------------- */
@@ -37,43 +46,78 @@ export default function SubscriptionTable({ subscriptions }) {
     }
   };
 
+  /* -------------------- ACTION HANDLER -------------------- */
+  const handleUpgrade = async (planName) => {
+    try {
+      const normalizedPlan = planName.toUpperCase();
+
+      // guard
+      if (
+        modalMode === "change" &&
+        normalizedPlan === selectedRow.planName
+      ) {
+        toast.info("This plan is already active");
+        return;
+      }
+
+      if (modalMode === "activate") {
+        // BACKEND HANDLES 30 DAYS LOGIC
+        await api.post("/subscriptions", {
+          panchayatId: selectedRow.panchayatId,
+          planName: normalizedPlan,
+        });
+
+        toast.success("Subscription activated successfully");
+      }
+
+      if (modalMode === "change") {
+        await api.put(
+          `/subscriptions/${selectedRow.subscriptionId}/upgrade`,
+          { planName: normalizedPlan }
+        );
+
+        toast.success(`Plan changed to ${planName}`);
+      }
+
+      if (modalMode === "reactivate") {
+        await api.put(
+          `/subscriptions/${selectedRow.subscriptionId}/reactivate`
+        );
+
+        toast.success("Subscription reactivated successfully");
+      }
+
+      await onSubscriptionUpdated();
+      setShowModal(false);
+    } catch (err) {
+      console.error("SUBSCRIPTION ERROR:", err.response?.data || err);
+      toast.error(err.response?.data?.message || "Operation failed");
+    }
+  };
+
   return (
     <div>
       {/* Search & Filter */}
       <div className="flex gap-4 mb-6">
         <div className="flex-1 relative">
-          <Search
-            size={18}
-            className="absolute left-3 top-3 text-gray-400"
-          />
+          <Search size={18} className="absolute left-3 top-3 text-gray-400" />
           <input
             type="text"
             placeholder="Search Panchayat"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
           />
         </div>
 
         <div className="relative w-40">
           <button
             onClick={() => setFilterOpen(!filterOpen)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg flex items-center justify-between hover:bg-gray-50"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg flex items-center justify-between"
           >
             Filter
             <ChevronDown size={16} />
           </button>
-
-          {filterOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
-                Active Plans
-              </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 border-t border-gray-200">
-                Expired Plans
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -81,20 +125,20 @@ export default function SubscriptionTable({ subscriptions }) {
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
+            <tr className="bg-gray-50 border-b">
+              <th className="px-6 py-3 text-left text-sm font-semibold">
                 Panchayat
               </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
+              <th className="px-6 py-3 text-left text-sm font-semibold">
                 Current Plan
               </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
+              <th className="px-6 py-3 text-left text-sm font-semibold">
                 Expiry Date
               </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
+              <th className="px-6 py-3 text-left text-sm font-semibold">
                 Status
               </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
+              <th className="px-6 py-3 text-left text-sm font-semibold">
                 Action
               </th>
             </tr>
@@ -106,17 +150,12 @@ export default function SubscriptionTable({ subscriptions }) {
               const statusColor = getStatusBadgeColor(row.status);
 
               return (
-                <tr
-                  key={row._id}
-                  className="border-b border-gray-200 hover:bg-gray-50 transition"
-                >
-                  <td className="px-6 py-4 text-gray-800 font-medium text-sm">
-                    {row.panchayatName}
-                  </td>
+                <tr key={row.panchayatId} className="border-b">
+                  <td className="px-6 py-4">{row.panchayatName}</td>
 
                   <td className="px-6 py-4">
                     <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold border inline-block"
+                      className="px-3 py-1 rounded-full text-xs font-semibold border"
                       style={{
                         backgroundColor: planColor.bg,
                         color: planColor.text,
@@ -127,32 +166,49 @@ export default function SubscriptionTable({ subscriptions }) {
                     </span>
                   </td>
 
-                  <td className="px-6 py-4 text-gray-600 text-sm">
-                    {new Date(row.endDate).toLocaleDateString()}
+                  <td className="px-6 py-4 text-sm">
+                    {row.endDate
+                      ? new Date(row.endDate).toLocaleDateString()
+                      : "-"}
                   </td>
 
                   <td className="px-6 py-4">
                     <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold border inline-block"
+                      className="px-3 py-1 rounded-full text-xs font-semibold border"
                       style={{
                         backgroundColor: statusColor.bg,
                         color: statusColor.text,
                         borderColor: statusColor.border,
                       }}
                     >
-                      {row.status}
+                      {row.status === "NOT_ACTIVE" ? "Not Active" : row.status}
                     </span>
                   </td>
 
                   <td className="px-6 py-4">
                     <button
-                      className={`px-4 py-2 rounded text-xs font-semibold text-white transition ${
+                      onClick={() => {
+                        setSelectedRow(row);
+                        setModalMode(
+                          row.status === "NOT_ACTIVE"
+                            ? "activate"
+                            : row.status === "Expired"
+                            ? "reactivate"
+                            : "change"
+                        );
+                        setShowModal(true);
+                      }}
+                      className={`px-4 py-2 text-xs font-semibold rounded text-white ${
                         row.status === "Active"
-                          ? "bg-purple-500 hover:bg-purple-600"
-                          : "bg-yellow-500 hover:bg-yellow-600"
+                          ? "bg-purple-500"
+                          : row.status === "NOT_ACTIVE"
+                          ? "bg-green-500"
+                          : "bg-yellow-500"
                       }`}
                     >
-                      {row.status === "Active"
+                      {row.status === "NOT_ACTIVE"
+                        ? "Activate"
+                        : row.status === "Active"
                         ? "Change Plan"
                         : "Reactivate"}
                     </button>
@@ -163,10 +219,7 @@ export default function SubscriptionTable({ subscriptions }) {
 
             {filteredData.length === 0 && (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-6 text-gray-500"
-                >
+                <td colSpan="5" className="py-6 text-center text-gray-500">
                   No subscriptions found
                 </td>
               </tr>
@@ -174,6 +227,16 @@ export default function SubscriptionTable({ subscriptions }) {
           </tbody>
         </table>
       </div>
+
+      <ReactivateSubscriptionModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        plans={plans}
+        currentPlan={selectedRow?.planName}
+        panchayatName={selectedRow?.panchayatName}
+        mode={modalMode}
+        onUpgrade={handleUpgrade}
+      />
     </div>
   );
 }

@@ -36,6 +36,7 @@ app.use("/api/dustbins", dustbinRoutes);
 app.use("/api/collections", collectionRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/company", companyRoutes);
+app.use("/api/auth", authRoutes);
 
 
 

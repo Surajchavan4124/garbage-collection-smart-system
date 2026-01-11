@@ -51,22 +51,6 @@ export default function PlanCard({ plan }) {
           </div>
         ))}
       </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3">
-        {plan.actions.map((action, index) => (
-          <button
-            key={index}
-            className={`flex-1 py-2 rounded text-sm font-semibold transition ${
-              action === 'Edit'
-                ? 'bg-teal-500 hover:bg-teal-600 text-white'
-                : 'bg-red-500 hover:bg-red-600 text-white'
-            }`}
-          >
-            {action}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

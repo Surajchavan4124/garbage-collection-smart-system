@@ -12,4 +12,14 @@ router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtpAndLogin);
 router.get("/me", protect, checkSession);
 
+router.post("/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  return res.status(200).json({ message: "Logged out successfully" });
+});
+
 export default router;
