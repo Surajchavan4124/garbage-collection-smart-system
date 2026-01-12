@@ -8,6 +8,8 @@ import subscriptionRoutes from "./routes/subscription.routes.js";
 import companyRoutes from "./routes/company.routes.js";
 import path from "path";
 import employeeRoutes from "./routes/employee.routes.js";
+import attendanceRoutes from "./routes/attendance.routes.js";
+
 const app = express();
 app.use(express.json());  
 app.use(
@@ -33,6 +35,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 
 export default app;
