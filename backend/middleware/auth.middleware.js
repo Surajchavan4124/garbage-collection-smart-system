@@ -11,26 +11,28 @@ export const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    let authEntity = null;
-
-    // 1. Try User (super admin)
-    authEntity = await User.findById(decoded.userId);
-
-    // 2. Fallback to Panchayat (admin)
-    if (!authEntity) {
-      const panchayat = await Panchayat.findById(decoded.userId);
-      if (!panchayat || panchayat.status !== "active") {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      authEntity = {
-        _id: panchayat._id,
-        role: "ADMIN",
-        panchayatId: panchayat._id,
+    // Try User first
+    const user = await User.findById(decoded.userId);
+    if (user) {
+      req.user = {
+        _id: user._id,
+        role: user.role, // SUPER_ADMIN etc
       };
+      return next();
     }
 
-    req.user = authEntity;
+    // Try Panchayat admin
+    const panchayat = await Panchayat.findById(decoded.userId);
+    if (!panchayat || panchayat.status !== "active") {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    req.user = {
+      _id: panchayat._id,
+      role: "PANCHAYAT_ADMIN",
+      panchayatId: panchayat._id,
+    };
+
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });

@@ -96,40 +96,45 @@ export const scanAttendance = async (req, res) => {
 export const manualAttendance = async (req, res) => {
   try {
     const { labourId, date, reason } = req.body;
-        console.log("REQ.USER:", req.user);
 
-    // 🔴 REQUIRED
-    const panchayatId = req.user.panchayat;
-
-    if (!panchayatId) {
-      return res.status(400).json({ message: "Panchayat missing in user context" });
+    if (req.user.role !== "PANCHAYAT_ADMIN") {
+      return res.status(403).json({ message: "Access denied" });
     }
 
-    // Prevent duplicate attendance
+    const panchayatId = req.user.panchayatId;
+
+    if (!panchayatId) {
+      return res.status(401).json({ message: "Invalid auth context" });
+    }
+
+    if (!labourId || !date) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
     const existing = await Attendance.findOne({
       labour: labourId,
       date,
     });
 
-
     if (existing) {
-      return res.status(400).json({ message: "Attendance already exists for today" });
+      return res
+        .status(400)
+        .json({ message: "Attendance already exists for today" });
     }
 
     const attendance = await Attendance.create({
       labour: labourId,
-      panchayat: panchayatId, // 🔥 THIS WAS MISSING
+      panchayat: panchayatId,
       date,
       present: true,
       source: "ADMIN",
       reason,
     });
-    
 
     res.status(201).json(attendance);
   } catch (err) {
     console.error(err);
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 // 🔹 TODAY VIEW
