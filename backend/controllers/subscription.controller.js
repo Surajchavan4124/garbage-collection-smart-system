@@ -98,7 +98,7 @@ export const createSubscription = async (req, res) => {
 ================================ */
 export const listAllSubscriptions = async (req, res) => {
   try {
-    const panchayats = await Panchayat.find().select('name')
+    const panchayats = await Panchayat.find({ status: { $ne: 'rejected' } }).select('name')
     const subs = await Subscription.find()
 
     const map = new Map()

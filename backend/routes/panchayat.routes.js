@@ -1,19 +1,34 @@
 import express from "express";
-import { createPanchayat } from "../controllers/panchayat.controller.js";
+import { 
+  createPanchayat, 
+  listPanchayats, 
+  approvePanchayat, 
+  rejectPanchayat, 
+  getPanchayatById 
+} from "../controllers/panchayat.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { allowRoles } from "../middleware/roleMiddleware.js";
-import { approvePanchayat } from "../controllers/panchayat.controller.js";
 
+import { uploadPanchayatDocs } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
 
-router.post("/register", createPanchayat);
-
-export default router;
+router.get("/", listPanchayats);
+router.post("/register", uploadPanchayatDocs, createPanchayat);
+router.get("/:id", getPanchayatById);
 
 router.patch(
-  "/approve/:id",
+  "/:id/approve",
   protect,
   allowRoles("COMPANY_ADMIN"),
   approvePanchayat
 );
+
+router.patch(
+  "/:id/reject",
+  protect,
+  allowRoles("COMPANY_ADMIN"),
+  rejectPanchayat
+);
+
+export default router;

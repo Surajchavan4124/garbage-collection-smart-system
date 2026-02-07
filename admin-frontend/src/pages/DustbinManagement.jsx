@@ -1,15 +1,29 @@
-import { useState } from 'react'
-import { Search, Filter, Download, Eye, Trash2, MapPin } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Filter, Download, Eye, Trash2, MapPin, FileSpreadsheet, FileText, QrCode } from 'lucide-react'
+import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
 import ViewDustbinModal from '../components/ViewDustbinModal'
 import EditDustbinModal from '../components/EditDustbinModal'
 import DeleteDustbinConfirmModal from '../components/DeleteDustbinConfirmModal'
-import { dustbinsData, mapPins } from '../data/dustbinMockData'
+import api from '../api/axios'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
+
+// Ensure autoTable is registered
+// (Usually importing it is enough, but sometimes explicit apply is needed if tree-shaking removes it)
+
 
 export default function DustbinManagement() {
-  const [dustbins, setDustbins] = useState(dustbinsData)
+  const [dustbins, setDustbins] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [downloadDropdownOpen, setDownloadDropdownOpen] = useState(false) // Dropdown state
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false) // Filter Dropdown state
+  const [statusFilter, setStatusFilter] = useState('All')
+  const [typeFilter, setTypeFilter] = useState('All')
+
   const [formData, setFormData] = useState({
     location: '',
     type: 'General',
@@ -22,12 +36,44 @@ export default function DustbinManagement() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedBin, setSelectedBin] = useState(null)
 
-  // Filter dustbins based on search
-  const filteredDustbins = dustbins.filter(
-    (bin) =>
-      bin.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bin.location.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Fetch Dustbins
+  useEffect(() => {
+    fetchDustbins()
+  }, [])
+
+  const fetchDustbins = async () => {
+    try {
+      const res = await api.get('/dustbins')
+      // Map backend fields to frontend expected structure if needed
+      // Backend: _id, binCode, locationText, type, status, geo: {lat, lng}
+      // Frontend expects: id, location, type, status...
+      const mapped = res.data.map(d => ({
+        id: d.binCode,
+        _id: d._id,
+        location: d.locationText,
+        type: d.type,
+        status: d.status,
+        gps: d.geo
+      }))
+      setDustbins(mapped)
+    } catch (error) {
+      console.error('Failed to fetch dustbins', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Filter dustbins based on search and filters
+  const filteredDustbins = dustbins.filter((bin) => {
+    const matchesSearch = 
+      (bin.id?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+      (bin.location?.toLowerCase().includes(searchTerm.toLowerCase()) || '')
+    
+    const matchesStatus = statusFilter === 'All' || bin.status === statusFilter
+    const matchesType = typeFilter === 'All' || bin.type === typeFilter
+
+    return matchesSearch && matchesStatus && matchesType
+  })
 
   // KPI calculations
   const kpis = {
@@ -65,31 +111,140 @@ export default function DustbinManagement() {
     }
   }
 
+  // --- Download Functions ---
+
+  const generateExcel = () => {
+    const dataToExport = filteredDustbins.map(bin => ({
+      'Bin ID': bin.id,
+      'Location': bin.location,
+      'Type': bin.type,
+      'Status': bin.status,
+      'Latitude': bin.gps?.lat,
+      'Longitude': bin.gps?.lng
+    }))
+
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(dataToExport)
+    XLSX.utils.book_append_sheet(wb, ws, 'Dustbins')
+    XLSX.writeFile(wb, 'Dustbins_Registry.xlsx')
+    setDownloadDropdownOpen(false)
+    toast.success('Excel downloaded successfully')
+  }
+
+  const generatePDF = () => {
+    try {
+      const doc = new jsPDF()
+      doc.text('Dustbin Registry', 14, 15)
+      
+      const head = [["Bin ID", "Location", "Type", "Status"]]
+      const body = filteredDustbins.map(bin => [
+        bin.id || "N/A",
+        bin.location || "N/A",
+        bin.type || "N/A",
+        bin.status || "N/A",
+      ])
+
+      // Functional usage of autoTable
+      if (typeof autoTable === 'function') {
+        autoTable(doc, { head, body, startY: 20 })
+      } else {
+        // Fallback: Check if it's attached to doc
+        doc.autoTable({ head, body, startY: 20 })
+      }
+
+      doc.save('Dustbins_Registry.pdf')
+      setDownloadDropdownOpen(false)
+      toast.success('PDF downloaded successfully')
+    } catch (error) {
+      console.error("PDF Generation Error:", error)
+      toast.error(`PDF Failed: ${error.message}`)
+    }
+  }
+
+  // Helper to load image
+  const loadImage = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'Anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = reject
+      img.src = url
+    })
+  }
+
+  const generateQRPDF = async () => {
+    setDownloadDropdownOpen(false)
+    const toastId = toast.loading('Generating QR Code PDF...')
+    
+    try {
+      const doc = new jsPDF()
+      let isFirstPage = true
+
+      for (const bin of filteredDustbins) {
+        if (!isFirstPage) doc.addPage()
+        isFirstPage = false
+
+        // Title
+        doc.setFontSize(22)
+        doc.text(`Bin ID: ${bin.id}`, 105, 40, { align: 'center' })
+        
+        doc.setFontSize(14)
+        doc.text(`Location: ${bin.location}`, 105, 50, { align: 'center' })
+        doc.text(`Type: ${bin.type}`, 105, 60, { align: 'center' })
+
+        // Fetch QR
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${bin.id}`
+        const img = await loadImage(qrUrl)
+        
+        // Add QR Image (centered)
+        const imgSize = 100
+        const x = (210 - imgSize) / 2
+        doc.addImage(img, 'PNG', x, 80, imgSize, imgSize)
+
+        doc.setFontSize(10)
+        doc.text('Scan to complete collection or to report issue', 105, 190, { align: 'center' })
+      }
+
+      doc.save('Dustbin_QR_Codes.pdf')
+      toast.update(toastId, { render: 'QR PDF downloaded!', type: 'success', isLoading: false, autoClose: 3000 })
+    } catch (error) {
+      console.error(error)
+      toast.update(toastId, { render: 'Failed to generate QR PDF', type: 'error', isLoading: false, autoClose: 3000 })
+    }
+  }
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSaveBin = (e) => {
+  const handleSaveBin = async (e) => {
     e.preventDefault()
     if (!formData.location.trim()) {
-      alert('Please fill in location')
+      toast.error('Please fill in location')
       return
     }
 
-    const newBin = {
-      id: 'B-0' + String(dustbins.length + 1),
-      location: formData.location,
-      type: formData.type,
-      status: formData.status,
-      fillLevel: 0,
-      lastCleaned: new Date().toISOString().split('T')[0],
-      gps: { lat: 15.3, lng: 73.8 },
+    try {
+      const payload = {
+        binCode: `B-${Math.floor(1000 + Math.random() * 9000)}`, // Random 4-digit ID to avoid soft-delete collisions
+        locationText: formData.location,
+        type: formData.type,
+        status: formData.status,
+        lat: 15.3, // Hardcoded for now, map picker would be ideal
+        lng: 73.8
+      }
+      
+      const res = await api.post('/dustbins', payload)
+      // Refresh list
+      fetchDustbins()
+      setFormData({ location: '', type: 'General', status: 'Good' })
+      setFormData({ location: '', type: 'General', status: 'Good' })
+      toast.success('Bin added successfully!')
+    } catch (error) {
+      console.error(error)
+      toast.error(error.response?.data?.message || 'Failed to add bin')
     }
-
-    setDustbins([...dustbins, newBin])
-    setFormData({ location: '', type: 'General', status: 'Good' })
-    alert('Bin added successfully!')
   }
 
   const handleViewBin = (bin) => {
@@ -102,13 +257,19 @@ export default function DustbinManagement() {
     setIsEditModalOpen(true)
   }
 
-  const handleUpdateBin = (binId, updatedData) => {
-    setDustbins(dustbins.map(bin =>
-      bin.id === binId
-        ? { ...bin, ...updatedData }
-        : bin
-    ))
-    alert('Bin updated successfully!')
+  const handleUpdateBin = async (binId, updatedData) => {
+    try {
+      await api.put(`/dustbins/${binId}`, updatedData)
+      setDustbins(dustbins.map(bin =>
+        bin._id === binId
+          ? { ...bin, ...updatedData }
+          : bin
+      ))
+      toast.success('Bin updated successfully!')
+    } catch (error) {
+       console.error("Failed to update bin", error)
+       toast.error("Failed to update bin")
+    }
   }
 
   const handleDeleteBinClick = (bin) => {
@@ -116,9 +277,15 @@ export default function DustbinManagement() {
     setIsDeleteModalOpen(true)
   }
 
-  const handleConfirmDelete = (binId) => {
-    setDustbins(dustbins.filter(b => b.id !== binId))
-    alert('Bin deleted successfully!')
+  const handleConfirmDelete = async (binId) => {
+    try {
+      await api.delete(`/dustbins/${binId}`)
+      setDustbins(dustbins.filter(b => b._id !== binId))
+      toast.success('Bin deleted successfully!')
+    } catch (error) {
+      console.error("Failed to delete bin", error)
+      toast.error("Failed to delete bin")
+    }
   }
 
   const handleDeleteFromViewModal = () => {
@@ -170,12 +337,101 @@ export default function DustbinManagement() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
                     />
-                    <button className="p-2 hover:bg-gray-100 rounded transition">
-                      <Filter size={18} className="text-gray-600" />
-                    </button>
-                    <button className="p-2 hover:bg-gray-100 rounded transition">
-                      <Download size={18} className="text-gray-600" />
-                    </button>
+                    <div className="relative">
+                      <button 
+                        onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+                        className={`flex items-center gap-2 px-3 py-2 bg-white border rounded-lg transition-all shadow-sm ${
+                          (statusFilter !== 'All' || typeFilter !== 'All') 
+                            ? 'border-teal-500 text-teal-600 bg-teal-50' 
+                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Filter size={18} />
+                        <span className="text-sm font-medium">Filter</span>
+                        {(statusFilter !== 'All' || typeFilter !== 'All') && (
+                          <span className="flex h-2 w-2 rounded-full bg-teal-500"></span>
+                        )}
+                      </button>
+
+                      {filterDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50 border border-gray-100 p-4 space-y-4">
+                          {/* Status Filter */}
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+                            <select
+                              value={statusFilter}
+                              onChange={(e) => setStatusFilter(e.target.value)}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            >
+                              <option value="All">All Statuses</option>
+                              <option value="Good">Good</option>
+                              <option value="Damaged">Damaged</option>
+                              <option value="Need Replacement">Need Replacement</option>
+                            </select>
+                          </div>
+
+                          {/* Type Filter */}
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Type</label>
+                            <select
+                              value={typeFilter}
+                              onChange={(e) => setTypeFilter(e.target.value)}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            >
+                              <option value="All">All Types</option>
+                              <option value="General">General</option>
+                              <option value="Recyclable">Recyclable</option>
+                              <option value="Organic">Organic</option>
+                            </select>
+                          </div>
+
+                          {/* Clear Button */}
+                          {(statusFilter !== 'All' || typeFilter !== 'All') && (
+                            <button
+                              onClick={() => {
+                                setStatusFilter('All')
+                                setTypeFilter('All')
+                              }}
+                              className="w-full py-1 text-xs text-red-500 hover:text-red-600 font-semibold text-center border-t border-gray-100 pt-2"
+                            >
+                              Clear Filters
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <button 
+                        onClick={() => setDownloadDropdownOpen(!downloadDropdownOpen)}
+                        className="flex items-center gap-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg text-teal-700 hover:bg-teal-100 transition-all shadow-sm"
+                      >
+                        <Download size={18} />
+                        <span className="text-sm font-medium">Download</span>
+                      </button>
+
+                      {downloadDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-50 border border-gray-100 py-1">
+                          <button
+                            onClick={generateExcel}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <FileSpreadsheet size={16} className="text-green-600" /> Download Excel
+                          </button>
+                          <button
+                            onClick={generatePDF}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <FileText size={16} className="text-red-500" /> Download PDF (List)
+                          </button>
+                          <button
+                            onClick={generateQRPDF}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-t border-gray-100"
+                          >
+                            <QrCode size={16} className="text-blue-600" /> Download QR PDF
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -258,7 +514,7 @@ export default function DustbinManagement() {
                     <line x1="40" y1="365" x2="40" y2="385" stroke="#6b7280" strokeWidth="2" />
 
                     {/* Pins */}
-                    {mapPins.map((pin, idx) => {
+                    {filteredDustbins.map((pin, idx) => {
                       const x = (idx % 3) * 150 + 75
                       const y = Math.floor(idx / 3) * 120 + 80
                       const color = getPinColor(pin.status)
@@ -303,7 +559,7 @@ export default function DustbinManagement() {
                     <label className="block text-xs font-semibold text-gray-700 mb-2">Bin ID</label>
                     <input
                       type="text"
-                      value={`Auto Generated: B-0${dustbins.length + 1}`}
+                      value="Auto Generated (e.g. B-1234)"
                       disabled
                       className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-600 text-xs"
                     />

@@ -3,15 +3,15 @@ import { X, MapPin, Phone, Calendar, FileText } from 'lucide-react'
 
 export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatusUpdate, employees }) {
   const [selectedStatus, setSelectedStatus] = useState(complaint?.status || 'Received')
-  const [selectedEmployee, setSelectedEmployee] = useState(complaint?.assignedEmployee || '')
+  const [selectedEmployee, setSelectedEmployee] = useState(complaint?.assignedEmployee?._id || '')
   const [resolutionTime, setResolutionTime] = useState('')
 
   if (!isOpen || !complaint) return null
 
   const handleUpdateStatus = () => {
-    onStatusUpdate(complaint.id, {
+    onStatusUpdate(complaint.originalId || complaint.id, {
       status: selectedStatus,
-      assignedEmployee: selectedEmployee,
+      assignedTo: selectedEmployee,
       resolutionTime: resolutionTime
     })
     onClose()
@@ -79,7 +79,7 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
                     <label className="block text-xs font-semibold text-gray-600 mb-2">Contact Number</label>
                     <input
                       type="text"
-                      value="XXXXXXXXXX"
+                      value={complaint.mobile || 'N/A'}
                       disabled
                       className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
                     />
@@ -98,7 +98,7 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-2">Message</label>
                     <textarea
-                      value="The wet waste collection bin in my ward is broken. Kindly replace it at the earliest."
+                      value={complaint.description || ''}
                       disabled
                       className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm resize-none h-20"
                     />
@@ -108,18 +108,19 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-2">Images</label>
                     <div className="flex gap-3">
-                      {complaint.photo && (
-                        <>
-                          <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center border border-gray-300">
-                            <span className="text-2xl">📷</span>
-                          </div>
-                          <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center border border-gray-300">
-                            <span className="text-2xl">📷</span>
-                          </div>
-                          <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center border border-gray-300">
-                            <span className="text-2xl">📷</span>
-                          </div>
-                        </>
+                      {complaint.photo ? (
+                        <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center border border-gray-300 overflow-hidden">
+                          <img 
+                            src={`http://localhost:5000/${complaint.photo}`} 
+                            alt="Complaint" 
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentElement.innerText = '📷'; }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center border border-gray-300">
+                           <span className="text-2xl">📷</span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -171,7 +172,7 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
                     >
                       <option value="">Search a employee</option>
                       {employees && employees.map(emp => (
-                        <option key={emp.id} value={emp.name}>{emp.name}</option>
+                        <option key={emp._id} value={emp._id}>{emp.name} - {emp.role}</option>
                       ))}
                     </select>
                   </div>
@@ -186,7 +187,24 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
                             name="status"
                             value={status}
                             checked={selectedStatus === status}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
+                        onChange={(e) => {
+                              const newStatus = e.target.value;
+                              setSelectedStatus(newStatus);
+                              if (newStatus === 'Resolved' && complaint.createdAt) {
+                                const created = new Date(complaint.createdAt);
+                                const now = new Date();
+                                const diffMs = now - created;
+                                const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                                const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                                const diffDays = Math.floor(diffHrs / 24);
+                                
+                                let duration = "";
+                                if (diffDays > 0) duration += `${diffDays} days `;
+                                if (diffHrs % 24 > 0) duration += `${diffHrs % 24} hours `;
+                                if (diffMins > 0) duration += `${diffMins} minutes`;
+                                setResolutionTime(duration.trim() || "< 1 minute");
+                              }
+                            }}
                             className="w-4 h-4 text-teal-500"
                           />
                           <span className="text-sm text-gray-700">{status}</span>

@@ -1,5 +1,5 @@
 import { X, Edit2 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function EditHouseholdModal({ isOpen, onClose, household, onUpdate }) {
   const [editData, setEditData] = useState({
@@ -7,12 +7,30 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
     contact: household?.contact || '',
     segregationCompliance: household?.segregationCompliance || 'Compliant',
     complaints: household?.complaints || '',
+    address: household?.address || '', // Added address
+    ward: household?.ward || '',       // Added ward
   })
+
+  // Update state when household prop changes
+  useEffect(() => {
+    if (household) {
+      setEditData({
+        headOfHousehold: household.headOfHousehold || '',
+        contact: household.contact || '',
+        segregationCompliance: household.segregationCompliance || 'Compliant',
+        complaints: household.complaints || '',
+        address: household.address || '',
+        ward: household.ward || ''
+      })
+    }
+  }, [household])
 
   const [editingFields, setEditingFields] = useState({
     headOfHousehold: false,
     contact: false,
     segregationCompliance: false,
+    address: false, // Added
+    ward: false     // Added
   })
 
   const handleInputChange = (e) => {
@@ -25,7 +43,7 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
   }
 
   const handleSave = () => {
-    onUpdate(household.id, editData)
+    onUpdate(household._id, editData)
     onClose()
   }
 
@@ -97,28 +115,56 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
               />
             </div>
 
-            {/* Address - Read Only */}
+            {/* Address - Editable */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Address:
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-semibold text-gray-700">
+                  Address:
+                </label>
+                <button
+                  onClick={() => toggleEditing('address')}
+                  className="p-1 hover:bg-gray-100 rounded transition"
+                >
+                  <Edit2 size={16} className="text-gray-600" />
+                </button>
+              </div>
               <textarea
-                value={`Navelim, Street 1234, landmark: xyz (GPS coordinates)`}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm resize-none h-20"
+                name="address"
+                value={editData.address}
+                onChange={handleInputChange}
+                disabled={!editingFields.address}
+                className={`w-full px-4 py-2 rounded text-sm border transition resize-none h-20 ${
+                  editingFields.address
+                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    : 'bg-gray-50 border-gray-300 text-gray-700'
+                }`}
               />
             </div>
 
-            {/* Assigned Ward - Read Only */}
+            {/* Assigned Ward - Editable */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Assigned Ward:
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-semibold text-gray-700">
+                  Assigned Ward:
+                </label>
+                <button
+                  onClick={() => toggleEditing('ward')}
+                  className="p-1 hover:bg-gray-100 rounded transition"
+                >
+                  <Edit2 size={16} className="text-gray-600" />
+                </button>
+              </div>
               <input
                 type="text"
-                value={household.ward}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm font-medium"
+                name="ward"
+                value={editData.ward}
+                onChange={handleInputChange}
+                disabled={!editingFields.ward}
+                className={`w-full px-4 py-2 rounded text-sm border transition ${
+                  editingFields.ward
+                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    : 'bg-gray-50 border-gray-300 text-gray-700'
+                }`}
               />
             </div>
 

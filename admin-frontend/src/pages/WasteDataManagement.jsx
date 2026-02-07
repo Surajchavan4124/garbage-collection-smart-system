@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Filter, Download, BarChart3 } from 'lucide-react'
+import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
-import { wasteRecordsData, wardOptions } from '../data/wasteDataMockData'
+import { wardOptions } from '../data/wasteDataMockData'
+import api from '../api/axios'
 
 export default function WasteDataManagement() {
   const [formData, setFormData] = useState({
@@ -15,9 +17,26 @@ export default function WasteDataManagement() {
     mixed: ''
   })
 
-  const [wasteRecords, setWasteRecords] = useState(wasteRecordsData)
+  const [wasteRecords, setWasteRecords] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedWard, setSelectedWard] = useState('Ward 1')
+
+  useEffect(() => {
+    fetchWasteData()
+  }, [])
+
+  const fetchWasteData = async () => {
+    try {
+      const res = await api.get('/waste-data')
+      setWasteRecords(res.data)
+    } catch (error) {
+      console.error("Failed to fetch waste data", error)
+      toast.error("Failed to fetch waste data")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Filter records based on search
   const filteredRecords = wasteRecords.filter(record =>
@@ -31,43 +50,44 @@ export default function WasteDataManagement() {
   }
 
   // Handle form submission
-  const handleSaveEntry = (e) => {
+  // Handle form submission
+  const handleSaveEntry = async (e) => {
     e.preventDefault()
     
     if (!formData.date || !formData.biodegradable || !formData.recyclable || 
         !formData.nonBiodegradable || !formData.mixed) {
-      alert('Please fill in all waste metrics')
+      toast.error('Please fill in all waste metrics')
       return
     }
 
-    const biodeg = parseFloat(formData.biodegradable)
-    const recycl = parseFloat(formData.recyclable)
-    const nonBiodeg = parseFloat(formData.nonBiodegradable)
-    const mix = parseFloat(formData.mixed)
-    const total = biodeg + recycl + nonBiodeg + mix
+    try {
+      const payload = {
+        date: formData.date,
+        collectionType: formData.collectionType,
+        ward: formData.ward,
+        biodegradable: formData.biodegradable,
+        recyclable: formData.recyclable,
+        nonBiodegradable: formData.nonBiodegradable,
+        mixed: formData.mixed
+      }
 
-    const newEntry = {
-      entryId: `W-${String(wasteRecords.length + 1).padStart(2, '0')}`,
-      dateEntered: formData.date,
-      ward: formData.ward,
-      biodegradable: biodeg,
-      nonBiodegradable: nonBiodeg,
-      recyclable: recycl,
-      others: mix,
-      total: total
+      await api.post('/waste-data', payload)
+      fetchWasteData()
+      
+      setFormData({
+        date: '',
+        collectionType: 'Daily',
+        ward: 'Ward 1',
+        biodegradable: '',
+        recyclable: '',
+        nonBiodegradable: '',
+        mixed: ''
+      })
+      toast.success('Waste entry saved successfully!')
+    } catch (error) {
+      console.error(error)
+      toast.error(error.response?.data?.message || 'Failed to save entry')
     }
-
-    setWasteRecords([...wasteRecords, newEntry])
-    setFormData({
-      date: '',
-      collectionType: 'Daily',
-      ward: 'Ward 1',
-      biodegradable: '',
-      recyclable: '',
-      nonBiodegradable: '',
-      mixed: ''
-    })
-    alert('Waste entry saved successfully!')
   }
 
   // Handle reset
@@ -366,7 +386,7 @@ export default function WasteDataManagement() {
                   {filteredRecords.map((record, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-4 text-sm font-semibold text-gray-800">{record.entryId}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{record.dateEntered}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{new Date(record.date).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{record.ward}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{record.biodegradable}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{record.nonBiodegradable}</td>

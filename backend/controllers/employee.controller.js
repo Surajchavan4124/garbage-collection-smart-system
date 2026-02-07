@@ -5,7 +5,6 @@ export const createEmployee = async (req, res) => {
   try {
     const {
       name,
-      employeeCode,
       phone,
       address,
       role,
@@ -15,10 +14,27 @@ export const createEmployee = async (req, res) => {
 
     const normalizePath = (p) => p?.replace(/\\/g, "/");
 
+    // Auto-generate Employee Code
+    const lastEmployee = await Employee.findOne(
+      { panchayat: req.user.panchayatId },
+      { employeeCode: 1 }
+    )
+      .sort({ createdAt: -1 })
+      .lean();
+
+    let nextCode = "EMP001";
+    if (lastEmployee && lastEmployee.employeeCode) {
+      const match = lastEmployee.employeeCode.match(/^EMP(\d+)$/);
+      if (match) {
+        const nextNum = parseInt(match[1], 10) + 1;
+        nextCode = `EMP${String(nextNum).padStart(3, "0")}`;
+      }
+    }
+
     const employee = await Employee.create({
       panchayat: req.user.panchayatId,
       name,
-      employeeCode,
+      employeeCode: nextCode,
       phone,
       address,
       role,

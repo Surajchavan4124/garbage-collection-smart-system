@@ -61,7 +61,7 @@ export default function ViewHouseholdModal({ isOpen, onClose, household, onEdit,
                 Address:
               </label>
               <textarea
-                value={`Navelim, Street 1234, landmark: xyz (GPS coordinates)`}
+                value={household.address || 'N/A'}
                 disabled
                 className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm resize-none h-20"
               />

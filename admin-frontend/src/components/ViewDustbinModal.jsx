@@ -1,9 +1,27 @@
-import { X } from 'lucide-react'
+import { X, Download } from 'lucide-react'
 
 export default function ViewDustbinModal({ isOpen, onClose, dustbin, onEdit, onDelete }) {
   if (!isOpen || !dustbin) return null
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${dustbin.id}`
+
+  const handleDownloadQR = async () => {
+    try {
+      const response = await fetch(qrCodeUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Dustbin_QR_${dustbin.binCode || dustbin.id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download QR code:', error);
+      alert('Failed to download QR code');
+    }
+  }
 
   return (
     <>
@@ -38,7 +56,7 @@ export default function ViewDustbinModal({ isOpen, onClose, dustbin, onEdit, onD
               </label>
               <input
                 type="text"
-                value={dustbin.id}
+                value={dustbin.binCode || dustbin.id}
                 disabled
                 className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm font-medium"
               />
@@ -46,10 +64,18 @@ export default function ViewDustbinModal({ isOpen, onClose, dustbin, onEdit, onD
 
             {/* QR Code Image */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Bin QR Code:
-              </label>
-              <div className="flex justify-center p-4 bg-gray-50 border border-gray-300 rounded">
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-xs font-semibold text-gray-700">
+                  Bin QR Code:
+                </label>
+                <button 
+                  onClick={handleDownloadQR}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-teal-50 text-teal-700 text-xs font-semibold rounded-md border border-teal-200 hover:bg-teal-100 hover:border-teal-300 transition-all shadow-sm"
+                >
+                  <Download size={14} /> Download QR
+                </button>
+              </div>
+              <div className="flex justify-center p-4 bg-gray-50 border border-gray-300 rounded relative group">
                 <img
                   src={qrCodeUrl}
                   alt={`QR Code for ${dustbin.id}`}

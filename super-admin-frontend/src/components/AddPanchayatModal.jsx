@@ -46,6 +46,7 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
     try {
       setLoading(true);
 
+      // Use FormData for file uploads
       const payload = new FormData();
       payload.append("name", formData.panchayatName);
       payload.append("address", formData.location);
@@ -63,12 +64,14 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
         payload.append("registrationLetter", formData.registrationLetter);
       }
 
-      await api.post("/company/panchayats", payload);
-
+      // Important: Content-Type header is automatically set by axios for FormData
+      await api.post("/panchayat/register", payload);
+      
       toast.success("Panchayat submitted for approval");
-      onSuccess();
+      if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
+      console.error(err);
       toast.error(err.response?.data?.message || "Failed to add panchayat");
     } finally {
       setLoading(false);
@@ -82,15 +85,21 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 sticky top-0 bg-white">
-          <h2 className="text-xl font-bold text-gray-800">ADD NEW PANCHAYAT</h2>
-          <button onClick={handleCancel}>
+        <div className="flex justify-between items-center px-6 py-4 border-b sticky top-0 bg-white z-10">
+          <h3 className="text-xl font-semibold text-gray-800">
+            Add New Panchayat
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 transition"
+          >
             <X size={24} />
           </button>
         </div>
+
         {/* Form Content */}
         <div className="p-6 space-y-6">
           {/* General Information Section */}
@@ -160,19 +169,7 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
                     htmlFor="idProofInput"
                     className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
                   >
-                    <svg
-                      className="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
-                    </svg>
+                    <span className="text-sm text-gray-500">Upload File</span>
                   </label>
                 </div>
                 {formData.inchargeIdProof && (
@@ -198,19 +195,7 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
                     htmlFor="registrationInput"
                     className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
                   >
-                    <svg
-                      className="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
-                    </svg>
+                    <span className="text-sm text-gray-500">Upload File</span>
                   </label>
                 </div>
                 {formData.registrationLetter && (

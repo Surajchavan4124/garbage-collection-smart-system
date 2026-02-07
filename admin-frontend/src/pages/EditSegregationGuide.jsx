@@ -1,43 +1,131 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bold, Italic, Underline, List, ListOrdered, Heading1, Heading2, Link, Image, X, Upload, Play, Trash2 } from 'lucide-react'
+import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
+import api from '../api/axios'
+
+// Helper to construct full URL for images if needed
+const getImageUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith("data:")) return path;
+  if (path.startsWith("http")) return path;
+  return `http://localhost:5000/${path}`;
+};
 
 export default function EditSegregationGuide() {
-  const [content, setContent] = useState('Do\'s And Don\'ts\n\n✓ DO: Separate wet waste from dry waste\n✓ DO: Use separate bins for organic waste\n✓ DO: Rinse containers before recycling\n✓ DO: Compost garden waste at home\n\n✗ DON\'T: Mix different waste types\n✗ DON\'T: Throw hazardous waste in bins\n✗ DON\'T: Leave waste uncovered\n✗ DON\'T: Burn waste in open areas')
+  const [content, setContent] = useState('')
   const [tutorialVideo, setTutorialVideo] = useState(null)
   const [pdfFile, setPdfFile] = useState(null)
-  const [isSaved, setIsSaved] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  /* ================= FETCH CONTENT ================= */
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const res = await api.get('/content?type=segregation-guide')
+        if (res.data) {
+          setContent(res.data.body || '')
+          
+          if (res.data.media) {
+            const video = res.data.media.find(m => m.type === 'video')
+            if (video) setTutorialVideo({ name: 'Tutorial Video', url: video.url })
+            
+            const pdf = res.data.media.find(m => m.caption === 'PDF Guide')
+            if (pdf) setPdfFile({ name: 'Guide PDF', url: pdf.url })
+          }
+        } else {
+             // Init default if empty
+             setContent('Do\'s And Don\'ts\n\n✓ DO: Separate wet waste from dry waste\n✓ DO: Use separate bins for organic waste...')
+        }
+      } catch (err) {
+        console.error("Fetch Error:", err)
+        toast.error("Failed to load content")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchContent()
+  }, [])
+
+  /* ================= HANDLE SAVE / PUBLISH ================= */
+  const handleSave = async (status) => {
+    try {
+      setSaving(true)
+      
+      const media = []
+      if (tutorialVideo) {
+         media.push({ url: tutorialVideo.url, type: 'video', caption: 'Tutorial Video' })
+      }
+      if (pdfFile) {
+         media.push({ url: pdfFile.url, type: 'file', caption: 'PDF Guide' })
+      }
+
+      await api.post('/content', {
+        type: 'segregation-guide',
+        title: 'Segregation Guide',
+        body: content,
+        status,
+        media 
+      })
+
+      if (status === 'draft') toast.success("Draft saved successfully")
+      if (status === 'published') toast.success("Segregation Guide published successfully!")
+
+    } catch (err) {
+      console.error(err)
+      toast.error("Failed to save content")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleContentChange = (e) => {
     setContent(e.target.value)
   }
 
-  const handleVideoUpload = (e) => {
+  const handleVideoUpload = async (e) => {
     const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setTutorialVideo({
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await api.post('/content/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      setTutorialVideo({
           name: file.name,
-          url: event.target.result
-        })
-      }
-      reader.readAsDataURL(file)
+          url: res.data.url
+      })
+      toast.success("Video uploaded")
+    } catch (err) {
+      console.error(err)
+      toast.error("Video upload failed")
     }
   }
 
-  const handlePdfUpload = (e) => {
+  const handlePdfUpload = async (e) => {
     const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setPdfFile({
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const res = await api.post('/content/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      setPdfFile({
           name: file.name,
-          url: event.target.result
-        })
-      }
-      reader.readAsDataURL(file)
+          url: res.data.url
+      })
+      toast.success("PDF uploaded")
+    } catch (err) {
+      console.error(err)
+      toast.error("PDF upload failed")
     }
   }
 
@@ -47,20 +135,6 @@ export default function EditSegregationGuide() {
 
   const handleRemovePdf = () => {
     setPdfFile(null)
-  }
-
-  const handlePreview = () => {
-    alert('Preview:\n\n' + content)
-  }
-
-  const handleSaveDraft = () => {
-    setIsSaved(true)
-    setTimeout(() => setIsSaved(false), 2000)
-  }
-
-  const handlePublish = () => {
-    alert('Segregation Guide published successfully!')
-    handleSaveDraft()
   }
 
   const insertFormatting = (before, after = '') => {
@@ -79,6 +153,7 @@ export default function EditSegregationGuide() {
 
     setContent(newContent)
 
+    // Reset cursor position
     setTimeout(() => {
       textarea.focus()
       textarea.setSelectionRange(
@@ -88,68 +163,46 @@ export default function EditSegregationGuide() {
     }, 0)
   }
 
+  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>
+
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar - Fixed */}
       <Sidebar />
-
-      {/* Main Content */}
       <div className="ml-64 flex-1 flex flex-col overflow-hidden">
-        {/* Top Header - Fixed */}
         <TopHeader />
-
-        {/* Page Content - Scrollable below header */}
         <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
           
-          {/* Breadcrumbs */}
           <div className="mb-6 text-sm text-gray-600">
             <span>Public Website CMS</span> &gt;{' '}
             <span className="font-semibold text-gray-800">Edit Segregation Guide</span>
           </div>
 
-          {/* Main Container */}
           <div className="bg-white rounded-lg shadow p-6 space-y-6">
             
-            {/* Header with buttons */}
             <div className="flex items-center justify-between border-b border-gray-200 pb-4">
               <h1 className="text-2xl font-bold text-gray-800">SEGREGATION GUIDE CONTENT MANAGEMENT</h1>
               
               <div className="flex gap-2">
                 <button
-                  onClick={handlePreview}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-purple-500 text-purple-600 rounded font-semibold text-sm hover:bg-purple-50 transition"
+                  onClick={() => handleSave('draft')}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-400 text-gray-700 rounded font-semibold text-sm hover:bg-gray-50 transition disabled:opacity-50"
                 >
-                  <span>👁️</span>
-                  Preview
+                  {saving ? "Saving..." : "Save Draft"}
                 </button>
                 <button
-                  onClick={handleSaveDraft}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-400 text-gray-700 rounded font-semibold text-sm hover:bg-gray-50 transition"
+                  onClick={() => handleSave('published')}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded font-semibold text-sm hover:bg-teal-600 transition disabled:opacity-50"
                 >
-                  Save Draft
-                </button>
-                <button
-                  onClick={handlePublish}
-                  className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded font-semibold text-sm hover:bg-teal-600 transition"
-                >
-                  Publish
+                  {saving ? "Publishing..." : "Publish"}
                 </button>
               </div>
             </div>
 
-            {/* Saved notification */}
-            {isSaved && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2">
-                <span>✓</span>
-                Changes saved successfully!
-              </div>
-            )}
-
-            {/* Segregation Guide Editor Section */}
             <div className="space-y-6">
               <h2 className="text-lg font-bold text-gray-800">Segregation Guide Editor</h2>
               
-              {/* Tutorial Video Section */}
               <div className="space-y-3 border-b border-gray-200 pb-6">
                 <label className="block text-sm font-semibold text-gray-700">Tutorial Video</label>
                 
@@ -193,92 +246,42 @@ export default function EditSegregationGuide() {
                 )}
               </div>
 
-              {/* Text Editor */}
               <div className="space-y-3">
                 <h3 className="text-sm font-bold text-gray-800">Text</h3>
 
-                {/* Toolbar */}
                 <div className="bg-gray-50 border border-gray-300 rounded-t-lg p-3 flex flex-wrap gap-2 items-center">
-                  <button
-                    onClick={() => insertFormatting('**', '**')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Bold"
-                  >
+                  <button onClick={() => insertFormatting('**', '**')} className="p-2 hover:bg-gray-200 rounded transition" title="Bold">
                     <Bold size={18} className="text-gray-700" />
                   </button>
-                  
-                  <button
-                    onClick={() => insertFormatting('*', '*')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Italic"
-                  >
+                  <button onClick={() => insertFormatting('*', '*')} className="p-2 hover:bg-gray-200 rounded transition" title="Italic">
                     <Italic size={18} className="text-gray-700" />
                   </button>
-                  
-                  <button
-                    onClick={() => insertFormatting('<u>', '</u>')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Underline"
-                  >
+                  <button onClick={() => insertFormatting('<u>', '</u>')} className="p-2 hover:bg-gray-200 rounded transition" title="Underline">
                     <Underline size={18} className="text-gray-700" />
                   </button>
-
                   <div className="h-6 border-l border-gray-300"></div>
-
-                  <button
-                    onClick={() => insertFormatting('• ')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Bullets"
-                  >
+                  <button onClick={() => insertFormatting('• ')} className="p-2 hover:bg-gray-200 rounded transition" title="Bullets">
                     <List size={18} className="text-gray-700" />
                   </button>
-                  
-                  <button
-                    onClick={() => insertFormatting('1. ')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Numbered"
-                  >
+                  <button onClick={() => insertFormatting('1. ')} className="p-2 hover:bg-gray-200 rounded transition" title="Numbered">
                     <ListOrdered size={18} className="text-gray-700" />
                   </button>
-
                   <div className="h-6 border-l border-gray-300"></div>
-
-                  <button
-                    onClick={() => insertFormatting('# ')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Heading 1"
-                  >
+                  <button onClick={() => insertFormatting('# ')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 1">
                     <Heading1 size={18} className="text-gray-700" />
                   </button>
-                  
-                  <button
-                    onClick={() => insertFormatting('## ')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Heading 2"
-                  >
+                  <button onClick={() => insertFormatting('## ')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 2">
                     <Heading2 size={18} className="text-gray-700" />
                   </button>
-
                   <div className="h-6 border-l border-gray-300"></div>
-
-                  <button
-                    onClick={() => insertFormatting('[link text]', '(https://example.com)')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Link"
-                  >
+                  <button onClick={() => insertFormatting('[link text]', '(https://example.com)')} className="p-2 hover:bg-gray-200 rounded transition" title="Link">
                     <Link size={18} className="text-gray-700" />
                   </button>
-                  
-                  <button
-                    onClick={() => insertFormatting('![alt text]', '(image-url)')}
-                    className="p-2 hover:bg-gray-200 rounded transition"
-                    title="Image"
-                  >
+                  <button onClick={() => insertFormatting('![alt text]', '(image-url)')} className="p-2 hover:bg-gray-200 rounded transition" title="Image">
                     <Image size={18} className="text-gray-700" />
                   </button>
                 </div>
 
-                {/* Text Area */}
                 <textarea
                   value={content}
                   onChange={handleContentChange}
@@ -288,12 +291,10 @@ export default function EditSegregationGuide() {
                 />
               </div>
 
-              {/* Word Count */}
               <div className="text-right text-xs text-gray-500 font-medium">
                 {content.length} characters | {content.split(/\s+/).filter(w => w.length > 0).length} words
               </div>
 
-              {/* PDF Upload Section */}
               <div className="space-y-3 border-t border-gray-200 pt-6">
                 <h3 className="text-sm font-bold text-gray-800">Segregation Guide PDF</h3>
                 
@@ -342,14 +343,17 @@ export default function EditSegregationGuide() {
               </div>
             </div>
 
-            {/* Action Buttons - Bottom */}
             <div className="border-t border-gray-200 pt-6 flex justify-end gap-3">
-              <button className="px-6 py-2 bg-gray-300 text-gray-700 rounded font-semibold text-sm hover:bg-gray-400 transition">
+              <button 
+                onClick={() => setContent('')}
+                className="px-6 py-2 bg-gray-300 text-gray-700 rounded font-semibold text-sm hover:bg-gray-400 transition"
+              >
                 Cancel
               </button>
               <button
-                onClick={handlePublish}
-                className="px-6 py-2 bg-teal-500 text-white rounded font-semibold text-sm hover:bg-teal-600 transition"
+                onClick={() => handleSave('published')}
+                disabled={saving}
+                className="px-6 py-2 bg-teal-500 text-white rounded font-semibold text-sm hover:bg-teal-600 transition disabled:opacity-50"
               >
                 Publish
               </button>

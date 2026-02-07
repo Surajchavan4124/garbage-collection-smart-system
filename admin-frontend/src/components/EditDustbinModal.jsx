@@ -1,12 +1,22 @@
 import { X, Edit2 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate }) {
   const [editData, setEditData] = useState({
-    location: dustbin?.location || '',
-    type: dustbin?.type || 'General',
-    status: dustbin?.status || 'Good',
+    location: '',
+    type: 'General',
+    status: 'Good',
   })
+
+  useEffect(() => {
+    if (dustbin) {
+      setEditData({
+        location: dustbin.locationText || dustbin.location || '',
+        type: dustbin.type || 'General',
+        status: dustbin.status || 'Good',
+      })
+    }
+  }, [dustbin])
 
   const [editingFields, setEditingFields] = useState({
     location: false,
@@ -24,7 +34,7 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
   }
 
   const handleSave = () => {
-    onUpdate(dustbin.id, editData)
+    onUpdate(dustbin._id, editData)
     onClose()
   }
 

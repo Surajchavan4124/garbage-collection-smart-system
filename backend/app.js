@@ -9,6 +9,12 @@ import companyRoutes from "./routes/company.routes.js";
 import path from "path";
 import employeeRoutes from "./routes/employee.routes.js";
 import attendanceRoutes from "./routes/attendance.routes.js";
+import dustbinRoutes from "./routes/dustbin.routes.js";
+import householdRoutes from "./routes/household.routes.js";
+import complaintRoutes from "./routes/complaint.routes.js";
+import routeRoutes from "./routes/route.routes.js";
+import contentRoutes from "./routes/content.routes.js";
+import wasteDataRoutes from "./routes/wasteData.routes.js";
 
 const app = express();
 app.use(express.json());  
@@ -18,7 +24,7 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: true,
   credentials: true,
 }
 app.use(cors(corsOptions));
@@ -33,9 +39,14 @@ app.use("/api/panchayat", panchayatRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/company", companyRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/dustbins", dustbinRoutes);
+app.use("/api/routes", routeRoutes);
+app.use("/api/households", householdRoutes);
+app.use("/api/complaints", complaintRoutes);
+app.use("/api/content", contentRoutes);
+app.use("/api/waste-data", wasteDataRoutes);
 
 
 export default app;

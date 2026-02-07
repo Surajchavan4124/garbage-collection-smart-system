@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon } from 'lucide-react'
+import { Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 
@@ -114,6 +114,18 @@ export default function Sidebar() {
                   >
                     <HomeIcon size={18} />
                     <span className="font-medium text-sm">Household Management</span>
+                  </Link>
+
+                  <Link
+                    to="/route"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      isActive('/route')
+                        ? 'bg-[#1f9e9a] text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <MapPin size={18} />
+                    <span className="font-medium text-sm">Route Management</span>
                   </Link>
                 </div>
               )}

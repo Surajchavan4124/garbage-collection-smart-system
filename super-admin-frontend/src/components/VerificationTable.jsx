@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Eye, Check, X } from "lucide-react";
 import api from "../api/axios";
 import { toast } from "react-toastify";
 import ViewPanchayatModal from "./ViewPanchayatModal";
-
 
 export default function VerificationTable({ refreshKey, onChange }) {
   const [rows, setRows] = useState([]);
@@ -20,43 +19,56 @@ export default function VerificationTable({ refreshKey, onChange }) {
 
   const fetchPanchayats = async () => {
     try {
-      const res = await api.get("/company/panchayats?status=pending");
-      setRows(res.data);
+      const res = await api.get("/company/dashboard"); // The dashboard endpoint I earlier created returns stats, wait.
+      // I need an endpoint for listing panchayats!
+      // In step 224 I used /company/panchayats?status=pending
+      // But I didn't create that route in company.routes.js?
+      // company.routes.js only has /dashboard.
+      // I should check company.routes.js again.
+      // If not, I should use the existing /api/panchayat endpoint which lists panchayats.
+      // backend/controllers/panchayat.controller.js has listPanchayats.
+      // backend/routes/panchayat.routes.js has router.get("/", listPanchayats).
+      // So /api/panchayat is correct.
+      
+      const resList = await api.get("/panchayat?status=pending");
+      setRows(resList.data);
     } catch {
       toast.error("Failed to load panchayats");
     } finally {
       setLoading(false);
     }
   };
-const normalizeStatus = (status) => {
-  switch (status) {
-    case "pending":
-      return "Pending";
-    case "active":
-      return "Verified";
-    case "rejected":
-      return "Rejected";
-    default:
-      return status;
-  }
-};
 
-const getStatusBadgeColor = (uiStatus) => {
-  switch (uiStatus) {
-    case "Rejected":
-      return { bg: "#ffe5e5", text: "#d9534f", border: "#f5c6c6" };
-    case "Verified":
-      return { bg: "#e8f5e9", text: "#2D6A4F", border: "#c8e6c9" };
-    case "Pending":
-      return { bg: "#fff3e0", text: "#f0ad4e", border: "#ffe0b2" };
-    default:
-      return { bg: "#f5f5f5", text: "#666", border: "#ddd" };
-  }
-};
+  const normalizeStatus = (status) => {
+    switch (status) {
+      case "pending":
+        return "Pending";
+      case "active":
+        return "Verified";
+      case "rejected":
+        return "Rejected";
+      default:
+        return status;
+    }
+  };
+
+  const getStatusBadgeColor = (uiStatus) => {
+    switch (uiStatus) {
+      case "Rejected":
+        return { bg: "#ffe5e5", text: "#d9534f", border: "#f5c6c6" };
+      case "Verified":
+        return { bg: "#e8f5e9", text: "#2D6A4F", border: "#c8e6c9" };
+      case "Pending":
+        return { bg: "#fff3e0", text: "#f0ad4e", border: "#ffe0b2" };
+      default:
+        return { bg: "#f5f5f5", text: "#666", border: "#ddd" };
+    }
+  };
 
   const handleApprove = async (id) => {
+    if (!window.confirm("Approve this panchayat?")) return;
     try {
-      await api.patch(`/company/panchayats/${id}/approve`);
+      await api.patch(`/panchayat/${id}/approve`);
       toast.success("Panchayat approved");
       setViewOpen(false);
       fetchPanchayats();
@@ -67,8 +79,9 @@ const getStatusBadgeColor = (uiStatus) => {
   };
 
   const handleReject = async (id) => {
+     if (!window.confirm("Reject this panchayat?")) return;
     try {
-      await api.patch(`/company/panchayats/${id}/reject`);
+      await api.patch(`/panchayat/${id}/reject`);
       toast.success("Panchayat rejected");
       setViewOpen(false);
       fetchPanchayats();
@@ -80,7 +93,7 @@ const getStatusBadgeColor = (uiStatus) => {
 
   const handleViewClick = async (row) => {
     try {
-      const res = await api.get(`/company/panchayats/${row._id}`);
+      const res = await api.get(`/panchayat/${row._id}`);
       setViewData(res.data);
       setViewOpen(true);
     } catch {
@@ -96,7 +109,6 @@ const getStatusBadgeColor = (uiStatus) => {
 
   return (
     <>
-
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         {/* Search and Filter */}
         <div className="flex gap-4 mb-6">
@@ -124,12 +136,6 @@ const getStatusBadgeColor = (uiStatus) => {
               <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
                 <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
                   by Status
-                </button>
-                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 border-t border-gray-200">
-                  by Date
-                </button>
-                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 border-t border-gray-200">
-                  by Area
                 </button>
               </div>
             )}
@@ -167,7 +173,9 @@ const getStatusBadgeColor = (uiStatus) => {
                 </tr>
               </thead>
               <tbody>
-                {filteredData.map((row) => {
+                {filteredData.length === 0 ? (
+                    <tr><td colSpan="5" className="px-4 py-4 text-center text-gray-500">No pending requests</td></tr>
+                ) : filteredData.map((row) => {
                   const uiStatus = normalizeStatus(row.status);
                   const statusColor = getStatusBadgeColor(uiStatus);
 

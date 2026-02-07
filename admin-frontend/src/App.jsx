@@ -8,6 +8,7 @@ import EmployeeManagement from './pages/EmployeeManagement'
 import AttendanceManagement from './pages/AttendanceManagement'
 import DustbinManagement from './pages/DustbinManagement'
 import HouseholdManagement from './pages/HouseholdManagement'
+import RouteManagement from './pages/RouteManagement'
 import ReportAndComplaintManagement from './pages/ReportAndComplaintManagement'
 import WasteDataManagement from './pages/WasteDataManagement'
 import EditAboutUs from './pages/EditAboutUs'
@@ -54,6 +55,7 @@ function App() {
           <Route path="/dustbin" element={<ProtectedRoute><DustbinManagement /></ProtectedRoute>} />
           <Route path="/household" element={<ProtectedRoute><HouseholdManagement /></ProtectedRoute>} />
           <Route path="/report-complaint" element={<ProtectedRoute><ReportAndComplaintManagement /></ProtectedRoute>} />
+          <Route path="/route" element={<ProtectedRoute><RouteManagement /></ProtectedRoute>} />
           <Route path="/waste-data" element={<ProtectedRoute><WasteDataManagement /></ProtectedRoute>} />
           <Route path="/edit-about-us" element={<ProtectedRoute><EditAboutUs /></ProtectedRoute>} />
           <Route path="/edit-guide" element={<ProtectedRoute><EditSegregationGuide /></ProtectedRoute>} />

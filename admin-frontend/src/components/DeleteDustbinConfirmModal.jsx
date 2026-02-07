@@ -4,7 +4,7 @@ export default function DeleteDustbinConfirmModal({ isOpen, onClose, dustbin, on
   if (!isOpen || !dustbin) return null
 
   const handleConfirm = () => {
-    onConfirmDelete(dustbin.id)
+    onConfirmDelete(dustbin._id)
     onClose()
   }
 
