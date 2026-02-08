@@ -59,13 +59,13 @@ export const createEmployee = async (req, res) => {
 
 /* ================= LIST ================= */
 export const getEmployees = async (req, res) => {
-  console.log("🔍 USER FROM TOKEN:", req.user);
+
 
   const employees = await Employee.find({
     panchayat: req.user.panchayatId,
   });
 
-  console.log("📦 FOUND EMPLOYEES:", employees.length);
+
 
   res.json(employees);
 };

@@ -146,7 +146,7 @@ export const getTodayAttendance = async (req, res) => {
     // 🔹 STEP 1: Fetch ALL employees (no filters first)
     const employees = await Employee.find({}).lean();
 
-    console.log("EMPLOYEES FOUND:", employees.length);
+
 
     // 🔹 STEP 2: Fetch today's attendance
     const attendance = await Attendance.find({ date }).lean();

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
@@ -7,57 +7,49 @@ import AttendanceCard from '../components/AttendanceCard'
 import AttendanceChart from '../components/PieChart'
 import WasteStats from '../components/WasteStats'
 import api from '../api/axios'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    newComplaints: 0,
-    pendingComplaints: 0,
-    resolvedComplaints: 0
-  })
-
-  const [attendanceStats, setAttendanceStats] = useState({
-    total: 0,
-    present: 0,
-    recent: []
-  })
-
-  useEffect(() => {
-    fetchStats()
-    fetchAttendance()
-  }, [])
-
-  const fetchStats = async () => {
-    try {
+  
+  // 1. Complaint Stats Query
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: async () => {
       const res = await api.get('/complaints/stats')
-      setStats(res.data)
-    } catch (error) {
-      console.error("Failed to fetch dashboard stats", error)
-      toast.error("Failed to fetch dashboard stats")
+      return res.data
+    },
+    onError: (err) => {
+        console.error("Failed to fetch dashboard stats", err)
+        toast.error("Failed to fetch dashboard stats")
     }
-  }
+  })
 
-  const fetchAttendance = async () => {
-    try {
+  // 2. Attendance Query
+  const { data: attendanceStats, isLoading: attendanceLoading } = useQuery({
+    queryKey: ['attendanceToday'],
+    queryFn: async () => {
       const res = await api.get('/attendance/today')
-      const data = res.data
+      return res.data
+    },
+    select: (data) => {
       const total = data.length
       const present = data.filter(d => d.present).length
-      
       // Map for recent list (taking first 5)
       const recent = data.slice(0, 5).map(d => ({
         name: d.labour.name,
         status: d.present ? 'Present' : 'Absent'
       }))
-
-      setAttendanceStats({
-        total,
-        present,
-        recent
-      })
-    } catch (error) {
-      console.error("Failed to fetch attendance", error)
+      return { total, present, recent }
     }
+  })
+
+  if (statsLoading || attendanceLoading) {
+    return <LoadingSpinner />
   }
+
+  // Fallback values if data is missing or error occurred
+  const safeStats = stats || { newComplaints: 0, pendingComplaints: 0, resolvedComplaints: 0 }
+  const safeAttendance = attendanceStats || { total: 0, present: 0, recent: [] }
 
   return (
     <div className="flex bg-[#e5e9f0]">
@@ -78,9 +70,9 @@ export default function Dashboard() {
           <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide mb-4">Complaints Overview</h2>
             <div className="grid grid-cols-3 gap-6">
-              <KPICard title="New Complaints" value={stats.newComplaints} subtitle="In last 24 hours" />
-              <KPICard title="Pending Complaints" value={stats.pendingComplaints} subtitle="Status: Received" />
-              <KPICard title="Resolved Complaints" value={stats.resolvedComplaints} subtitle="This Month" />
+              <KPICard title="New Complaints" value={safeStats.newComplaints} subtitle="In last 24 hours" />
+              <KPICard title="Pending Complaints" value={safeStats.pendingComplaints} subtitle="Status: Received" />
+              <KPICard title="Resolved Complaints" value={safeStats.resolvedComplaints} subtitle="This Month" />
             </div>
           </div>
 
@@ -90,15 +82,15 @@ export default function Dashboard() {
             <div className="grid grid-cols-5 gap-6">
               <div className="col-span-2">
                 <AttendanceCard 
-                  total={attendanceStats.total}
-                  present={attendanceStats.present}
-                  recent={attendanceStats.recent}
+                  total={safeAttendance.total}
+                  present={safeAttendance.present}
+                  recent={safeAttendance.recent}
                 />
               </div>
               <div className="col-span-3">
                 <AttendanceChart 
-                  present={attendanceStats.present}
-                  absent={attendanceStats.total - attendanceStats.present}
+                  present={safeAttendance.present}
+                  absent={safeAttendance.total - safeAttendance.present}
                 />
               </div>
             </div>

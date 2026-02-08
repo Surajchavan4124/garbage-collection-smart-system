@@ -21,7 +21,7 @@ export default function Dashboard() {
       try {
         const res = await api.get("/company/dashboard");
         setStats(res.data);
-        console.log("Dashboard API response:", res.data);
+
 
       } catch (err) {
         console.error("Failed to load dashboard", err);

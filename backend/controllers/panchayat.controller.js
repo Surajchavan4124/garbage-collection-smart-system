@@ -5,7 +5,7 @@ import Panchayat from '../models/Panchayat.model.js'
  */
 export const createPanchayat = async (req, res) => {
   try {
-    console.log('BODY:', req.body)
+
 
     const { name, address, inchargeName, phone, email, website, estHouseholds, estLabours } =
       req.body
@@ -36,7 +36,7 @@ export const createPanchayat = async (req, res) => {
       },
       status: 'pending',
     })
-    console.log('FILES:', req.files)
+
 
     return res.status(201).json({
       message: 'Panchayat submitted for approval',

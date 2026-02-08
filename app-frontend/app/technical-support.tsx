@@ -12,7 +12,7 @@ export default function TechnicalSupportScreen() {
 
   const handleConnect = () => {
     Alert.alert("Connecting...", "Initiating connection with technical support team...", [
-      { text: "OK", onPress: () => console.log("Connected") }
+      { text: "OK", onPress: () => { /* Connected */ } }
     ]);
   };
 
@@ -22,7 +22,7 @@ export default function TechnicalSupportScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white px-6">
-      
+
       {/* 1. Header */}
       <View className="flex-row items-center mt-4 mb-10">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
@@ -34,9 +34,9 @@ export default function TechnicalSupportScreen() {
       </View>
 
       <View className="flex-1">
-        
+
         {/* 2. Upload Image Section */}
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-row items-center mb-8 border border-slate-200 rounded-lg overflow-hidden h-14"
           activeOpacity={0.8}
           onPress={handleImageUpload}
@@ -45,12 +45,12 @@ export default function TechnicalSupportScreen() {
           <View className="bg-slate-200 w-14 h-full items-center justify-center border-r border-slate-200">
             <ImageIcon size={24} color="#64748B" />
           </View>
-          
+
           {/* Text Area */}
           <View className="flex-1 px-4 bg-white justify-center h-full">
-             <Text className="text-slate-400 text-base font-medium">
-               Upload Image if any
-             </Text>
+            <Text className="text-slate-400 text-base font-medium">
+              Upload Image if any
+            </Text>
           </View>
         </TouchableOpacity>
 

@@ -24,7 +24,7 @@ export const protect = async (req, res, next) => {
     // Try Panchayat admin
     const panchayat = await Panchayat.findById(decoded.userId);
     if (!panchayat || panchayat.status !== "active") {
-      console.log("Auth Failed: Panchayat not found or inactive");
+
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -34,7 +34,7 @@ export const protect = async (req, res, next) => {
       panchayatId: panchayat._id,
     };
     
-    console.log("Auth Success: ", req.user.role, req.user._id);
+
     next();
   } catch (err) {
     console.error("Auth Error:", err.message);

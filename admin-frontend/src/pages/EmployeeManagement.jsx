@@ -28,7 +28,7 @@ export default function EmployeeManagement() {
       setLoading(true);
 
       const res = await api.get("/employees");
-      console.log("EMPLOYEES RESPONSE:", res.data);
+
 
       if (!Array.isArray(res.data)) {
         console.error("Employees API did not return array");
