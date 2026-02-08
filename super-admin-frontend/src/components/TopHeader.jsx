@@ -19,6 +19,11 @@ export default function TopHeader() {
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
+      // Clear client-side storage to match Admin behavior
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      sessionStorage.clear();
+
       setDropdownOpen(false);
       window.location.href = "/login";
     }

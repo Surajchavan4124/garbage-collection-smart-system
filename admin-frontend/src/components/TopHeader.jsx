@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Bell, User, Settings, LogOut } from 'lucide-react'
 import LogoutConfirmation from './LogoutConfirmation'
+import api from '../api/axios'
 
 export default function TopHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -30,7 +31,14 @@ export default function TopHeader() {
     setShowLogoutConfirm(true)
   }
 
-  const handleLogoutConfirm = () => {
+  const handleLogoutConfirm = async () => {
+    // Call Logout API
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout API failed", err);
+    }
+
     // Clear all auth data
     localStorage.removeItem('token')
     localStorage.removeItem('user')
