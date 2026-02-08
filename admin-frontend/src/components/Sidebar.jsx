@@ -19,7 +19,7 @@ export default function Sidebar() {
           <div className="w-10 h-10 bg-[#1f9e9a] rounded-lg flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xl">🌱</span>
           </div>
-          <h1 className="text-lg font-bold text-[#333333]">Smart Waste Admin</h1>
+          <h1 className="text-lg font-bold text-[#333333]">EcoSyz Admin</h1>
         </div>
       </div>
 

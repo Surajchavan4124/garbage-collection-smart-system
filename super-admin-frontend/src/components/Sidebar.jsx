@@ -34,7 +34,7 @@ export default function Sidebar() {
       <div className="px-6 py-6 border-b border-teal-500">
         <div className="flex items-center gap-3">
           <Leaf size={32} />
-          <h1 className="text-xl font-bold">Waste Management</h1>
+          <h1 className="text-xl font-bold">EcoSyz Super Admin</h1>
         </div>
       </div>
 
