@@ -12,21 +12,23 @@ export default function TopHeader() {
   const [openProfile, setOpenProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // Actual logout function called by modal
   const performLogout = async () => {
     try {
-      await api.post("/auth/logout", {}, { withCredentials: true });
+      await api.post("/auth/logout");
     } catch (error) {
       console.error("Logout failed", error);
-    } finally {
-      // Clear client-side storage to match Admin behavior
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      sessionStorage.clear();
-
-      setDropdownOpen(false);
-      window.location.href = "/login";
     }
+
+    // Clear all auth data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    sessionStorage.clear();
+
+    setShowLogoutConfirm(false);
+    setDropdownOpen(false);
+    
+    // Redirect to login
+    window.location.href = "/login";
   };
 
   // Trigger modal

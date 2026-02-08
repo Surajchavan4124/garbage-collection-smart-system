@@ -45,7 +45,7 @@ export default function TopHeader() {
     sessionStorage.clear()
     
     // Redirect to login
-    navigate('/login', { replace: true })
+    navigate('/', { replace: true })
   }
 
   const handleStayLoggedIn = () => {

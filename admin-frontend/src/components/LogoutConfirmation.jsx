@@ -7,16 +7,8 @@ export default function LogoutConfirmation({
   if (!isOpen) return null
 
   const handleLogout = () => {
-    // Clear localStorage/sessionStorage
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    sessionStorage.clear()
-    
     // Call logout callback
     if (onLogout) onLogout()
-    
-    // Redirect to login
-    window.location.href = '/login'
   }
 
   const handleStayLoggedIn = () => {

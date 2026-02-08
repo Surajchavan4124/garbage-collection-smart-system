@@ -5,6 +5,11 @@ export default function LogoutConfirmation({
 }) {
   if (!isOpen) return null
 
+  const handleLogout = () => {
+    // Call logout callback
+    if (onLogout) onLogout()
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white border border-gray-300 rounded-xl shadow-2xl w-full max-w-md mx-auto">
@@ -31,7 +36,7 @@ export default function LogoutConfirmation({
           {/* Buttons */}
           <div className="flex gap-4 justify-center">
             <button
-              onClick={onLogout}
+              onClick={handleLogout}
               className="px-8 py-3 bg-red-600 text-white font-semibold text-sm rounded-lg hover:bg-red-700 transition-all shadow-lg"
             >
               Log Out
