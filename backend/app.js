@@ -30,12 +30,12 @@ const corsOptions = {
 }
 app.use(cors(corsOptions));
 
-// app.get("/", (req, res) => {
-//   return res.status(200).json({ 
-//     message: "API is running...",
-//     success: true
-//   });
-// });
+app.get("/", (req, res) => {
+  return res.status(200).json({ 
+    message: "API is running...",
+    success: true
+  });
+});
 app.use("/api/panchayat", panchayatRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/auth", authRoutes);
