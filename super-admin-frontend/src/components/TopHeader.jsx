@@ -1,44 +1,58 @@
 import { Search, Bell, User, LogOut, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProfileSettingsModal from "../components/ProfileSettingsModal";
 import api from "../api/axios";
-
-// ... keep imports
 import LogoutConfirmation from "./LogoutConfirmation";
 
 export default function TopHeader() {
   const [searchValue, setSearchValue] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
-  const performLogout = async () => {
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogoutConfirm = async () => {
+    // Call Logout API
     try {
       await api.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout failed", error);
+    } catch (err) {
+      console.error("Logout API failed", err);
     }
 
     // Clear all auth data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.clear();
-
-    setShowLogoutConfirm(false);
-    setDropdownOpen(false);
     
     // Redirect to login
-    window.location.href = "/login";
-  };
+    window.location.href = '/login';
+  }
+
+  const handleStayLoggedIn = () => {
+    setShowLogoutConfirm(false);
+  }
 
   // Trigger modal
   const handleLogoutClick = () => {
-    setDropdownOpen(false);
+    setIsDropdownOpen(false);
     setShowLogoutConfirm(true);
-  };
+  }
 
   const handleProfileOpen = () => {
-    setDropdownOpen(false);
+    setIsDropdownOpen(false);
     setOpenProfile(true);
   };
 
@@ -64,15 +78,15 @@ export default function TopHeader() {
             <span className="text-sm font-medium text-gray-700">3 Alerts</span>
           </div>
 
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center hover:bg-teal-600 transition"
             >
               <User size={20} className="text-white" />
             </button>
 
-            {dropdownOpen && (
+            {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                 <button
                   onClick={handleProfileOpen}
@@ -107,8 +121,8 @@ export default function TopHeader() {
       
       <LogoutConfirmation
         isOpen={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        onLogout={performLogout}
+        onClose={handleStayLoggedIn}
+        onLogout={handleLogoutConfirm}
       />
     </div>
   );
