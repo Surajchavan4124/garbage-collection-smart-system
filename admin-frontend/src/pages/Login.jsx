@@ -24,9 +24,13 @@ export default function Login() {
 
     try {
       setLoading(true);
-      await api.post("/auth/send-otp", { mobile });
+      const res = await api.post("/auth/send-otp", { mobile });
 
-      toast.success("OTP sent successfully");
+      if (res.data.otp) {
+        toast.info(`Your OTP is: ${res.data.otp}`, { autoClose: 5000 });
+      } else {
+        toast.success("OTP sent successfully");
+      }
       setOtpSent(true);
       setOtp("");
       setTimer(30);

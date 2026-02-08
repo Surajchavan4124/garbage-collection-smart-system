@@ -33,8 +33,13 @@ const closePopup = () => {
 
   try {
     if (step === 1) {
-      await api.post("/auth/send-otp", { mobile });
-      showPopup("OTP sent successfully");
+      const res = await api.post("/auth/send-otp", { mobile });
+      
+      if (res.data.otp) {
+        showPopup(`Your OTP is: ${res.data.otp}`, "success");
+      } else {
+        showPopup("OTP sent successfully");
+      }
       setStep(2);
     } else {
       await api.post("/auth/verify-otp", {
@@ -61,8 +66,12 @@ const closePopup = () => {
   const resendOtp = async () => {
   setLoading(true);
   try {
-    await api.post("/auth/send-otp", { mobile });
-    showPopup("OTP resent successfully");
+    const res = await api.post("/auth/send-otp", { mobile });
+    if (res.data.otp) {
+      showPopup(`Your OTP is: ${res.data.otp}`, "success");
+    } else {
+      showPopup("OTP resent successfully");
+    }
   } catch {
     showPopup("Failed to resend OTP", "error");
   } finally {

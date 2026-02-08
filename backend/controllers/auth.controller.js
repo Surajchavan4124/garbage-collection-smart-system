@@ -16,11 +16,12 @@ export const sendOtp = async (req, res) => {
     });
   }
 
-  generateOTP(mobile);
+  const otp = generateOTP(mobile);
 
   return res.status(200).json({
-    message: "OTP sent (mocked)",
+    message: "OTP sent successfully",
     success: true,
+    otp, // 👈 Send OTP to frontend for toast
   });
 };
 
