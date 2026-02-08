@@ -2,7 +2,6 @@ import User from "../models/User.model.js";
 import Panchayat from "../models/Panchayat.model.js";
 import { generateOTP, verifyOTP } from "../utils/otpService.js";
 import { generateToken } from "../utils/jwt.js";
-import Subscription from "../models/subscription.model.js";
 
 /**
  * Send OTP
