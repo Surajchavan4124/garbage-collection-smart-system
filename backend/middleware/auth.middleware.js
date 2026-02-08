@@ -16,7 +16,8 @@ export const protect = async (req, res, next) => {
     if (user) {
       req.user = {
         _id: user._id,
-        role: user.role, // SUPER_ADMIN etc
+        role: user.role,
+        panchayat: user.panchayat,
       };
       return next();
     }

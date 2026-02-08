@@ -49,6 +49,17 @@ const attendanceScanSchema = new mongoose.Schema(
       enum: ["SUCCESS", "DUPLICATE", "OUT_OF_RANGE", "INVALID"],
       required: true,
     },
+
+    action: {
+      type: String,
+      enum: ["pending", "collected", "reported"],
+      default: "pending",
+    },
+
+    issueDescription: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

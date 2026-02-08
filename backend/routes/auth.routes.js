@@ -7,13 +7,15 @@ import { protect } from "../middleware/auth.middleware.js";
 import { checkSession } from "../controllers/auth.controller.js";
 import {
   getProfile,
-  updateProfile
+  updateProfile,
+  register,
 } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
 router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtpAndLogin);
+router.post("/register", register);
 router.get("/me", protect, checkSession);
 
 router.post("/logout", (req, res) => {

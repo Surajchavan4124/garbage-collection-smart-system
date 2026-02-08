@@ -8,15 +8,16 @@ export default function MapScreen() {
   const [search, setSearch] = useState('');
 
   // Mock Data for "Near Duty Location"
+  // Mock Data for "Route"
   const locations = [
-    { id: 1, title: 'location site a 10 m away' },
-    { id: 2, title: 'location site a 10 m away' },
-    { id: 3, title: 'location site a 10 m away' },
+    { id: 1, title: 'House No. 12', type: 'Wet Waste', lat: 15.2632, lng: 73.9676 },
+    { id: 2, title: 'Shop No. 4', type: 'Dry Waste', lat: 15.2642, lng: 73.9686 },
+    { id: 3, title: 'Community Hall', type: 'Hazardous', lat: 15.2622, lng: 73.9666 },
   ];
 
   // Default Region (Navelim, Goa coordinates or generic)
   const initialRegion = {
-    latitude: 15.2632, 
+    latitude: 15.2632,
     longitude: 73.9676,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
@@ -25,7 +26,7 @@ export default function MapScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white px-5">
       <ScrollView showsVerticalScrollIndicator={false}>
-        
+
         {/* 1. Header */}
         <View className="items-center mt-2 mb-6">
           <Text className="text-xl font-bold text-slate-800 uppercase tracking-widest">
@@ -48,18 +49,27 @@ export default function MapScreen() {
 
         {/* 3. Map View Container */}
         <View className="w-full h-80 rounded-xl overflow-hidden border border-slate-200 mb-6 relative bg-slate-100">
-          <MapView 
+          <MapView
             style={{ width: '100%', height: '100%' }}
             initialRegion={initialRegion}
           >
             {/* Example Marker for Navelim */}
-            <Marker 
+            <Marker
               coordinate={initialRegion}
-              title="Navelim"
-              description="Duty Area"
+              title="Start Point"
+              description="Navelim Ward 4"
             />
+            {locations.map(loc => (
+              <Marker
+                key={loc.id}
+                coordinate={{ latitude: loc.lat, longitude: loc.lng }}
+                title={loc.title}
+                description={loc.type}
+                pinColor={loc.type === 'Wet Waste' ? 'green' : loc.type === 'Dry Waste' ? 'blue' : 'red'}
+              />
+            ))}
           </MapView>
-          
+
           {/* "Navelim" Text Overlay (To match screenshot style) */}
           <View className="absolute bottom-4 left-0 right-0 items-center">
             <Text className="text-slate-800 font-bold text-lg tracking-widest uppercase bg-white/80 px-4 py-1 rounded-md overflow-hidden">
@@ -71,27 +81,28 @@ export default function MapScreen() {
         {/* 4. Near Duty Location List */}
         <View>
           <Text className="text-base font-semibold text-slate-600 mb-4 ml-1">
-            near duty location
+            Pending Collections
           </Text>
 
+
           {locations.map((loc) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={loc.id}
               className="flex-row items-center border border-slate-200 rounded-lg p-4 mb-3 bg-white shadow-sm"
               activeOpacity={0.7}
             >
               <View className="mr-4">
-                 {/* Dark location pin icon */}
-                 <MapPin size={24} color="#334155" fill="#334155" />
+                {/* Dark location pin icon */}
+                <MapPin size={24} color="#334155" fill="#334155" />
               </View>
               <Text className="text-slate-700 font-medium text-base">
-                {loc.title}
+                {loc.title} <Text className="text-slate-400 text-sm">({loc.type})</Text>
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 }

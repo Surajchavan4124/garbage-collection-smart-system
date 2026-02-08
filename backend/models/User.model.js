@@ -3,7 +3,7 @@ const UserSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
     },
     mobile: {
       type: String,
@@ -14,8 +14,14 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: [
         "COMPANY_ADMIN",
+        "EMPLOYEE",
+        "USER"
       ],
       required: true,
+    },
+    panchayat: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Panchayat",
     },
 
     profilePhoto: {

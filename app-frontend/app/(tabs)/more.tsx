@@ -3,6 +3,7 @@ import { Briefcase, HelpCircle, MessageSquare, Mic, Phone, Search, Users } from 
 import React, { useState } from 'react';
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MoreScreen() {
     const [search, setSearch] = useState('');
@@ -19,6 +20,7 @@ export default function MoreScreen() {
         { id: 3, title: 'Feedback', icon: MessageSquare },
         { id: 4, title: 'Contact Technical Support', icon: Phone },
         { id: 5, title: 'Contact Committee', icon: Users },
+        { id: 6, title: 'Log Out', icon: Users, isDestructive: true }, // Using generic icon for now, or could import LogOut
     ];
 
     const handleSOS = () => {
@@ -71,7 +73,24 @@ export default function MoreScreen() {
                             } else if (item.title === 'Contact Technical Support') {
                                 router.push('/technical-support');
                             } else if (item.title === 'Contact Committee') {
-                                router.push('/contact-committee'); // <--- ADD THIS LINE
+                                router.push('/contact-committee');
+                            } else if (item.title === 'Log Out') {
+                                Alert.alert(
+                                    "Log Out",
+                                    "Are you sure you want to log out?",
+                                    [
+                                        { text: "No", style: "cancel" },
+                                        {
+                                            text: "Yes",
+                                            style: "destructive",
+                                            onPress: async () => {
+                                                // Clear Session
+                                                await AsyncStorage.clear();
+                                                router.replace('/(auth)/login' as any);
+                                            }
+                                        }
+                                    ]
+                                );
                             } else {
                                 Alert.alert("Navigation", `Going to ${item.title}`);
                             }

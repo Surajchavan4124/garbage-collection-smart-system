@@ -5,6 +5,7 @@ const PanchayatSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      unique: true,
     },
 
     address: {
@@ -38,15 +39,15 @@ const PanchayatSchema = new mongoose.Schema(
       type: String,
     },
 
-   documents: {
+    documents: {
       inchargeIdProof: { type: String },        // filename
       registrationLetter: { type: String },     // filename
     },
     subscriptionId: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "Subscription",
-  default: null,
-},
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subscription",
+      default: null,
+    },
 
     status: {
       type: String,

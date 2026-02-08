@@ -5,6 +5,7 @@ const otpStore = new Map();
  */
 export const generateOTP = (mobile) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  // const otp = "123456"; // FIXED FOR DEV
   otpStore.set(mobile, otp);
 
   console.log(`OTP for ${mobile}: ${otp}`);
