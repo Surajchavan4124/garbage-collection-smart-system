@@ -3,24 +3,32 @@ import { useState } from 'react';
 import ProfileSettingsModal from "../components/ProfileSettingsModal";
 import api from "../api/axios";
 
+// ... keep imports
+import LogoutConfirmation from "./LogoutConfirmation";
+
 export default function TopHeader() {
   const [searchValue, setSearchValue] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const handleLogout = async () => {
-  try {
-    await api.post("/auth/logout", {}, { withCredentials: true });
-  } catch (error) {
-    console.error("Logout failed", error);
-  } finally {
+  // Actual logout function called by modal
+  const performLogout = async () => {
+    try {
+      await api.post("/auth/logout", {}, { withCredentials: true });
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      setDropdownOpen(false);
+      window.location.href = "/login";
+    }
+  };
+
+  // Trigger modal
+  const handleLogoutClick = () => {
     setDropdownOpen(false);
-
-    // HARD redirect to kill React state + cache
-    window.location.href = "/login";
-  }
-};
-
+    setShowLogoutConfirm(true);
+  };
 
   const handleProfileOpen = () => {
     setDropdownOpen(false);
@@ -70,7 +78,7 @@ export default function TopHeader() {
                 </button>
 
                 <button
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
                   className="w-full text-left px-4 py-3 hover:bg-red-50 flex items-center gap-3 transition"
                 >
                   <LogOut size={18} className="text-red-600" />
@@ -84,10 +92,16 @@ export default function TopHeader() {
         </div>
       </div>
 
-      {/* MODAL (this is the ONLY thing TopHeader should render) */}
+      {/* MODALS */}
       <ProfileSettingsModal
         open={openProfile}
         onClose={() => setOpenProfile(false)}
+      />
+      
+      <LogoutConfirmation
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onLogout={performLogout}
       />
     </div>
   );
