@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { usePanchayat } from "../context/PanchayatContext";
 
 const RegisterHousehold = () => {
   const navigate = useNavigate();
+  const { selectedPanchayat } = usePanchayat();
   const [loading, setLoading] = useState(false);
   const [panchayats, setPanchayats] = useState([]);
   
@@ -29,6 +31,13 @@ const RegisterHousehold = () => {
     };
     fetchPanchayats();
   }, []);
+
+  // Pre-select panchayat if available in context
+  useEffect(() => {
+    if (selectedPanchayat?._id) {
+      setFormData(prev => ({ ...prev, panchayatId: selectedPanchayat._id }));
+    }
+  }, [selectedPanchayat]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

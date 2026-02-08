@@ -21,27 +21,22 @@ const wasteDataSchema = new mongoose.Schema({
   },
   biodegradable: {
     type: Number,
-    required: true,
     default: 0
   },
   recyclable: {
     type: Number,
-    required: true,
     default: 0
   },
   nonBiodegradable: {
     type: Number,
-    required: true,
     default: 0
   },
   mixed: {
     type: Number,
-    required: true,
     default: 0
   },
   total: {
     type: Number,
-    required: true,
     default: 0
   }
 }, { timestamps: true })

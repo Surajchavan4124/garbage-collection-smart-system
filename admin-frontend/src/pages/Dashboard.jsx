@@ -1,11 +1,64 @@
+import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
 import KPICard from '../components/KPICard'
 import AttendanceCard from '../components/AttendanceCard'
 import AttendanceChart from '../components/PieChart'
 import WasteStats from '../components/WasteStats'
+import api from '../api/axios'
 
 export default function Dashboard() {
+  const [stats, setStats] = useState({
+    newComplaints: 0,
+    pendingComplaints: 0,
+    resolvedComplaints: 0
+  })
+
+  const [attendanceStats, setAttendanceStats] = useState({
+    total: 0,
+    present: 0,
+    recent: []
+  })
+
+  useEffect(() => {
+    fetchStats()
+    fetchAttendance()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      const res = await api.get('/complaints/stats')
+      setStats(res.data)
+    } catch (error) {
+      console.error("Failed to fetch dashboard stats", error)
+      toast.error("Failed to fetch dashboard stats")
+    }
+  }
+
+  const fetchAttendance = async () => {
+    try {
+      const res = await api.get('/attendance/today')
+      const data = res.data
+      const total = data.length
+      const present = data.filter(d => d.present).length
+      
+      // Map for recent list (taking first 5)
+      const recent = data.slice(0, 5).map(d => ({
+        name: d.labour.name,
+        status: d.present ? 'Present' : 'Absent'
+      }))
+
+      setAttendanceStats({
+        total,
+        present,
+        recent
+      })
+    } catch (error) {
+      console.error("Failed to fetch attendance", error)
+    }
+  }
+
   return (
     <div className="flex bg-[#e5e9f0]">
       {/* Sidebar */}
@@ -25,9 +78,9 @@ export default function Dashboard() {
           <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide mb-4">Complaints Overview</h2>
             <div className="grid grid-cols-3 gap-6">
-              <KPICard title="New Complaints" value="01" subtitle="In last 24 hours" />
-              <KPICard title="Pending Complaints" value="01" subtitle="Waiting Assignment" />
-              <KPICard title="Resolved Complaints" value="120" subtitle="This Month" />
+              <KPICard title="New Complaints" value={stats.newComplaints} subtitle="In last 24 hours" />
+              <KPICard title="Pending Complaints" value={stats.pendingComplaints} subtitle="Status: Received" />
+              <KPICard title="Resolved Complaints" value={stats.resolvedComplaints} subtitle="This Month" />
             </div>
           </div>
 
@@ -36,10 +89,17 @@ export default function Dashboard() {
             <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide mb-4">Staff Attendance Summary</h2>
             <div className="grid grid-cols-5 gap-6">
               <div className="col-span-2">
-                <AttendanceCard />
+                <AttendanceCard 
+                  total={attendanceStats.total}
+                  present={attendanceStats.present}
+                  recent={attendanceStats.recent}
+                />
               </div>
               <div className="col-span-3">
-                <AttendanceChart />
+                <AttendanceChart 
+                  present={attendanceStats.present}
+                  absent={attendanceStats.total - attendanceStats.present}
+                />
               </div>
             </div>
           </div>

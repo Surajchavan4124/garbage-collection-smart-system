@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, Download, BarChart3 } from 'lucide-react'
+import { Search, Filter, Download, BarChart3, Edit, Trash2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
 import { wardOptions } from '../data/wasteDataMockData'
 import api from '../api/axios'
+import DeleteWasteEntryModal from '../components/DeleteWasteEntryModal'
 
 export default function WasteDataManagement() {
   const [formData, setFormData] = useState({
-    date: '',
+    date: new Date().toISOString().split('T')[0],
     collectionType: 'Daily',
     ward: 'Ward 1',
     biodegradable: '',
@@ -21,6 +22,12 @@ export default function WasteDataManagement() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedWard, setSelectedWard] = useState('Ward 1')
+  const [editingId, setEditingId] = useState(null)
+  
+  // Delete Modal State
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [entryToDelete, setEntryToDelete] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     fetchWasteData()
@@ -54,9 +61,8 @@ export default function WasteDataManagement() {
   const handleSaveEntry = async (e) => {
     e.preventDefault()
     
-    if (!formData.date || !formData.biodegradable || !formData.recyclable || 
-        !formData.nonBiodegradable || !formData.mixed) {
-      toast.error('Please fill in all waste metrics')
+    if (!formData.date || !formData.ward) {
+      toast.error('Date and Ward are required')
       return
     }
 
@@ -71,29 +77,43 @@ export default function WasteDataManagement() {
         mixed: formData.mixed
       }
 
-      await api.post('/waste-data', payload)
-      fetchWasteData()
+      if (editingId) {
+        await api.put(`/waste-data/${editingId}`, payload)
+        toast.success('Waste entry updated successfully!')
+      } else {
+        await api.post('/waste-data', payload)
+        toast.success('Waste entry saved successfully!')
+      }
       
-      setFormData({
-        date: '',
-        collectionType: 'Daily',
-        ward: 'Ward 1',
-        biodegradable: '',
-        recyclable: '',
-        nonBiodegradable: '',
-        mixed: ''
-      })
-      toast.success('Waste entry saved successfully!')
+      fetchWasteData()
+      handleReset()
     } catch (error) {
       console.error(error)
       toast.error(error.response?.data?.message || 'Failed to save entry')
     }
   }
 
+  // Handle Edit Click
+  const handleEdit = (record) => {
+    setEditingId(record._id)
+    setFormData({
+      date: new Date(record.date).toISOString().split('T')[0],
+      collectionType: record.collectionType,
+      ward: record.ward,
+      biodegradable: record.biodegradable,
+      recyclable: record.recyclable,
+      nonBiodegradable: record.nonBiodegradable,
+      mixed: record.mixed
+    })
+    // Scroll to top to see form
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   // Handle reset
   const handleReset = () => {
+    setEditingId(null)
     setFormData({
-      date: '',
+      date: new Date().toISOString().split('T')[0],
       collectionType: 'Daily',
       ward: 'Ward 1',
       biodegradable: '',
@@ -101,6 +121,31 @@ export default function WasteDataManagement() {
       nonBiodegradable: '',
       mixed: ''
     })
+  }
+
+  // Handle Delete Click (Open Modal)
+  const handleDeleteClick = (record) => {
+    setEntryToDelete(record)
+    setShowDeleteModal(true)
+  }
+
+  // Confirm Delete
+  const handleConfirmDelete = async () => {
+    if (!entryToDelete) return
+
+    setDeleteLoading(true)
+    try {
+      await api.delete(`/waste-data/${entryToDelete._id}`)
+      toast.success("Record deleted successfully")
+      fetchWasteData()
+      setShowDeleteModal(false)
+      setEntryToDelete(null)
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to delete record")
+    } finally {
+      setDeleteLoading(false)
+    }
   }
 
   // Calculate chart data for selected ward
@@ -266,11 +311,21 @@ export default function WasteDataManagement() {
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
                   <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-teal-500 text-white rounded font-semibold text-sm hover:bg-teal-600 transition"
-                  >
-                    Save
-                  </button>
+            type="submit"
+            className={`flex-1 py-3 px-4 ${editingId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-teal-600 hover:bg-teal-700'} text-white rounded font-bold shadow-md transition`}
+          >
+            {editingId ? 'Update Entry' : 'Save Entry'}
+          </button>
+          
+          {editingId && (
+             <button
+              type="button"
+              onClick={handleReset}
+              className="px-4 py-3 bg-gray-500 text-white rounded font-bold hover:bg-gray-600 transition"
+            >
+              Cancel Edit
+            </button>
+          )}
                   <button
                     type="button"
                     onClick={handleReset}
@@ -380,6 +435,7 @@ export default function WasteDataManagement() {
                     <th className="px-6 py-3 text-left text-xs font-bold">Recyclable (kgs)</th>
                     <th className="px-6 py-3 text-left text-xs font-bold">Others (kgs)</th>
                     <th className="px-6 py-3 text-left text-xs font-bold">Total (kgs)</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -393,6 +449,22 @@ export default function WasteDataManagement() {
                       <td className="px-6 py-4 text-sm text-gray-700">{record.recyclable}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{record.others}</td>
                       <td className="px-6 py-4 text-sm font-semibold text-gray-800">{record.total}</td>
+                      <td className="px-6 py-4 flex gap-2">
+                        <button 
+                          onClick={() => handleEdit(record)}
+                          className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteClick(record)}
+                          className="p-1 text-red-600 hover:bg-red-100 rounded"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -401,6 +473,15 @@ export default function WasteDataManagement() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteWasteEntryModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        entry={entryToDelete}
+        onConfirmDelete={handleConfirmDelete}
+        loading={deleteLoading}
+      />
     </div>
   )
 }

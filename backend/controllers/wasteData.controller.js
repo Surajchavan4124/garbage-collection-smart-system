@@ -57,5 +57,80 @@ export const deleteWasteData = async (req, res) => {
     res.status(200).json({ message: "Entry deleted successfully" })
   } catch (error) {
     res.status(500).json({ message: error.message })
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// Update waste data entry
+export const updateWasteData = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { date, collectionType, ward, biodegradable, recyclable, nonBiodegradable, mixed } = req.body
+
+    const biodeg = parseFloat(biodegradable) || 0
+    const recycl = parseFloat(recyclable) || 0
+    const nonBiodeg = parseFloat(nonBiodegradable) || 0
+    const mix = parseFloat(mixed) || 0
+    const total = biodeg + recycl + nonBiodeg + mix
+
+    const updatedEntry = await WasteData.findByIdAndUpdate(
+      id,
+      {
+        date,
+        collectionType,
+        ward,
+        biodegradable: biodeg,
+        recyclable: recycl,
+        nonBiodegradable: nonBiodeg,
+        mixed: mix,
+        total
+      },
+      { new: true }
+    )
+
+    if (!updatedEntry) {
+      return res.status(404).json({ message: "Entry not found" })
+    }
+
+    res.status(200).json(updatedEntry)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// Get waste stats
+export const getWasteStats = async (req, res) => {
+  try {
+    const now = new Date()
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()))
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    const startOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
+    const endOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 0)
+
+    const weeklyTotal = await WasteData.aggregate([
+      { $match: { date: { $gte: startOfWeek } } },
+      { $group: { _id: null, total: { $sum: "$total" } } }
+    ])
+
+    const monthlyTotal = await WasteData.aggregate([
+      { $match: { date: { $gte: startOfMonth } } },
+      { $group: { _id: null, total: { $sum: "$total" } } }
+    ])
+
+    const lastMonthTotal = await WasteData.aggregate([
+      { $match: { date: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+      { $group: { _id: null, total: { $sum: "$total" } } }
+    ])
+
+    const recentCollections = await WasteData.find().sort({ date: -1 }).limit(10)
+
+    res.status(200).json({
+      weeklyTotal: weeklyTotal[0]?.total || 0,
+      monthlyTotal: monthlyTotal[0]?.total || 0,
+      lastMonthTotal: lastMonthTotal[0]?.total || 0,
+      recentCollections
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
   }
 }

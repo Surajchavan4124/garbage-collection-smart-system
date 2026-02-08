@@ -6,9 +6,11 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import About from "./pages/About";
+import SegregationGuide from "./pages/SegregationGuide";
 // Placeholder imports for next steps
 import RegisterHousehold from "./pages/RegisterHousehold";
 import Complaint from "./pages/Complaint";
+import PanchayatSelectionModal from "./components/PanchayatSelectionModal";
 
 function App() {
   return (
@@ -19,12 +21,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
+            <Route path="/segregation" element={<SegregationGuide />} />
             <Route path="/register" element={<RegisterHousehold />} />
             <Route path="/complaint" element={<Complaint />} />
             {/* Fallback route or 404 can be added here */}
           </Routes>
         </main>
         <Footer />
+        <PanchayatSelectionModal />
         <ToastContainer position="bottom-right" />
       </div>
     </Router>

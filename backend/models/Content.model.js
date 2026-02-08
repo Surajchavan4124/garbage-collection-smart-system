@@ -18,14 +18,22 @@ const contentSchema = new mongoose.Schema(
     },
     body: {
       type: String, // HTML or Markdown content
-      required: true,
+      required: false,
     },
     media: [
       {
         url: { type: String },
-        type: { type: String, enum: ["image", "video"] },
+        type: { type: String, enum: ["image", "video", "file"] },
         caption: { type: String },
       },
+    ],
+    // New field for structured sections (Mission, Problem, Solution)
+    cards: [
+      {
+        title: { type: String },
+        content: { type: String },
+        icon: { type: String } // stored as string identifier or url if needed
+      }
     ],
     status: {
       type: String,

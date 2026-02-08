@@ -109,3 +109,39 @@ export const updateComplaintStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get complaint stats
+// @route   GET /api/complaints/stats
+// @access  Private (Admin/Supervisor)
+export const getComplaintStats = async (req, res) => {
+  try {
+    const panchayatId = req.user.panchayatId;
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const newComplaints = await Complaint.countDocuments({
+      panchayat: panchayatId,
+      createdAt: { $gte: twentyFourHoursAgo }
+    });
+
+    const pendingComplaints = await Complaint.countDocuments({
+      panchayat: panchayatId,
+      status: 'Received'
+    });
+
+    const resolvedComplaints = await Complaint.countDocuments({
+      panchayat: panchayatId,
+      status: 'Resolved',
+      resolvedAt: { $gte: startOfMonth }
+    });
+
+    res.json({
+      newComplaints,
+      pendingComplaints,
+      resolvedComplaints
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

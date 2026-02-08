@@ -15,6 +15,7 @@ import complaintRoutes from "./routes/complaint.routes.js";
 import routeRoutes from "./routes/route.routes.js";
 import contentRoutes from "./routes/content.routes.js";
 import wasteDataRoutes from "./routes/wasteData.routes.js";
+import reportRoutes from "./routes/report.routes.js";
 
 const app = express();
 app.use(express.json());  
@@ -47,6 +48,7 @@ app.use("/api/households", householdRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/waste-data", wasteDataRoutes);
+app.use("/api/reports", reportRoutes);
 
 
 export default app;

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Bold, Italic, Underline, List, ListOrdered, Heading1, Heading2, Link, Image, X, Upload, Play, Trash2 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
@@ -17,6 +19,7 @@ export default function EditSegregationGuide() {
   const [content, setContent] = useState('')
   const [tutorialVideo, setTutorialVideo] = useState(null)
   const [pdfFile, setPdfFile] = useState(null)
+  const [activeTab, setActiveTab] = useState('write')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -75,7 +78,7 @@ export default function EditSegregationGuide() {
 
     } catch (err) {
       console.error(err)
-      toast.error("Failed to save content")
+      toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to save content")
     } finally {
       setSaving(false)
     }
@@ -247,48 +250,87 @@ export default function EditSegregationGuide() {
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-gray-800">Text</h3>
-
-                <div className="bg-gray-50 border border-gray-300 rounded-t-lg p-3 flex flex-wrap gap-2 items-center">
-                  <button onClick={() => insertFormatting('**', '**')} className="p-2 hover:bg-gray-200 rounded transition" title="Bold">
-                    <Bold size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('*', '*')} className="p-2 hover:bg-gray-200 rounded transition" title="Italic">
-                    <Italic size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('<u>', '</u>')} className="p-2 hover:bg-gray-200 rounded transition" title="Underline">
-                    <Underline size={18} className="text-gray-700" />
-                  </button>
-                  <div className="h-6 border-l border-gray-300"></div>
-                  <button onClick={() => insertFormatting('• ')} className="p-2 hover:bg-gray-200 rounded transition" title="Bullets">
-                    <List size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('1. ')} className="p-2 hover:bg-gray-200 rounded transition" title="Numbered">
-                    <ListOrdered size={18} className="text-gray-700" />
-                  </button>
-                  <div className="h-6 border-l border-gray-300"></div>
-                  <button onClick={() => insertFormatting('# ')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 1">
-                    <Heading1 size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('## ')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 2">
-                    <Heading2 size={18} className="text-gray-700" />
-                  </button>
-                  <div className="h-6 border-l border-gray-300"></div>
-                  <button onClick={() => insertFormatting('[link text]', '(https://example.com)')} className="p-2 hover:bg-gray-200 rounded transition" title="Link">
-                    <Link size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('![alt text]', '(image-url)')} className="p-2 hover:bg-gray-200 rounded transition" title="Image">
-                    <Image size={18} className="text-gray-700" />
-                  </button>
+                <div className="flex justify-between items-end">
+                    <h3 className="text-sm font-bold text-gray-800">Text</h3>
+                    <div className="flex bg-gray-200 rounded p-1 gap-1">
+                        <button 
+                            onClick={() => setActiveTab('write')}
+                            className={`px-3 py-1 text-xs font-medium rounded transition ${activeTab === 'write' ? 'bg-white shadow text-gray-800' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                            Write
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('preview')}
+                            className={`px-3 py-1 text-xs font-medium rounded transition ${activeTab === 'preview' ? 'bg-white shadow text-gray-800' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                            Preview
+                        </button>
+                    </div>
                 </div>
 
-                <textarea
-                  value={content}
-                  onChange={handleContentChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
-                  rows="10"
-                  placeholder="Enter segregation guide content here..."
-                />
+                {activeTab === 'write' ? (
+                    <>
+                        <div className="bg-gray-50 border border-gray-300 rounded-t-lg p-3 flex flex-wrap gap-2 items-center">
+                        <button onClick={() => insertFormatting('**', '**')} className="p-2 hover:bg-gray-200 rounded transition" title="Bold">
+                            <Bold size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('*', '*')} className="p-2 hover:bg-gray-200 rounded transition" title="Italic">
+                            <Italic size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('<u>', '</u>')} className="p-2 hover:bg-gray-200 rounded transition" title="Underline">
+                            <Underline size={18} className="text-gray-700" />
+                        </button>
+                        <div className="h-6 border-l border-gray-300"></div>
+                        <button onClick={() => insertFormatting('- ', '')} className="p-2 hover:bg-gray-200 rounded transition" title="Bullets">
+                            <List size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('1. ', '')} className="p-2 hover:bg-gray-200 rounded transition" title="Numbered">
+                            <ListOrdered size={18} className="text-gray-700" />
+                        </button>
+                        <div className="h-6 border-l border-gray-300"></div>
+                        <button onClick={() => insertFormatting('# ', '')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 1">
+                            <Heading1 size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('## ', '')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 2">
+                            <Heading2 size={18} className="text-gray-700" />
+                        </button>
+                        <div className="h-6 border-l border-gray-300"></div>
+                        <button onClick={() => insertFormatting('[', '](https://example.com)')} className="p-2 hover:bg-gray-200 rounded transition" title="Link">
+                            <Link size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('![', '](image-url)')} className="p-2 hover:bg-gray-200 rounded transition" title="Image">
+                            <Image size={18} className="text-gray-700" />
+                        </button>
+                        </div>
+
+                        <textarea
+                        value={content}
+                        onChange={handleContentChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none font-mono text-sm"
+                        rows="10"
+                        placeholder="Enter segregation guide content here... (Markdown supported)"
+                        />
+                    </>
+                ) : (
+                  <div className="w-full px-6 py-6 border border-gray-300 rounded-lg h-96 overflow-y-auto prose prose-sm bg-white">
+                         <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                h1: ({node, ...props}) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />,
+                                h2: ({node, ...props}) => <h2 className="text-xl font-bold mt-3 mb-2" {...props} />,
+                                p: ({node, ...props}) => <p className="mb-2" {...props} />,
+                                ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-2" {...props} />,
+                                ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-2" {...props} />,
+                                blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2" {...props} />,
+                                strong: ({node, ...props}) => <strong className="font-bold text-gray-900" {...props} />,
+                                em: ({node, ...props}) => <em className="italic" {...props} />,
+                                a: ({node, ...props}) => <a className="text-teal-600 hover:underline" {...props} />,
+                            }}
+                        >
+                            {content || '*No content to preview*'}
+                         </ReactMarkdown>
+                    </div>
+                )}
               </div>
 
               <div className="text-right text-xs text-gray-500 font-medium">

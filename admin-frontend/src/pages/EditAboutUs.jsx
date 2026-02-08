@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Bold, Italic, Underline, List, ListOrdered, Heading1, Heading2, Link, Image, X, Upload } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
@@ -16,6 +17,12 @@ const getImageUrl = (path) => {
 export default function EditAboutUs() {
   const [content, setContent] = useState('')
   const [bannerImage, setBannerImage] = useState(null)
+  const [cards, setCards] = useState([
+    { title: "Our Mission", content: "", icon: "01" },
+    { title: "The Problem", content: "", icon: "02" },
+    { title: "The Solution", content: "", icon: "03" }
+  ])
+  const [activeTab, setActiveTab] = useState('write')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -29,6 +36,11 @@ export default function EditAboutUs() {
           // Check for banner in media
           const banner = res.data.media?.find(m => m.caption === 'Banner')
           if (banner) setBannerImage(banner.url)
+          
+          // Populate cards if they exist, otherwise keep default structure
+          if (res.data.cards && res.data.cards.length > 0) {
+              setCards(res.data.cards)
+          }
         }
       } catch (err) {
         console.error("Fetch Error:", err)
@@ -60,7 +72,8 @@ export default function EditAboutUs() {
         title: 'About Us',
         body: content,
         status,
-        media 
+        media,
+        cards
       })
 
       if (status === 'draft') toast.success("Draft saved successfully")
@@ -102,6 +115,12 @@ export default function EditAboutUs() {
 
   const handleContentChange = (e) => {
     setContent(e.target.value)
+  }
+
+  const handleCardChange = (index, field, value) => {
+    const newCards = [...cards]
+    newCards[index][field] = value
+    setCards(newCards)
   }
 
   const insertFormatting = (before, after = '') => {
@@ -208,47 +227,120 @@ export default function EditAboutUs() {
                 )}
               </div>
 
+
+
+
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-gray-800">Content Editor</h3>
-                <div className="bg-gray-50 border border-gray-300 rounded-t-lg p-3 flex flex-wrap gap-2 items-center">
-                  <button onClick={() => insertFormatting('**', '**')} className="p-2 hover:bg-gray-200 rounded transition" title="Bold">
-                    <Bold size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('*', '*')} className="p-2 hover:bg-gray-200 rounded transition" title="Italic">
-                    <Italic size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('<u>', '</u>')} className="p-2 hover:bg-gray-200 rounded transition" title="Underline">
-                    <Underline size={18} className="text-gray-700" />
-                  </button>
-                  <div className="h-6 border-l border-gray-300"></div>
-                  <button onClick={() => insertFormatting('• ')} className="p-2 hover:bg-gray-200 rounded transition" title="Bullets">
-                    <List size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('1. ')} className="p-2 hover:bg-gray-200 rounded transition" title="Numbered">
-                    <ListOrdered size={18} className="text-gray-700" />
-                  </button>
-                  <div className="h-6 border-l border-gray-300"></div>
-                  <button onClick={() => insertFormatting('# ')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 1">
-                    <Heading1 size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('## ')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 2">
-                    <Heading2 size={18} className="text-gray-700" />
-                  </button>
-                  <div className="h-6 border-l border-gray-300"></div>
-                  <button onClick={() => insertFormatting('[link text]', '(https://example.com)')} className="p-2 hover:bg-gray-200 rounded transition" title="Link">
-                    <Link size={18} className="text-gray-700" />
-                  </button>
-                  <button onClick={() => insertFormatting('![alt text]', '(image-url)')} className="p-2 hover:bg-gray-200 rounded transition" title="Image">
-                    <Image size={18} className="text-gray-700" />
-                  </button>
+                <div className="flex justify-between items-end">
+                    <h3 className="text-sm font-bold text-gray-800">Content Editor (Main Description)</h3>
+                    <div className="flex bg-gray-200 rounded p-1 gap-1">
+                        <button 
+                            onClick={() => setActiveTab('write')}
+                            className={`px-3 py-1 text-xs font-medium rounded transition ${activeTab === 'write' ? 'bg-white shadow text-gray-800' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                            Write
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('preview')}
+                            className={`px-3 py-1 text-xs font-medium rounded transition ${activeTab === 'preview' ? 'bg-white shadow text-gray-800' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                            Preview
+                        </button>
+                    </div>
                 </div>
 
-                <textarea
-                  value={content}
-                  onChange={handleContentChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none h-96"
-                  placeholder="Enter your about us content here..."
-                />
+                {activeTab === 'write' ? (
+                    <>
+                        <div className="bg-gray-50 border border-gray-300 rounded-t-lg p-3 flex flex-wrap gap-2 items-center">
+                        <button onClick={() => insertFormatting('**', '**')} className="p-2 hover:bg-gray-200 rounded transition" title="Bold">
+                            <Bold size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('*', '*')} className="p-2 hover:bg-gray-200 rounded transition" title="Italic">
+                            <Italic size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('<u>', '</u>')} className="p-2 hover:bg-gray-200 rounded transition" title="Underline">
+                            <Underline size={18} className="text-gray-700" />
+                        </button>
+                        <div className="h-6 border-l border-gray-300"></div>
+                        <button onClick={() => insertFormatting('- ', '')} className="p-2 hover:bg-gray-200 rounded transition" title="Bullets">
+                            <List size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('1. ', '')} className="p-2 hover:bg-gray-200 rounded transition" title="Numbered">
+                            <ListOrdered size={18} className="text-gray-700" />
+                        </button>
+                        <div className="h-6 border-l border-gray-300"></div>
+                        <button onClick={() => insertFormatting('# ', '')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 1">
+                            <Heading1 size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('## ', '')} className="p-2 hover:bg-gray-200 rounded transition" title="Heading 2">
+                            <Heading2 size={18} className="text-gray-700" />
+                        </button>
+                        <div className="h-6 border-l border-gray-300"></div>
+                        <button onClick={() => insertFormatting('[', '](https://example.com)')} className="p-2 hover:bg-gray-200 rounded transition" title="Link">
+                            <Link size={18} className="text-gray-700" />
+                        </button>
+                        <button onClick={() => insertFormatting('![', '](image-url)')} className="p-2 hover:bg-gray-200 rounded transition" title="Image">
+                            <Image size={18} className="text-gray-700" />
+                        </button>
+                        </div>
+
+                        <textarea
+                        value={content}
+                        onChange={handleContentChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none h-64 font-mono text-sm"
+                        placeholder="Enter your about us content here... (Markdown supported)"
+                        />
+                    </>
+                ) : (
+                    <div className="w-full px-6 py-6 border border-gray-300 rounded-lg h-64 overflow-y-auto prose prose-sm bg-white">
+                         <ReactMarkdown 
+                            components={{
+                                h1: ({node, ...props}) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />,
+                                h2: ({node, ...props}) => <h2 className="text-xl font-bold mt-3 mb-2" {...props} />,
+                                p: ({node, ...props}) => <p className="mb-2" {...props} />,
+                                ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-2" {...props} />,
+                                ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-2" {...props} />,
+                                blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2" {...props} />,
+                            }}
+                        >
+                            {content || '*No content to preview*'}
+                         </ReactMarkdown>
+                    </div>
+                )}
+              </div>
+
+               {/* CARDS EDITOR */}
+               <div className="space-y-4 pt-4 border-t border-gray-200">
+                <h3 className="text-lg font-bold text-gray-800">Infographic Cards</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {cards.map((card, index) => (
+                    <div key={index} className="border border-gray-300 rounded-lg p-4 bg-gray-50 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-gray-700">Card {index + 1}</span>
+                        <span className="text-xs bg-gray-200 px-2 py-1 rounded text-gray-600">Icon: {card.icon}</span>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">Title</label>
+                        <input
+                          type="text"
+                          value={card.title}
+                          onChange={(e) => handleCardChange(index, "title", e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">Content</label>
+                        <textarea
+                          value={card.content}
+                          onChange={(e) => handleCardChange(index, "content", e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 h-24 text-sm resize-none"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="text-right text-xs text-gray-500 font-medium">

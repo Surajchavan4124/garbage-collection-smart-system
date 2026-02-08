@@ -1,10 +1,16 @@
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts'
 
-export default function AttendanceChart() {
+export default function AttendanceChart({ present = 0, absent = 0 }) {
   const data = [
-    { name: 'Present', value: 92 },
-    { name: 'Absent', value: 8 },
+    { name: 'Present', value: present },
+    { name: 'Absent', value: absent },
   ]
+
+  // Handle empty state to avoid ugly chart
+  if (present === 0 && absent === 0) {
+     data[0].value = 1; // Placeholder
+     data[1].value = 0;
+  }
 
   const COLORS = ['#FBBF24', '#EF4444']
 

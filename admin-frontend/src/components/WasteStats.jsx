@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import api from '../api/axios'
 import { ChevronDown } from 'lucide-react'
 
 export default function WasteStats() {
@@ -10,12 +11,32 @@ export default function WasteStats() {
   const days = ['All', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const wards = ['Ward 1', 'Ward 2', 'Ward 3', 'Ward 4', 'Ward 5']
 
-  const tableData = [
-    { day: 'Mon', ward: 'Ward 1', volume: '50kg' },
-    { day: 'Tue', ward: 'Ward 1', volume: '61kg' },
-    { day: 'Wed', ward: 'Ward 1', volume: '61kg' },
-    { day: 'Thu', ward: 'Ward 1', volume: '31kg' },
-  ]
+  const [stats, setStats] = useState({
+    weeklyTotal: 0,
+    monthlyTotal: 0,
+    lastMonthTotal: 0,
+    recentCollections: []
+  })
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      const res = await api.get('/waste-data/stats')
+      setStats(res.data)
+    } catch (error) {
+      console.error("Failed to fetch waste stats", error)
+    }
+  }
+
+  // Use recentCollections for the table, formatted
+  const tableData = stats.recentCollections.map(item => ({
+    day: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    ward: item.ward,
+    volume: `${item.total}kg`
+  }))
 
   // Filter table data based on selected filters
   const filteredData = tableData.filter(item => {
@@ -29,8 +50,8 @@ export default function WasteStats() {
       {/* Weekly Collection */}
       <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Weekly collection</h3>
-        <p className="text-4xl font-bold text-gray-900 mb-1">10</p>
-        <p className="text-xs text-gray-500 mb-6">tons collected this week</p>
+        <p className="text-4xl font-bold text-gray-900 mb-1">{stats.weeklyTotal}</p>
+        <p className="text-xs text-gray-500 mb-6">kg collected this week</p>
         <div className="h-20 bg-gray-100 rounded-lg flex items-center justify-center">
           <p className="text-xs text-gray-500 font-medium">Line/Bar chart 📊</p>
         </div>
@@ -39,8 +60,8 @@ export default function WasteStats() {
       {/* Monthly Collection */}
       <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Monthly collection</h3>
-        <p className="text-4xl font-bold text-gray-900 mb-1">100</p>
-        <p className="text-xs text-gray-500 mb-6">tons collected this month<br />vs last month 50 tons</p>
+        <p className="text-4xl font-bold text-gray-900 mb-1">{stats.monthlyTotal}</p>
+        <p className="text-xs text-gray-500 mb-6">kg collected this month<br />vs last month {stats.lastMonthTotal} kg</p>
         <div className="h-20 bg-gray-100 rounded-lg flex items-center justify-center">
           <p className="text-xs text-gray-500 font-medium">Pie chart 📈</p>
         </div>
