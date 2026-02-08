@@ -1,5 +1,5 @@
-import Subscription from '../models/subscription.model.js'
-import Panchayat from '../models/panchayat.model.js'
+import Subscription from '../models/Subscription.model.js'
+import Panchayat from '../models/Panchayat.model.js'
 
 const PLAN_CONFIG = {
   BASIC: {
