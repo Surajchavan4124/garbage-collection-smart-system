@@ -111,7 +111,7 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
                       {complaint.photo ? (
                         <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center border border-gray-300 overflow-hidden">
                           <img 
-                            src={`${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000'}/${complaint.photo}`} 
+                            src={`http://localhost:5000/${complaint.photo}`} 
                             alt="Complaint" 
                             className="w-full h-full object-cover"
                             onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentElement.innerText = '📷'; }}

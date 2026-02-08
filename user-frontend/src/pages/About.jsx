@@ -44,10 +44,7 @@ const About = () => {
   const getBannerUrl = (url) => {
     if (!url) return null;
     if (url.startsWith("http")) return url;
-    const baseUrl = import.meta.env.VITE_API_URL 
-      ? import.meta.env.VITE_API_URL.replace('/api', '') 
-      : 'http://localhost:5000';
-    return `${baseUrl}/${url}`;
+    return `http://localhost:5000/${url}`;
   };
 
   const bannerUrl = content?.media?.find(m => m.caption === 'Banner')?.url;

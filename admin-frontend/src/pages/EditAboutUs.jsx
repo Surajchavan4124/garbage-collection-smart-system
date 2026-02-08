@@ -11,10 +11,7 @@ const getImageUrl = (path) => {
   if (!path) return null;
   if (path.startsWith("data:")) return path;
   if (path.startsWith("http")) return path;
-  const baseUrl = import.meta.env.VITE_API_URL 
-    ? import.meta.env.VITE_API_URL.replace('/api', '') 
-    : 'http://localhost:5000';
-  return `${baseUrl}/${path}`;
+  return `http://localhost:5000/${path}`;
 };
 
 export default function EditAboutUs() {
