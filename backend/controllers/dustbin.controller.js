@@ -5,13 +5,14 @@ import Dustbin from "../models/dustbin.model.js";
 // @access  Private (Admin)
 export const createDustbin = async (req, res) => {
   try {
-    const { binCode, locationText, type, lat, lng } = req.body;
+    const { binCode, locationText, type, ward, lat, lng } = req.body;
 
     const dustbin = await Dustbin.create({
       panchayat: req.user.panchayatId,
       binCode,
       locationText,
       type,
+      ward,
       geo: { lat, lng },
     });
 

@@ -28,10 +28,32 @@ export default function WasteDataManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [entryToDelete, setEntryToDelete] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  
+  // Real-time View States
+  const [viewMode, setViewMode] = useState('ward') // 'ward' or 'bin'
+  const [allScans, setAllScans] = useState([])
+
 
   useEffect(() => {
-    fetchWasteData()
+    refreshData()
+    const interval = setInterval(refreshData, 5000) // Poll every 5s
+    return () => clearInterval(interval)
   }, [])
+
+  const refreshData = () => {
+    fetchWasteData()
+    fetchAllScans()
+  }
+
+  const fetchAllScans = async () => {
+    try {
+      const res = await api.get('/attendance/all-scans')
+      setAllScans(res.data)
+    } catch (error) {
+      console.error("Failed to fetch all scans", error)
+    }
+  }
+
 
   const fetchWasteData = async () => {
     try {
@@ -402,9 +424,26 @@ export default function WasteDataManagement() {
           <div className="bg-white rounded-lg shadow">
             {/* Title & Search Toolbar */}
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">WASTE COLLECTION RECORDS</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-800 uppercase tracking-tight">COLLECTION RECORDS</h2>
+                <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+                  <button 
+                    onClick={() => setViewMode('ward')}
+                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === 'ward' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                  >
+                    WARD WISE
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('bin')}
+                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === 'bin' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                  >
+                    BIN WISE (LIVE)
+                  </button>
+                </div>
+              </div>
               
               <div className="flex items-center gap-3">
+
                 <Search size={18} className="text-gray-400" />
                 <input
                   type="text"
@@ -424,52 +463,106 @@ export default function WasteDataManagement() {
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-teal-500 text-white">
-                    <th className="px-6 py-3 text-left text-xs font-bold">Entry ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Date Entered</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Ward</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Bio Degradable (kgs)</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Non Bio Degradable (kgs)</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Recyclable (kgs)</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Others (kgs)</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Total (kgs)</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRecords.map((record, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-800">{record.entryId}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{new Date(record.date).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{record.ward}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{record.biodegradable}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{record.nonBiodegradable}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{record.recyclable}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{record.others}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-800">{record.total}</td>
-                      <td className="px-6 py-4 flex gap-2">
-                        <button 
-                          onClick={() => handleEdit(record)}
-                          className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteClick(record)}
-                          className="p-1 text-red-600 hover:bg-red-100 rounded"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
+              {viewMode === 'ward' ? (
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-teal-500 text-white">
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Entry ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Date Entered</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Ward</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Bio Degradable (kgs)</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Non Bio (kgs)</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Recyclable (kgs)</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Others (kgs)</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Total (kgs)</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredRecords.map((record, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-6 py-4 text-sm font-bold text-teal-700">{record.entryId}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700 font-medium">{new Date(record.date).toLocaleDateString()}</td>
+                        <td className="px-6 py-4 text-sm text-gray-800 font-bold">{record.ward}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{record.biodegradable}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{record.nonBiodegradable}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{record.recyclable}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{record.others}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-gray-900">{record.total}</td>
+                        <td className="px-6 py-4 flex gap-2">
+                          <button 
+                            onClick={() => handleEdit(record)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteClick(record)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-800 text-white">
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Bin Code</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Ward</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Location</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Collector</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Weight (kgs)</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Scanned At</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allScans.map((scan, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-6 py-4 text-sm font-bold text-gray-900">{scan.dustbin?.binCode || 'N/A'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-800 font-bold">{scan.dustbin?.ward || 'N/A'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600 italic">{scan.dustbin?.locationText || 'N/A'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700 font-medium">{scan.labour?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 text-sm">
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                            scan.dustbin?.type === 'Organic' ? 'bg-green-100 text-green-700' :
+                            scan.dustbin?.type === 'Recyclable' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {scan.dustbin?.type || 'Other'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm font-bold text-teal-600">{scan.estimatedWeight || 0}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {new Date(scan.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-bold text-center">
+                           { (scan.action === 'collected' || (scan.estimatedWeight > 0 && !scan.action)) ? (
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200 uppercase tracking-wider shadow-sm">
+                               COLLECTED
+                             </span>
+                           ) : scan.action === 'issue' ? (
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 border border-red-200 uppercase tracking-wider shadow-sm">
+                               REPORTED
+                             </span>
+                           ) : (
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200 uppercase tracking-wider shadow-sm">
+                               SCANNED
+                             </span>
+                           )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
+
           </div>
         </div>
       </div>

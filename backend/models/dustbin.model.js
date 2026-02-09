@@ -21,6 +21,12 @@ const dustbinSchema = new mongoose.Schema(
       trim: true,
     },
 
+    ward: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     type: {
       type: String,
       enum: ["General", "Recyclable", "Organic"],

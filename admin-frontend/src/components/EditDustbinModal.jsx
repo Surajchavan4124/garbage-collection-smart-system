@@ -1,9 +1,11 @@
 import { X, Edit2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { wardOptions } from '../data/wasteDataMockData'
 
 export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate }) {
   const [editData, setEditData] = useState({
     location: '',
+    ward: '',
     type: 'General',
     status: 'Good',
   })
@@ -12,6 +14,7 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
     if (dustbin) {
       setEditData({
         location: dustbin.locationText || dustbin.location || '',
+        ward: dustbin.ward || '',
         type: dustbin.type || 'General',
         status: dustbin.status || 'Good',
       })
@@ -20,6 +23,7 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
 
   const [editingFields, setEditingFields] = useState({
     location: false,
+    ward: false,
     type: false,
     status: false,
   })
@@ -153,6 +157,35 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
                   <path d="M 150 133 L 145 145 L 155 145 Z" fill="#333" />
                 </svg>
               </div>
+            </div>
+            {/* Ward - Editable */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-semibold text-gray-700">
+                  Ward:
+                </label>
+                <button
+                  onClick={() => toggleEditing('ward')}
+                  className="p-1 hover:bg-gray-100 rounded transition"
+                >
+                  <Edit2 size={16} className="text-gray-600" />
+                </button>
+              </div>
+              <select
+                name="ward"
+                value={editData.ward}
+                onChange={handleInputChange}
+                disabled={!editingFields.ward}
+                className={`w-full px-4 py-2 rounded text-sm border transition ${
+                  editingFields.ward
+                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    : 'bg-gray-50 border-gray-300 text-gray-700'
+                }`}
+              >
+                {wardOptions.map(ward => (
+                  <option key={ward.id} value={ward.name}>{ward.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Type - Editable */}

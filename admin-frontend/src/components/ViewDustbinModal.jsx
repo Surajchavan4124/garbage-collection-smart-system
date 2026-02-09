@@ -61,6 +61,18 @@ export default function ViewDustbinModal({ isOpen, onClose, dustbin, onEdit, onD
                 className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm font-medium"
               />
             </div>
+            {/* Ward */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-2">
+                Ward:
+              </label>
+              <input
+                type="text"
+                value={dustbin.ward || 'N/A'}
+                disabled
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-800 text-sm font-bold"
+              />
+            </div>
 
             {/* QR Code Image */}
             <div>

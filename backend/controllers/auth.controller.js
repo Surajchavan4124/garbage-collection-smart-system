@@ -1,5 +1,6 @@
 import User from "../models/User.model.js";
 import Panchayat from "../models/Panchayat.model.js";
+import Employee from "../models/Employee.model.js";
 import { generateOTP, verifyOTP } from "../utils/otpService.js";
 import { generateToken } from "../utils/jwt.js";
 
@@ -7,13 +8,36 @@ import { generateToken } from "../utils/jwt.js";
  * Send OTP
  */
 export const sendOtp = async (req, res) => {
-  const { mobile } = req.body;
+  const { mobile, type, panchayatId } = req.body;
 
   if (!mobile) {
     return res.status(400).json({
       message: "Mobile number required",
       success: false,
     });
+  }
+
+  // 🔹 EMPLOYEE LOGIN CHECK
+  if (type === "employee") {
+    if (!panchayatId) {
+      return res.status(400).json({
+        message: "Panchayat selection is required",
+        success: false,
+      });
+    }
+
+    const employee = await Employee.findOne({
+      phone: mobile,
+      panchayat: panchayatId,
+      status: "active"
+    });
+
+    if (!employee) {
+      return res.status(404).json({
+        message: "Active employee not found for this Panchayat",
+        success: false,
+      });
+    }
   }
 
   const otp = generateOTP(mobile);
@@ -27,10 +51,9 @@ export const sendOtp = async (req, res) => {
 
 /**
  * Verify OTP & Login
- * OPTION 2: Fallback to Panchayat if User not found
  */
 export const verifyOtpAndLogin = async (req, res) => {
-  const { mobile, otp } = req.body;
+  const { mobile, otp, type, panchayatId } = req.body;
 
   // 1️⃣ Verify OTP
   if (!verifyOTP(mobile, otp)) {
@@ -40,36 +63,70 @@ export const verifyOtpAndLogin = async (req, res) => {
     });
   }
 
-  // 2️⃣ Try User login
-  let user = await User.findOne({ mobile });
+  let user = null;
+  let role = "USER"; // Default
 
-  // 3️⃣ Fallback → Panchayat ADMIN
+  // 🔹 EMPLOYEE LOGIN
+  if (type === "employee") {
+     if (!panchayatId) {
+        return res.status(400).json({ message: "Panchayat ID required" });
+     }
+
+     const employee = await Employee.findOne({
+        phone: mobile,
+        panchayat: panchayatId,
+        status: "active"
+     });
+
+     if (!employee) {
+        return res.status(404).json({ message: "Employee not found or inactive" });
+     }
+
+     user = {
+        _id: employee._id,
+        name: employee.name,
+        role: "EMPLOYEE", // Or employee.role if specific roles exist
+        panchayatId: employee.panchayat,
+        ward: employee.ward
+     };
+     role = "EMPLOYEE";
+
+  } else {
+      // 2️⃣ Try Normal User login
+      user = await User.findOne({ mobile });
+
+      // 3️⃣ Fallback → Panchayat ADMIN
+      if (!user) {
+        const panchayat = await Panchayat.findOne({
+          contactPhone: mobile,
+          status: "active",
+        });
+
+        if (panchayat) {
+           user = {
+            _id: panchayat._id,
+            name: panchayat.name,
+            role: "PANCHAYAT_ADMIN",
+            panchayatId: panchayat._id,
+          };
+          role = "PANCHAYAT_ADMIN";
+        }
+      }
+  }
+
   if (!user) {
-    const panchayat = await Panchayat.findOne({
-      contactPhone: mobile,
-      status: "active",
-    });
-
-    if (!panchayat) {
       return res.status(404).json({
         message: "User not found",
         success: false,
       });
-    }
-
-    user = {
-      _id: panchayat._id,
-      name: panchayat.name,
-      role: "ADMIN",
-      panchayatId: panchayat._id,
-    };
   }
 
   // 4️⃣ Generate JWT
   const token = generateToken({
     userId: user._id,
-    role: user.role,
+    role: role,
     panchayatId: user.panchayatId,
+    ward: user.ward
   });
 
   // 5️⃣ Set cookie
@@ -84,10 +141,11 @@ export const verifyOtpAndLogin = async (req, res) => {
   return res.status(200).json({
     message: "Login successful",
     success: true,
+    token, // Return token for mobile app
     user: {
       id: user._id,
       name: user.name,
-      role: user.role,
+      role: role,
       panchayatId: user.panchayatId,
     },
   });

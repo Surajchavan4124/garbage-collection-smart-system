@@ -44,6 +44,20 @@ const attendanceScanSchema = new mongoose.Schema(
       default: false,
     },
 
+    estimatedWeight: {
+      type: Number,
+      default: 0,
+    },
+
+    action: {
+      type: String,
+      enum: ["collected", "issue"],
+    },
+
+    issueDescription: {
+      type: String,
+    },
+
     result: {
       type: String,
       enum: ["SUCCESS", "DUPLICATE", "OUT_OF_RANGE", "INVALID"],

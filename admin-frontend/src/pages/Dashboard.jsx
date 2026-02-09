@@ -21,7 +21,8 @@ export default function Dashboard() {
     onError: (err) => {
         console.error("Failed to fetch dashboard stats", err)
         toast.error("Failed to fetch dashboard stats")
-    }
+    },
+    refetchInterval: 10000
   })
 
   // 2. Attendance Query
@@ -40,7 +41,8 @@ export default function Dashboard() {
         status: d.present ? 'Present' : 'Absent'
       }))
       return { total, present, recent }
-    }
+    },
+    refetchInterval: 10000
   })
 
   if (statsLoading || attendanceLoading) {

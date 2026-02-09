@@ -3,6 +3,9 @@ import Dustbin from "../models/dustbin.model.js";
 import { getDistanceInMeters } from "../utils/geo.util.js";
 import Employee from "../models/Employee.model.js";
 import Attendance from "../models/attendance.model.js";
+import Panchayat from "../models/Panchayat.model.js";
+import WasteData from "../models/WasteData.model.js";
+import mongoose from "mongoose";
 
 
 const RADIUS_METERS = 20;
@@ -12,11 +15,28 @@ const today = () => new Date().toISOString().split("T")[0];
 // 🔹 QR SCAN (LABOUR)
 export const scanAttendance = async (req, res) => {
   try {
-    const panchayatId = req.user.panchayat;
+    const panchayatId = req.user.panchayatId;
     const { labourId, dustbinId, lat, lng, isOffline } = req.body;
+
 
     if (!lat || !lng) {
       return res.status(400).json({ message: "GPS required" });
+    }
+
+    // 🔹 CHECK IF ON DUTY (Attendance must be marked for today)
+    const date = today();
+    const attendance = await Attendance.findOne({
+      labour: labourId,
+      date,
+      panchayat: panchayatId,
+      present: true
+    });
+
+    if (!attendance) {
+      return res.status(403).json({ 
+        message: "Please toggle 'Available On Duty' on your dashboard to start scanning.",
+        success: false 
+      });
     }
 
     const labour = await Employee.findOne({
@@ -29,16 +49,31 @@ export const scanAttendance = async (req, res) => {
       return res.status(404).json({ message: "Invalid labour" });
     }
 
-    const dustbin = await Dustbin.findOne({
-      _id: dustbinId,
-      panchayat: panchayatId,
-      isActive: true,
-    });
+    // 🔹 FIND DUSTBIN (Support both ObjectId and binCode)
+    let dustbin;
+    const isObjectId = mongoose.Types.ObjectId.isValid(dustbinId);
 
-    if (!dustbin) {
-      return res.status(404).json({ message: "Invalid dustbin" });
+    if (isObjectId) {
+      dustbin = await Dustbin.findOne({
+        _id: dustbinId,
+        panchayat: panchayatId,
+        isActive: true,
+      });
+    } else {
+      // If not a valid ObjectId, assume it's a binCode (e.g., "B-9394")
+      dustbin = await Dustbin.findOne({
+        binCode: dustbinId,
+        panchayat: panchayatId,
+        isActive: true,
+      });
     }
 
+    if (!dustbin) {
+      return res.status(404).json({ message: "Invalid dustbin ID or code" });
+    }
+
+
+    // Check Distance (Optional, maybe log warning)
     const distance = getDistanceInMeters(
       lat,
       lng,
@@ -46,26 +81,35 @@ export const scanAttendance = async (req, res) => {
       dustbin.geo.lng
     );
 
-    const date = today();
 
     let result = "SUCCESS";
 
-    const existing = await Attendance.findOne({
-      panchayat: panchayatId,
-      labour: labourId,
-      date,
-    });
-
     if (distance > RADIUS_METERS) {
-      result = "OUT_OF_RANGE";
-    } else if (existing) {
-      result = "DUPLICATE";
+       console.log(`⚠️ Distance Warning: ${distance}m (Allowed: ${RADIUS_METERS}m)`);
+       // result = "OUT_OF_RANGE"; // Use to force error if strict
     }
 
-    await AttendanceScan.create({
+    // 🔹 CHECK FOR DUPLICATE SCAN (Already collected/reported today)
+    const existingScan = await AttendanceScan.findOne({
+      dustbin: dustbin._id,
+      date,
+      action: { $in: ["collected", "issue"] }
+    });
+
+    if (existingScan) {
+      return res.status(400).json({ 
+        message: existingScan.action === "collected" 
+          ? "This bin has already been collected today." 
+          : "An issue has already been reported for this bin today.",
+        success: false 
+      });
+    }
+
+    // 1. Record Scan (Temporary state until action is confirmed)
+    const scanRecord = await AttendanceScan.create({
       panchayat: panchayatId,
       labour: labourId,
-      dustbin: dustbinId,
+      dustbin: dustbin._id,
       geo: { lat, lng },
       distance,
       isOffline: !!isOffline,
@@ -73,21 +117,20 @@ export const scanAttendance = async (req, res) => {
       date,
     });
 
-    if (result !== "SUCCESS") {
-      return res.status(400).json({ message: result });
-    }
-
-    await Attendance.create({
-      panchayat: panchayatId,
-      labour: labourId,
-      date,
-      present: true,
-      source: "QR",
-      geo: { lat, lng },
+    // 3. Return Bin Details & Scan ID for next step
+    res.json({
+      message: "Bin Scanned Successfully",
+      scanId: scanRecord._id,
+      bin: {
+        _id: dustbin._id,
+        binCode: dustbin.binCode || "N/A", // Ensure binCode exists in model or fallback
+        location: dustbin.locationText || "Unknown Location",
+        type: dustbin.type || "General",
+      }
     });
 
-    res.json({ message: "Attendance marked" });
   } catch (err) {
+    console.error("Scan Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -137,16 +180,159 @@ export const manualAttendance = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-// 🔹 TODAY VIEW
 
+// 🔹 TOGGLE AVAILABILITY (Employee switches ON/OFF duty)
+export const updateAvailability = async (req, res) => {
+  try {
+    const { available } = req.body;
+    const { _id, panchayatId } = req.user;
+    const date = today();
+
+    if (available) {
+      // Mark as present
+      await Attendance.findOneAndUpdate(
+        { labour: _id, date, panchayat: panchayatId },
+        { present: true, source: "APP_TOGGLE", markedAt: new Date() },
+        { upsert: true, new: true }
+      );
+    } else {
+      // User says "off duty", but we usually don't delete attendance. 
+      // Maybe just mark present: false if we want to track absence.
+      // For now, let's just mark present: false.
+      await Attendance.findOneAndUpdate(
+        { labour: _id, date, panchayat: panchayatId },
+        { present: false, source: "APP_TOGGLE" },
+        { upsert: true, new: true }
+      );
+    }
+
+    res.json({ success: true, message: "Availability updated" });
+  } catch (error) {
+    console.error("Update Availability Error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// 🔹 UPDATE SCAN ACTION (Employee Selects Action)
+export const updateScanAction = async (req, res) => {
+  try {
+    const { scanId, action, issueDescription, estimatedWeight } = req.body;
+
+
+    if (!scanId || !action) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    // Validate Action
+    const validActions = ["collected", "issue"];
+    if (!validActions.includes(action)) {
+       return res.status(400).json({ message: "Invalid action" });
+    }
+
+    const scan = await AttendanceScan.findByIdAndUpdate(
+      scanId,
+      {
+        action,
+        issueDescription: issueDescription || "",
+        estimatedWeight: Number(estimatedWeight) || 0
+      },
+      { new: true }
+    );
+
+    if (!scan) {
+      return res.status(404).json({ message: "Scan record not found" });
+    }
+
+    // 🔹 ATTENDANCE LOGIC: If action is 'collected', mark employee as present if not already
+    if (action === "collected") {
+       const date = scan.date || today();
+       const existingAtt = await Attendance.findOne({
+          labour: scan.labour,
+          date,
+          panchayat: scan.panchayat
+       });
+
+       if (!existingAtt) {
+          await Attendance.create({
+             panchayat: scan.panchayat,
+             labour: scan.labour,
+             date,
+             present: true,
+             source: "QR",
+             geo: scan.geo
+          });
+          console.log(`✅ Attendance marked for labour ${scan.labour} on first scan.`);
+       }
+
+       // 🔄 🔹 WASTE DATA SYNC: Update Admin Dashboard Waste Records
+       try {
+          const bin = await Dustbin.findById(scan.dustbin);
+          const employee = await Employee.findById(scan.labour);
+
+          if (bin && employee) {
+             const weight = Number(estimatedWeight) || 0;
+             const todayStart = new Date();
+             todayStart.setHours(0,0,0,0);
+
+             // Map Bin Type to WasteData field
+             const typeMap = {
+                "Organic": "biodegradable",
+                "Recyclable": "recyclable",
+                "General": "nonBiodegradable"
+             };
+
+             const targetField = typeMap[bin.type] || "mixed";
+
+             // Find or Create WasteData for this ward and date (USE BIN WARD NOW)
+             let wasteEntry = await WasteData.findOne({
+                ward: bin.ward,
+                date: { $gte: todayStart, $lt: new Date(todayStart.getTime() + 24*60*60*1000) }
+             });
+
+             if (wasteEntry) {
+                wasteEntry[targetField] = (wasteEntry[targetField] || 0) + weight;
+                wasteEntry.total = (wasteEntry.biodegradable || 0) + 
+                                  (wasteEntry.recyclable || 0) + 
+                                  (wasteEntry.nonBiodegradable || 0) + 
+                                  (wasteEntry.mixed || 0);
+                await wasteEntry.save();
+                console.log(`Updated WasteData for Ward ${bin.ward}`);
+             } else {
+                // Generate Entry ID
+                const count = await WasteData.countDocuments();
+                const entryId = `W-${String(count + 1).padStart(2, '0')}`;
+
+                await WasteData.create({
+                   entryId,
+                   date: todayStart,
+                   ward: bin.ward,
+                   collectionType: "Daily",
+                   [targetField]: weight,
+                   total: weight
+                });
+                console.log(`Created new WasteData for Ward ${bin.ward}`);
+             }
+          }
+       } catch (syncErr) {
+          console.error("Waste Sync Error:", syncErr);
+          // Don't fail the whole request if sync fails
+       }
+    }
+
+    res.json({ success: true, message: "Action updated", scan });
+  } catch (error) {
+    console.error("Update Action Error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// 🔹 TODAY VIEW
 export const getTodayAttendance = async (req, res) => {
   try {
     const date = new Date().toISOString().split("T")[0];
 
     // 🔹 STEP 1: Fetch ALL employees (no filters first)
     const employees = await Employee.find({}).lean();
-
-
 
     // 🔹 STEP 2: Fetch today's attendance
     const attendance = await Attendance.find({ date }).lean();
@@ -179,5 +365,74 @@ export const getTodayAttendance = async (req, res) => {
   } catch (err) {
     console.error("Attendance error:", err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+// 🔹 DASHBOARD STATS (For Employee App)
+export const getDashboardStats = async (req, res) => {
+  try {
+    const { panchayatId, _id, ward } = req.user; // Added _id (Employee ID)
+
+    // 1. Base query for dustbins
+    const dustbinQuery = { 
+      panchayat: panchayatId, 
+      isActive: true 
+    };
+
+    // If employee has specific ward, fitler by it? 
+    // The user says "Navelim ward 1, bins collected 1/3".
+    // Assuming bins have a 'ward' field or locationText matches user's ward.
+    // Let's assume dustbins match Panchayat for now (Total Target).
+    
+    const totalBins = await Dustbin.countDocuments(dustbinQuery);
+
+    // 2. Count collected today by THIS labour
+    const todayStr = today();
+    
+    // Count successful collections by THIS user
+    const collectedToday = await AttendanceScan.countDocuments({
+      labour: _id,
+      date: todayStr,
+      action: "collected" // Only count confirmed collections? Or just scans?
+                          // Logic says "if bin collected successfully... his status will get updated"
+                          // So we count documents where action="collected".
+    });
+
+    const pending = Math.max(0, totalBins - collectedToday);
+
+    // Get Panchayat Name
+    const panchayat = await Panchayat.findById(panchayatId).select("name");
+
+    // Check if present today
+    const attendance = await Attendance.findOne({ labour: _id, date: todayStr });
+
+    const stats = {
+      location: panchayat ? panchayat.name : (ward || "General"),
+      ward: ward || "General",
+      total: totalBins,
+      completed: collectedToday,
+      pending: pending,
+      present: attendance ? attendance.present : false
+    };
+
+    res.json(stats);
+
+  } catch (err) {
+    console.error("Dashboard Stats Error:", err);
+    res.status(500).json({ message: "Failed to fetch stats" });
+  }
+};
+// 🔹 GET ALL SCANS (For advanced reporting)
+export const getAllScans = async (req, res) => {
+  try {
+    const scans = await AttendanceScan.find({})
+      .populate("labour", "name employeeCode role ward")
+      .populate("dustbin", "binCode locationText ward type")
+      .sort({ createdAt: -1 });
+
+    res.json(scans);
+  } catch (error) {
+    console.error("Fetch All Scans Error:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 };

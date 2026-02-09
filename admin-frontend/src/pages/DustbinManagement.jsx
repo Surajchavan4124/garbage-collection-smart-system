@@ -10,6 +10,7 @@ import api from '../api/axios'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
+import { wardOptions } from '../data/wasteDataMockData'
 
 // Ensure autoTable is registered
 // (Usually importing it is enough, but sometimes explicit apply is needed if tree-shaking removes it)
@@ -26,6 +27,7 @@ export default function DustbinManagement() {
 
   const [formData, setFormData] = useState({
     location: '',
+    ward: 'Ward 1',
     type: 'General',
     status: 'Good',
   })
@@ -51,6 +53,7 @@ export default function DustbinManagement() {
         id: d.binCode,
         _id: d._id,
         location: d.locationText,
+        ward: d.ward || 'N/A',
         type: d.type,
         status: d.status,
         gps: d.geo
@@ -116,6 +119,7 @@ export default function DustbinManagement() {
   const generateExcel = () => {
     const dataToExport = filteredDustbins.map(bin => ({
       'Bin ID': bin.id,
+      'Ward': bin.ward,
       'Location': bin.location,
       'Type': bin.type,
       'Status': bin.status,
@@ -136,9 +140,10 @@ export default function DustbinManagement() {
       const doc = new jsPDF()
       doc.text('Dustbin Registry', 14, 15)
       
-      const head = [["Bin ID", "Location", "Type", "Status"]]
+      const head = [["Bin ID", "Ward", "Location", "Type", "Status"]]
       const body = filteredDustbins.map(bin => [
         bin.id || "N/A",
+        bin.ward || "N/A",
         bin.location || "N/A",
         bin.type || "N/A",
         bin.status || "N/A",
@@ -227,19 +232,19 @@ export default function DustbinManagement() {
 
     try {
       const payload = {
-        binCode: `B-${Math.floor(1000 + Math.random() * 9000)}`, // Random 4-digit ID to avoid soft-delete collisions
+        binCode: `B-${Math.floor(1000 + Math.random() * 9000)}`, // Random 4-digit ID
         locationText: formData.location,
+        ward: formData.ward,
         type: formData.type,
         status: formData.status,
-        lat: 15.3, // Hardcoded for now, map picker would be ideal
+        lat: 15.3, 
         lng: 73.8
       }
       
       const res = await api.post('/dustbins', payload)
       // Refresh list
       fetchDustbins()
-      setFormData({ location: '', type: 'General', status: 'Good' })
-      setFormData({ location: '', type: 'General', status: 'Good' })
+      setFormData({ location: '', ward: 'Ward 1', type: 'General', status: 'Good' })
       toast.success('Bin added successfully!')
     } catch (error) {
       console.error(error)
@@ -441,6 +446,7 @@ export default function DustbinManagement() {
                     <thead>
                       <tr className="bg-teal-500 text-white">
                         <th className="px-6 py-3 text-left text-xs font-bold">Bin ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-bold">Ward</th>
                         <th className="px-6 py-3 text-left text-xs font-bold">Location</th>
                         <th className="px-6 py-3 text-left text-xs font-bold">Type</th>
                         <th className="px-6 py-3 text-left text-xs font-bold">Status</th>
@@ -451,6 +457,7 @@ export default function DustbinManagement() {
                       {filteredDustbins.map((bin, idx) => (
                         <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                           <td className="px-6 py-4 text-sm font-semibold text-gray-800">{bin.id}</td>
+                          <td className="px-6 py-4 text-sm text-gray-800 font-bold">{bin.ward}</td>
                           <td className="px-6 py-4 text-sm text-gray-700">{bin.location}</td>
                           <td className="px-6 py-4 text-sm text-gray-700">{bin.type}</td>
                           <td className="px-6 py-4">
@@ -586,6 +593,21 @@ export default function DustbinManagement() {
                     >
                       <MapPin size={28} />
                     </button>
+                  </div>
+
+                  {/* Ward */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">Ward</label>
+                    <select
+                      name="ward"
+                      value={formData.ward}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
+                    >
+                      {wardOptions.map(ward => (
+                        <option key={ward.id} value={ward.name}>{ward.name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Type */}
