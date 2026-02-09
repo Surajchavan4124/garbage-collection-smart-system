@@ -14,8 +14,14 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: [
         "COMPANY_ADMIN",
+        "PANCHAYAT_ADMIN",
+        "EMPLOYEE"
       ],
       required: true,
+    },
+    panchayat: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Panchayat"
     },
 
     profilePhoto: {
@@ -29,4 +35,4 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-export default mongoose.model("User", UserSchema);
+export default mongoose.models.User || mongoose.model("User", UserSchema);

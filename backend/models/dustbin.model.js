@@ -61,4 +61,4 @@ const dustbinSchema = new mongoose.Schema(
 // Prevent duplicate bin codes per panchayat
 dustbinSchema.index({ panchayat: 1, binCode: 1 }, { unique: true });
 
-export default mongoose.model("Dustbin", dustbinSchema);
+export default mongoose.models.Dustbin || mongoose.model("Dustbin", dustbinSchema);

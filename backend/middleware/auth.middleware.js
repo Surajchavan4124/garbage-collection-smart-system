@@ -16,7 +16,8 @@ export const protect = async (req, res, next) => {
     if (user) {
       req.user = {
         _id: user._id,
-        role: user.role, // SUPER_ADMIN etc
+        role: user.role,
+        panchayat: user.panchayat, // Added panchayat field for Dashboard logic
       };
       return next();
     }
@@ -24,7 +25,6 @@ export const protect = async (req, res, next) => {
     // Try Panchayat admin
     const panchayat = await Panchayat.findById(decoded.userId);
     if (!panchayat || panchayat.status !== "active") {
-
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -33,7 +33,6 @@ export const protect = async (req, res, next) => {
       role: "PANCHAYAT_ADMIN",
       panchayatId: panchayat._id,
     };
-    
 
     next();
   } catch (err) {

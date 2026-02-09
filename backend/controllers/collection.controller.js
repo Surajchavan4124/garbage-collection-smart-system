@@ -1,4 +1,4 @@
-import Dustbin from "../models/Dustbin.model.js";
+import Dustbin from "../models/dustbin.model.js";
 import Collection from "../models/Collection.model.js";
 import { calculateDistanceMeters } from "../utils/distance.js";
 
@@ -17,9 +17,10 @@ export const scanDustbin = async (req, res) => {
   });
 
   if (!dustbin) {
-    return res.status(404).json({ message: "Invalid QR code",
+    return res.status(404).json({
+      message: "Invalid QR code",
       success: false,
-     });
+    });
   }
 
   // 2️⃣ Calculate distance
@@ -29,19 +30,19 @@ export const scanDustbin = async (req, res) => {
     dustbin.latitude,
     dustbin.longitude
   );
-  
 
- let gpsValid = true;
-let requireSelfie = false;
 
-if (distance > 20) {
-  gpsValid = false;
-  requireSelfie = true;
-}
+  let gpsValid = true;
+  let requireSelfie = false;
 
-if (Math.random() < 0.2) {
-  requireSelfie = true;
-}
+  if (distance > 20) {
+    gpsValid = false;
+    requireSelfie = true;
+  }
+
+  if (Math.random() < 0.2) {
+    requireSelfie = true;
+  }
 
 
   // 3️⃣ Attendance logic (first scan of day)
@@ -57,26 +58,26 @@ if (Math.random() < 0.2) {
 
   // 4️⃣ Save collection
   const collection = await Collection.create({
-  panchayatId: req.user.panchayatId,
-  dustbinId: dustbin._id,
-  labourId: req.user._id,
-  latitude,
-  longitude,
-  distance,
-  attendanceMarked,
-  gpsValid,
-  selfieRequired: requireSelfie,
-});
+    panchayatId: req.user.panchayatId,
+    dustbinId: dustbin._id,
+    labourId: req.user._id,
+    latitude,
+    longitude,
+    distance,
+    attendanceMarked,
+    gpsValid,
+    selfieRequired: requireSelfie,
+  });
 
 
   res.json({
-  message: "Scan recorded",
-  attendanceMarked,
-  distance,
-  gpsValid,
-  requireSelfie,
-  collectionId: collection._id,
-});
+    message: "Scan recorded",
+    attendanceMarked,
+    distance,
+    gpsValid,
+    requireSelfie,
+    collectionId: collection._id,
+  });
 
 };
 
@@ -86,7 +87,8 @@ export const bulkSyncCollections = async (req, res) => {
   // iterate and call same scan logic
   // mark as offline=true
 
-  res.status(200).json({ message: "Offline scans synced", count: scans.length,
+  res.status(200).json({
+    message: "Offline scans synced", count: scans.length,
     success: true,
-   });
+  });
 };
