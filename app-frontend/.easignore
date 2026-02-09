@@ -1,0 +1,32 @@
+# EAS Ignore
+# This file specifies which files and directories should be excluded from the archive 
+# uploaded to EAS Build. This helps reduce upload size and build time.
+
+# Dependencies
+node_modules/
+
+# Local build artifacts
+.expo/
+dist/
+web-build/
+
+# Native folders (EAS Build generates these on the server)
+ios/
+android/
+
+# Environment files
+.env*.local
+
+# Logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# IDE files
+.vscode/
+.idea/
+.DS_Store
+
+# Git
+.git/
