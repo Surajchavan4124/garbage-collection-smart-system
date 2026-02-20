@@ -1,0 +1,17 @@
+# Root .gitignore for monorepo
+node_modules/
+**/node_modules/
+.expo/
+**/ .expo/
+dist/
+**/dist/
+web-build/
+**/web-build/
+ios/
+**/ios/
+android/
+**/android/
+.vscode/
+**/.vscode/
+*.log
+.DS_Store

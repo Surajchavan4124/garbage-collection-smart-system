@@ -44,7 +44,7 @@ const About = () => {
   const getBannerUrl = (url) => {
     if (!url) return null;
     if (url.startsWith("http")) return url;
-    return `http://localhost:5000/${url}`;
+    return `http://localhost:10000/${url}`;
   };
 
   const bannerUrl = content?.media?.find(m => m.caption === 'Banner')?.url;

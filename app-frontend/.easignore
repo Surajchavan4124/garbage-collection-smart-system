@@ -3,10 +3,15 @@
 # uploaded to EAS Build. This helps reduce upload size and build time.
 
 # Dependencies
+node_modules
 node_modules/
+**/node_modules
+**/node_modules/*
 
 # Local build artifacts
+.expo
 .expo/
+**/ .expo
 dist/
 web-build/
 

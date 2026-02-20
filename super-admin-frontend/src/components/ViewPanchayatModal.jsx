@@ -9,7 +9,7 @@ export default function ViewPanchayatModal({
 }) {
   if (!isOpen || !data) return null;
 
-  const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const baseURL = import.meta.env.VITE_API_URL || "http://localhost:10000";
 
   const renderDocument = (file) => {
     if (!file) return <p className="text-gray-500 text-sm">Not uploaded</p>;

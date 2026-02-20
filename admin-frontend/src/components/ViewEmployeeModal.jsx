@@ -2,7 +2,7 @@ import { X, Download, Image as ImageIcon } from "lucide-react";
 
 /* ---------- FIXED BASE URL ---------- */
 const RAW_API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:10000/api";
 const STATIC_BASE = RAW_API_BASE.replace(/\/api$/, "");
 
 const isImage = (path = "") =>

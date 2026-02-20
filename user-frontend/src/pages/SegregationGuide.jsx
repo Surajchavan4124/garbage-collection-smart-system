@@ -14,7 +14,7 @@ const SegregationGuide = () => {
     if (!path) return null;
     if (path.startsWith("data:")) return path;
     if (path.startsWith("http")) return path;
-    return `http://localhost:5000/${path}`;
+    return `http://localhost:10000/${path}`;
   };
 
   useEffect(() => {
