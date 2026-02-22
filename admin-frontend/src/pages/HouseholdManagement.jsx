@@ -4,13 +4,10 @@ import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { toast } from 'react-toastify'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
+import api from '../api/axios'
 import ViewHouseholdModal from '../components/ViewHouseholdModal'
 import EditHouseholdModal from '../components/EditHouseholdModal'
 import DeleteHouseholdModal from '../components/DeleteHouseholdModal'
-import api from '../api/axios'
-// Removed mock import
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -310,18 +307,13 @@ export default function HouseholdManagement() {
   }
 
   return (
-    <div className="flex bg-mesh min-h-screen">
-      <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col">
-        <TopHeader />
-        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
-          <div className="mb-6">
-            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Household Management</p>
-            <h1 className="text-xl font-black text-gray-800">Household Management</h1>
-          </div>
+    <div className="space-y-6">
+      <div className="mb-6">
+        <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Household Management</p>
+        <h1 className="text-xl font-black text-gray-800">Household Management</h1>
+      </div>
 
-          {/* Main Container - 2 Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* LEFT COLUMN - TABLE & METRICS (2/3 width) */}
             <div className="lg:col-span-2 space-y-6">
@@ -728,8 +720,6 @@ export default function HouseholdManagement() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
       {/* View Household Modal */}
       <ViewHouseholdModal
@@ -748,7 +738,6 @@ export default function HouseholdManagement() {
         onUpdate={handleUpdateHousehold}
       />
 
-      {/* Delete Household Modal */}
       <DeleteHouseholdModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

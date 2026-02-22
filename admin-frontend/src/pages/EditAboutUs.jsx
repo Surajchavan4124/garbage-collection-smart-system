@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react'
 import { Bold, Italic, Underline, List, ListOrdered, Heading1, Heading2, Link, Image, X, Upload } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { toast } from 'react-toastify'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
 import api from '../api/axios'
 
 // Helper to construct full URL for images if needed
@@ -152,16 +150,12 @@ export default function EditAboutUs() {
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>
 
   return (
-    <div className="flex bg-mesh min-h-screen">
-      <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col">
-        <TopHeader />
-        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
-          
-          <div className="mb-6 text-sm text-gray-600">
-            <span>Public Website CMS</span> &gt;{' '}
-            <span className="font-semibold text-gray-800">Edit About Us</span>
-          </div>
+    <div className="space-y-6">
+      {/* Breadcrumbs */}
+      <div>
+        <p className="text-xs text-gray-400 font-medium mb-0.5">Public Website CMS › Edit About Us</p>
+        <h1 className="text-xl font-black text-gray-800">Edit About Us</h1>
+      </div>
 
           <div className="bg-white rounded-lg shadow p-6 space-y-6">
             
@@ -364,8 +358,6 @@ export default function EditAboutUs() {
               </button>
             </div>
           </div>
-        </div>
-      </div>
     </div>
   )
 }

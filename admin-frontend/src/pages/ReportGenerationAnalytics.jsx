@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { FileText, Download, Calendar, BarChart3, TrendingUp, Users, Eye, ChevronDown, FileSpreadsheet, Trash2 } from 'lucide-react'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
+import { FileText, Download, BarChart3, TrendingUp, Users, Eye, ChevronDown, FileSpreadsheet, Trash2, Calendar } from 'lucide-react'
 import GenerationOfReportModal from '../components/GenerationOfReportModal'
 import ViewReportModal from '../components/ViewReportModal'
 import { generatePDF, generateExcel } from '../utils/reportGenerator'
@@ -28,52 +26,16 @@ export default function ReportGenerationAnalytics() {
   // Scroll to results when a new report is added
   useEffect(() => {
     if (generatedReports.length > 0 && resultsRef.current) {
-// ...
         resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-  }, [generatedReports])
+  }, [generatedReports.length])
 
   const reports = [
-    {
-      id: 1,
-      title: 'Waste Collection Summaries',
-      description: 'Generate detailed reports on waste collection activities and trends',
-      icon: TrendingUp,
-      color: 'bg-blue-100',
-      borderColor: 'border-blue-300'
-    },
-    {
-      id: 2,
-      title: 'Complaint & Grievance Resolution Times',
-      description: 'Analyze complaint handling and resolution timelines',
-      icon: BarChart3,
-      color: 'bg-green-100',
-      borderColor: 'border-green-300'
-    },
-    {
-      id: 3,
-      title: 'Segregation Compliance Percentage',
-      description: 'View segregation compliance metrics and percentages across wards',
-      icon: FileText,
-      color: 'bg-purple-100',
-      borderColor: 'border-purple-300'
-    },
-    {
-      id: 5,
-      title: 'Employee Attendance Summaries',
-      description: 'Generate employee attendance reports and statistics',
-      icon: Users,
-      color: 'bg-red-100',
-      borderColor: 'border-red-300'
-    },
-    {
-      id: 6,
-      title: 'Year-on-Year comparison charts',
-      description: 'Compare performance metrics across different years',
-      icon: BarChart3,
-      color: 'bg-indigo-100',
-      borderColor: 'border-indigo-300'
-    }
+    { id: 1, title: 'Waste Collection Summaries', description: 'Generate detailed reports on waste collection activities and trends', icon: TrendingUp, color: 'bg-blue-50', iconColor: 'text-blue-600', borderColor: 'border-blue-100' },
+    { id: 2, title: 'Complaint & Grievance Resolution', description: 'Analyze complaint handling and resolution timelines', icon: BarChart3, color: 'bg-green-50', iconColor: 'text-green-600', borderColor: 'border-green-100' },
+    { id: 3, title: 'Segregation Compliance Metrics', description: 'View segregation compliance percentages across wards', icon: FileText, color: 'bg-purple-50', iconColor: 'text-purple-600', borderColor: 'border-purple-100' },
+    { id: 4, title: 'Employee Attendance Summaries', description: 'Generate employee attendance reports and statistics', icon: Users, color: 'bg-red-50', iconColor: 'text-red-600', borderColor: 'border-red-100' },
+    { id: 5, title: 'Year-on-Year Growth Charts', description: 'Compare performance metrics across different years', icon: BarChart3, color: 'bg-indigo-50', iconColor: 'text-indigo-600', borderColor: 'border-indigo-100' }
   ]
 
   const handleGenerateReport = (report) => {
@@ -83,10 +45,6 @@ export default function ReportGenerationAnalytics() {
 
   const [reportToDelete, setReportToDelete] = useState(null)
 
-  const handleDeleteReport = (id) => {
-    setReportToDelete(id)
-  }
-
   const confirmDelete = () => {
     if (reportToDelete) {
         setGeneratedReports(prev => prev.filter(r => r.id !== reportToDelete))
@@ -94,161 +52,94 @@ export default function ReportGenerationAnalytics() {
     }
   }
 
-  const handleDownloadReport = (report) => {
-    alert(`Downloading: ${report.title}\nGenerated: ${report.generatedAt}`)
-  }
-
   return (
-    <div className="flex bg-mesh min-h-screen">
-      <Sidebar />
-
-      <div className="ml-64 flex-1 flex flex-col">
-        <TopHeader />
-
-        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
-          
-          <div className="mb-6 text-sm text-gray-600">
-            <span>Analytics & Settings</span> &gt;{' '}
-            <span className="font-semibold text-gray-800">Report Generation & Analytics</span>
-          </div>
-
-          <div className="space-y-8">
-            
-            <div className="bg-white rounded-lg shadow p-6">
-              <h1 className="text-2xl font-bold text-gray-800 mb-6">ON-DEMAND REPORT GENERATION</h1>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {reports.map((report) => {
-                  const IconComponent = report.icon
-
-                  return (
-                    <div
-                      key={report.id}
-                      className={`${report.color} border-2 ${report.borderColor} rounded-lg p-8 text-center space-y-4 hover:shadow-lg transition`}
-                    >
-                      <div className="flex justify-center">
-                        <IconComponent size={48} className="text-gray-700" />
-                      </div>
-
-                      <h2 className="text-lg font-bold text-gray-800">
-                        {report.title}
-                      </h2>
-
-                      <p className="text-sm text-gray-700">
-                        {report.description}
-                      </p>
-
-                      <button
-                        onClick={() => handleGenerateReport(report)}
-                        className="w-full px-6 py-2 rounded font-semibold text-white text-sm transition bg-teal-500 hover:bg-teal-600"
-                      >
-                        Generate Report
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {generatedReports.length > 0 && (
-              <div ref={resultsRef} className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">GENERATED REPORTS</h2>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">Report Name</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">Generated At</th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">Status</th>
-                        <th className="px-6 py-3 text-center text-sm font-semibold text-gray-800">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {generatedReports.map((report, idx) => (
-                        <tr key={report.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-6 py-4 text-sm text-gray-800">
-                            <div className="flex items-center gap-2">
-                              <FileText size={18} className="text-blue-600" />
-                              {report.title}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-700">{report.generatedAt}</td>
-                          <td className="px-6 py-4">
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold border border-green-300">
-                              {report.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <div className="flex items-center justify-center gap-2 relative">
-                                {report.data && (
-                                    <button
-                                        onClick={() => setViewReport(report)}
-                                        className="inline-flex items-center gap-1 px-3 py-2 bg-blue-500 text-white rounded font-semibold text-sm hover:bg-blue-600 transition"
-                                        title="View Report"
-                                    >
-                                        <Eye size={16} />
-                                        View
-                                    </button>
-                                )}
-                                
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setActiveDropdown(activeDropdown === report.id ? null : report.id)}
-                                        className="inline-flex items-center gap-1 px-3 py-2 bg-teal-500 text-white rounded font-semibold text-sm hover:bg-teal-600 transition"
-                                    >
-                                        <Download size={16} />
-                                        Download
-                                        <ChevronDown size={14} />
-                                    </button>
-
-                                    {activeDropdown === report.id && (
-                                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                                            <button
-                                                onClick={() => {
-                                                    generatePDF(report)
-                                                    setActiveDropdown(null)
-                                                }}
-                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                            >
-                                                <FileText size={14} className="text-red-500" />
-                                                PDF
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    generateExcel(report)
-                                                    setActiveDropdown(null)
-                                                }}
-                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                            >
-                                                <FileSpreadsheet size={14} className="text-green-600" />
-                                                Excel
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                                <button
-                                    onClick={() => handleDeleteReport(report.id)}
-                                    className="inline-flex items-center gap-1 px-3 py-2 bg-red-500 text-white rounded font-semibold text-sm hover:bg-red-600 transition"
-                                    title="Delete Report"
-                                >
-                                    <Trash2 size={16} />
-                                    Delete
-                                </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Breadcrumbs */}
+      <div>
+        <p className="text-xs text-gray-400 font-medium mb-0.5">Analytics & Settings › Report Generation & Analytics</p>
+        <h1 className="text-xl font-black text-gray-800">Report Generation & Analytics</h1>
       </div>
 
-      {/* Report Filter Modal */}
+      {/* Main Content Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-8">
+        <div>
+          <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">On-Demand Report Generation</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reports.map((report) => {
+              const Icon = report.icon
+              return (
+                <div key={report.id} className={`${report.color} border ${report.borderColor} rounded-2xl p-6 text-center space-y-4 hover:shadow-md transition-all group`}>
+                  <div className="flex justify-center">
+                    <div className={`p-4 bg-white rounded-xl shadow-sm ${report.iconColor} group-hover:scale-110 transition-transform`}>
+                      <Icon size={32} />
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-gray-800">{report.title}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">{report.description}</p>
+                  <button onClick={() => handleGenerateReport(report)} className="w-full py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-xs hover:bg-teal-600 hover:text-white hover:border-teal-600 transition-all shadow-sm">
+                    Generate New Report
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {generatedReports.length > 0 && (
+          <div ref={resultsRef} className="pt-8 border-t border-gray-50">
+            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Previously Generated Reports</h2>
+            <div className="overflow-hidden border border-gray-100 rounded-2xl shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">Report Details</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 bg-white">
+                  {generatedReports.map((report) => (
+                    <tr key={report.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><FileText size={18} /></div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900">{report.title}</p>
+                            <p className="text-[10px] text-gray-400">Generated: {report.generatedAt}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg uppercase tracking-wide border border-emerald-100">
+                          {report.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => setViewReport(report)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="View"><Eye size={16} /></button>
+                          
+                          <div className="relative">
+                            <button onClick={() => setActiveDropdown(activeDropdown === report.id ? null : report.id)} className="p-2 text-gray-400 hover:text-teal-600 transition-colors" title="Download"><Download size={16} /></button>
+                            {activeDropdown === report.id && (
+                              <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl z-20 border border-gray-100 p-1">
+                                <button onClick={() => { generatePDF(report); setActiveDropdown(null); }} className="w-full text-left px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-2 tracking-tight"><FileText size={14} className="text-red-500" /> Save as PDF</button>
+                                <button onClick={() => { generateExcel(report); setActiveDropdown(null); }} className="w-full text-left px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-2 tracking-tight"><FileSpreadsheet size={14} className="text-green-600" /> Save as Excel</button>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <button onClick={() => setReportToDelete(report.id)} className="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Delete"><Trash2 size={16} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
       <GenerationOfReportModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -259,39 +150,25 @@ export default function ReportGenerationAnalytics() {
               title: selectedReport.title,
               generatedAt: new Date().toLocaleString(),
               status: 'Success',
-              data: data // Store data if we want to view it later, or just metadata
+              data: data
             }
             setGeneratedReports([newReport, ...generatedReports])
-            setViewReport(newReport) // Auto-open the viewer
+            setViewReport(newReport)
         }}
       />
 
-      {/* View Report Modal */}
-      <ViewReportModal 
-        isOpen={!!viewReport}
-        onClose={() => setViewReport(null)}
-        report={viewReport}
-      />
+      <ViewReportModal isOpen={!!viewReport} onClose={() => setViewReport(null)} report={viewReport} />
 
       {/* Delete Confirmation Modal */}
       {reportToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
-            <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm ml-64">
-                <h3 className="text-lg font-bold text-gray-800 mb-2">Confirm Deletion</h3>
-                <p className="text-gray-600 mb-6">Are you sure you want to delete this report? This action cannot be undone.</p>
-                <div className="flex justify-end gap-3">
-                    <button 
-                        onClick={() => setReportToDelete(null)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium text-sm"
-                    >
-                        Cancel
-                    </button>
-                    <button 
-                        onClick={confirmDelete}
-                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 font-medium text-sm"
-                    >
-                        Delete
-                    </button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+                <div className="p-3 bg-red-50 text-red-600 w-fit rounded-xl mb-4"><Trash2 size={24} /></div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Report?</h3>
+                <p className="text-sm text-gray-500 mb-8 leading-relaxed">This report will be permanently removed from your history. This action cannot be reversed.</p>
+                <div className="flex gap-3">
+                    <button onClick={() => setReportToDelete(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition">Cancel</button>
+                    <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition">Delete Report</button>
                 </div>
             </div>
         </div>

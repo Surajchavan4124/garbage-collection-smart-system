@@ -1,30 +1,67 @@
-// src/components/TopHeader.jsx - Enhanced UI
-import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Search, Bell, User, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { 
+  Search, Bell, Settings, LogOut, Moon, Sun, Menu, ChevronDown, 
+  User, CheckCircle2, AlertCircle, Clock, Trash2 
+} from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useTheme } from '../contexts/ThemeContext'
 import LogoutConfirmation from './LogoutConfirmation'
 import api from '../api/axios'
-import { useTheme } from '../contexts/ThemeContext'
 
-export default function TopHeader() {
+export default function TopHeader({ onMenuClick }) {
+  const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState({ 
-    households: [], dustbins: [], complaints: [], employees: [], wards: [], routes: [], wasteRecords: [] 
-  })
-  const [isSearching, setIsSearching] = useState(false)
   const [showResults, setShowResults] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [searchResults, setSearchResults] = useState({
+    employees: [],
+    households: [],
+    dustbins: [],
+    wards: [],
+    complaints: [],
+    wasteRecords: []
+  })
+
   const dropdownRef = useRef(null)
   const searchRef = useRef(null)
-  const navigate = useNavigate()
+
+  // Handle Search logic
+  const performSearch = useCallback(async (query) => {
+    if (query.length < 2) {
+      setSearchResults({ employees: [], households: [], dustbins: [], wards: [], complaints: [], wasteRecords: [] })
+      setShowResults(false)
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const res = await api.get(`/search?q=${query}`)
+      setSearchResults(res.data)
+      setShowResults(true)
+    } catch (err) {
+      console.error('Search failed:', err)
+    } finally {
+      setIsSearching(false)
+    }
+  }, [])
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
-          searchRef.current && !searchRef.current.contains(event.target)) {
+    const timer = setTimeout(() => {
+      if (searchQuery) performSearch(searchQuery)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchQuery, performSearch])
+
+  // Click outside to close models
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false)
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowResults(false)
       }
     }
@@ -32,71 +69,60 @@ export default function TopHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (searchQuery.length >= 2) {
-        performSearch()
-      } else {
-        setSearchResults({ households: [], dustbins: [], complaints: [], employees: [], wards: [], routes: [], wasteRecords: [] })
-        setShowResults(false)
-      }
-    }, 300)
-    return () => clearTimeout(delayDebounceFn)
-  }, [searchQuery])
-
-  const performSearch = async () => {
-    setIsSearching(true)
-    setShowResults(true)
-    try {
-      const res = await api.get(`/search?q=${searchQuery}`)
-      setSearchResults(res.data)
-    } catch (err) {
-      console.error("Search failed", err)
-    } finally {
-      setIsSearching(false)
-    }
+  const handleLogoutClick = () => {
+    setIsDropdownOpen(false)
+    setShowLogoutConfirm(true)
   }
 
-  const handleResultClick = (type) => {
-    setSearchQuery('')
-    setShowResults(false)
-    const routes = {
-      household: '/household', dustbin: '/dustbin', complaint: '/report-complaint',
-      employee: '/employee', ward: '/ward', route: '/route', 'waste-record': '/waste-data'
-    }
-    if (routes[type]) navigate(routes[type])
-  }
-
-  const handleProfileSettings = () => { navigate('/profile-settings'); setIsDropdownOpen(false) }
-  const handleLogoutClick = () => { setIsDropdownOpen(false); setShowLogoutConfirm(true) }
   const handleLogoutConfirm = async () => {
-    try { await api.post("/auth/logout"); } catch (err) { console.error("Logout API failed", err); }
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    sessionStorage.clear()
-    navigate('/', { replace: true })
+    try {
+      await api.post('/auth/logout')
+      localStorage.removeItem('token')
+      navigate('/')
+    } catch (err) {
+      console.error('Logout failed:', err)
+      localStorage.removeItem('token')
+      navigate('/')
+    }
   }
 
-  const ResultSection = ({ title, items, type, renderItem }) => items.length > 0 && (
-    <div className="px-2 pb-1">
-      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 py-1.5">{title}</p>
-      {items.map((item) => (
-        <button
-          key={item._id}
-          className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-lg transition-colors group"
-          onClick={() => handleResultClick(type, item)}
-        >
-          {renderItem(item)}
-        </button>
-      ))}
-    </div>
-  )
+  const handleProfileSettings = () => {
+    setIsDropdownOpen(false)
+    navigate('/profile-settings')
+  }
 
-  const hasResults = Object.values(searchResults).some(arr => arr.length > 0)
+  const ResultSection = ({ title, items, type, renderItem }) => {
+    if (!items || items.length === 0) return null
+    return (
+      <div className="p-2">
+        <h4 className="px-3 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{title}</h4>
+        {items.slice(0, 3).map((item, idx) => (
+          <button
+            key={idx}
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-teal-50 group transition-colors"
+            onClick={() => {
+              setShowResults(false)
+              setSearchQuery('')
+              // Logic to navigate based on type
+              if (type === 'employee') navigate('/attendance')
+              if (type === 'household') navigate('/household')
+              if (type === 'dustbin') navigate('/dustbin')
+              if (type === 'complaint') navigate('/reports')
+              if (type === 'ward') navigate('/wards')
+            }}
+          >
+            {renderItem(item)}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  const hasResults = Object.values(searchResults).some(arr => arr && arr.length > 0)
 
   return (
     <>
-      <div className="fixed top-0 right-0 left-64 h-16 flex items-center justify-between px-6 z-40"
+      <div className="fixed top-0 right-0 left-0 lg:left-64 h-16 flex items-center justify-between px-4 sm:px-6 z-40"
         style={{
           background: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(12px)',
@@ -105,158 +131,123 @@ export default function TopHeader() {
           boxShadow: isDark ? '0 1px 20px rgba(0,0,0,0.3)' : '0 1px 20px rgba(0,0,0,0.04)'
         }}
       >
-        {/* Search Bar */}
-        <div className="flex-1 max-w-2xl relative" ref={searchRef}>
-          <div className="flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-200"
-            style={{ background: '#f4f6fa', border: '1.5px solid transparent' }}
-            onFocusCapture={(e) => e.currentTarget.style.borderColor = 'rgba(31,158,154,0.4)'}
-            onBlurCapture={(e) => e.currentTarget.style.borderColor = 'transparent'}
+        {/* Search Bar Area */}
+        <div className="flex items-center gap-4 flex-1 max-w-2xl relative">
+          <button 
+            onClick={onMenuClick}
+            className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            <Search size={17} className="text-gray-400 flex-shrink-0" />
-            <input
-              type="text"
-              placeholder="Search wards, bins, employees, complaints..."
-              className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-400 text-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
-            />
-            {isSearching && (
-              <div className="w-4 h-4 border-2 border-[#1f9e9a] border-t-transparent rounded-full animate-spin flex-shrink-0" />
-            )}
-          </div>
+            <Menu size={22} />
+          </button>
 
-          {/* Search Results Dropdown */}
-          {showResults && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl max-h-[80vh] overflow-y-auto z-50 border border-gray-100">
-              {hasResults ? (
-                <div className="py-2 divide-y divide-gray-50">
-                  <ResultSection title="Employees" items={searchResults.employees} type="employee"
-                    renderItem={(e) => (
-                      <>
-                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{e.name}</p>
-                        <p className="text-[11px] text-gray-400">ID: {e.employeeCode} · {e.phone}</p>
-                      </>
-                    )}
-                  />
-                  <ResultSection title="Households" items={searchResults.households} type="household"
-                    renderItem={(h) => (
-                      <>
-                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{h.ownerName}</p>
-                        <p className="text-[11px] text-gray-400">{h.houseNumber} · {h.address}</p>
-                      </>
-                    )}
-                  />
-                  <ResultSection title="Dustbins" items={searchResults.dustbins} type="dustbin"
-                    renderItem={(d) => (
-                      <>
-                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{d.binCode}</p>
-                        <p className="text-[11px] text-gray-400">{d.locationText} · {d.ward}</p>
-                      </>
-                    )}
-                  />
-                  <ResultSection title="Wards" items={searchResults.wards} type="ward"
-                    renderItem={(w) => <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{w.name}</p>}
-                  />
-                  <ResultSection title="Complaints" items={searchResults.complaints} type="complaint"
-                    renderItem={(c) => (
-                      <>
-                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{c.complaintId}</p>
-                        <p className="text-[11px] text-gray-400">{c.type} · {c.reporterName}</p>
-                      </>
-                    )}
-                  />
-                  <ResultSection title="Waste Records" items={searchResults.wasteRecords} type="waste-record"
-                    renderItem={(wr) => (
-                      <>
-                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{wr.entryId}</p>
-                        <p className="text-[11px] text-gray-400">{wr.ward} · {new Date(wr.date).toLocaleDateString()}</p>
-                      </>
-                    )}
-                  />
-                </div>
-              ) : (
-                <div className="p-8 text-center">
-                  <p className="text-sm text-gray-400">No results for "<span className="font-semibold text-gray-600">{searchQuery}</span>"</p>
-                </div>
+          <div className="flex-1 relative" ref={searchRef}>
+            <div className="flex items-center gap-3 rounded-xl px-4 py-2 transition-all duration-200"
+              style={{ background: isDark ? '#1e293b' : '#f4f6fa' }}
+            >
+              <Search size={17} className="text-gray-400 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Search wards, bins, employees..."
+                className="flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400 text-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
+              />
+              {isSearching && (
+                <div className="w-3.5 h-3.5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
               )}
             </div>
-          )}
+
+            {showResults && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-h-[70vh] overflow-y-auto z-50 border border-gray-100 dark:border-gray-700">
+                {hasResults ? (
+                  <div className="py-2 divide-y divide-gray-50 dark:divide-gray-700/50">
+                    <ResultSection title="Employees" items={searchResults.employees} type="employee"
+                      renderItem={(e) => (
+                        <>
+                          <p className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-teal-600 transition-colors">{e.name}</p>
+                          <p className="text-[10px] text-gray-400">ID: {e.employeeCode} · {e.phone}</p>
+                        </>
+                      )}
+                    />
+                    <ResultSection title="Households" items={searchResults.households} type="household"
+                      renderItem={(h) => (
+                        <>
+                          <p className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-teal-600 transition-colors">{h.ownerName}</p>
+                          <p className="text-[10px] text-gray-400">{h.houseNumber} · {h.address}</p>
+                        </>
+                      )}
+                    />
+                    <ResultSection title="Dustbins" items={searchResults.dustbins} type="dustbin"
+                      renderItem={(d) => (
+                        <>
+                          <p className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-teal-600 transition-colors">{d.binCode}</p>
+                          <p className="text-[10px] text-gray-400">{d.locationText} · {d.ward}</p>
+                        </>
+                      )}
+                    />
+                    <ResultSection title="Wards" items={searchResults.wards} type="ward"
+                      renderItem={(w) => <p className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-teal-600 transition-colors">{w.name}</p>}
+                    />
+                  </div>
+                ) : (
+                  <div className="p-8 text-center">
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">No matching records found</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3 ml-6">
-          {/* Dark/Light Toggle */}
+        <div className="flex items-center gap-3 ml-4">
           <button
             onClick={toggleTheme}
-            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200"
-            style={{
+            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            style={{ 
               background: isDark ? 'rgba(31,158,154,0.15)' : '#f4f6fa',
-              color: isDark ? '#5eead4' : '#6b7280'
+              color: isDark ? '#5eead4' : '#64748b'
             }}
           >
-            {isDark ? <Sun size={17} /> : <Moon size={17} />}
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
-          {/* Notifications Bell */}
-          <button
-            className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors"
-            style={{ color: isDark ? '#cbd5e1' : '#4b5563', background: 'transparent' }}
-          >
+          <button className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
             <Bell size={18} />
-            <span className="text-sm font-medium">3 Alerts</span>
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2"
-              style={{ ringColor: isDark ? '#020617' : 'white' }} />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900" />
           </button>
 
-          {/* Avatar / Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl transition-colors"
-              style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'transparent' }}
+              className="flex items-center gap-2 p-1 lg:pl-2 lg:pr-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
             >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm"
-                style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
-              >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center text-white text-xs font-black shadow-sm">
                 A
               </div>
-              <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+              <ChevronDown size={14} className={`hidden lg:block transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
                 style={{ color: isDark ? '#94a3b8' : '#9ca3af' }} />
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-52 rounded-xl shadow-xl py-1.5 z-50 border"
-                style={{
-                  background: isDark ? '#1e293b' : 'white',
-                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#f3f4f6'
-                }}>
-                <div className="px-4 py-2.5 border-b"
-                  style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f9fafb' }}>
-                  <p className="text-sm font-bold" style={{ color: isDark ? '#f1f5f9' : '#1f2937' }}>Panchayat Admin</p>
-                  <p className="text-xs" style={{ color: isDark ? '#64748b' : '#9ca3af' }}>ecosyz.in</p>
+              <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
+                <div className="px-5 py-4 border-b border-gray-50 dark:border-gray-700/50">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Signed in as</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Panchayat Admin</p>
                 </div>
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors mt-1"
-                  style={{ color: isDark ? '#cbd5e1' : '#374151' }}
-                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  onClick={handleProfileSettings}
-                >
-                  <Settings size={15} style={{ color: isDark ? '#64748b' : '#9ca3af' }} />
-                  <span>Profile Settings</span>
-                </button>
-                <div className="h-px mx-3 my-1" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }} />
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 transition-colors"
-                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  onClick={handleLogoutClick}
-                >
-                  <LogOut size={15} />
-                  <span>Sign Out</span>
-                </button>
+                <div className="p-1.5 font-bold">
+                  <button onClick={handleProfileSettings} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all">
+                    <User size={16} /> Profile Settings
+                  </button>
+                  <button className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-all">
+                    <Settings size={16} /> General Settings
+                  </button>
+                  <div className="h-px bg-gray-50 dark:bg-gray-700/50 mx-2 my-1" />
+                  <button onClick={handleLogoutClick} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
+                    <LogOut size={16} /> Sign Out Account
+                  </button>
+                </div>
               </div>
             )}
           </div>

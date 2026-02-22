@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Search, Filter, Download, Eye, Trash2, MapPin, FileSpreadsheet, FileText, QrCode } from 'lucide-react'
 import { toast } from 'react-toastify'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
-import ViewDustbinModal from '../components/ViewDustbinModal'
-import EditDustbinModal from '../components/EditDustbinModal'
-import DeleteDustbinConfirmModal from '../components/DeleteDustbinConfirmModal'
 import api from '../api/axios'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -318,18 +313,14 @@ export default function DustbinManagement() {
   }
 
   return (
-    <div className="flex bg-mesh min-h-screen">
-      <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col">
-        <TopHeader />
-        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
-          <div className="mb-6">
-            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Dustbin Management</p>
-            <h1 className="text-xl font-black text-gray-800">Dustbin Management</h1>
-          </div>
+    <div className="space-y-6">
+      <div className="mb-6">
+        <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Dustbin Management</p>
+        <h1 className="text-xl font-black text-gray-800">Dustbin Management</h1>
+      </div>
 
-          {/* Main Container - 2 Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Container - 2 Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* LEFT COLUMN - TABLE & MAP (2/3 width) */}
             <div className="lg:col-span-2 space-y-6">
@@ -616,7 +607,7 @@ export default function DustbinManagement() {
                         name="ward"
                         value={formData.ward}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-2 focus:ring-teal-500 text-xs"
                       >
                         {wards.map(ward => (
                           <option key={ward._id} value={ward.name}>{ward.name}</option>
@@ -727,8 +718,6 @@ export default function DustbinManagement() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
       {/* View Dustbin Modal */}
       <ViewDustbinModal

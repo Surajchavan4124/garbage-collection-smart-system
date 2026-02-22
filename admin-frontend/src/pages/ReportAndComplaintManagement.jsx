@@ -3,9 +3,6 @@ import { Search, Filter, Download, Eye, ImageIcon, FileText, Table, AlertCircle,
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { toast } from 'react-toastify'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
-import ViewComplaintModal from '../components/ViewComplaintModal'
 import api from '../api/axios'
 
 export default function ReportAndComplaintManagement() {
@@ -228,20 +225,14 @@ export default function ReportAndComplaintManagement() {
   }
 
   return (
-    <div className="flex bg-mesh min-h-screen">
-      <Sidebar />
-      <div className="ml-64 flex-1">
-        <TopHeader />
-        <div className="pt-20 px-8 pb-10 animate-fade-in-up">
-
-          {/* Page header */}
-          <div className="mb-6">
-            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Reports &amp; Complaints</p>
-            <h1 className="text-xl font-black text-gray-800">Report &amp; Complaint Management</h1>
-          </div>
+    <div className="space-y-6">
+      <div className="mb-6">
+        <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Reports &amp; Complaints</p>
+        <h1 className="text-xl font-black text-gray-800">Report &amp; Complaint Management</h1>
+      </div>
 
           {/* KPI Stat Cards */}
-          <div className="grid grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
             {[
               { label: 'New Complaints', value: String(metrics.new).padStart(2, '0'), sub: 'Status: Received', icon: AlertCircle, color: 'from-rose-500 to-rose-700' },
               { label: 'Pending Complaints', value: String(metrics.pending).padStart(2, '0'), sub: 'In Progress or Unassigned', icon: Clock, color: 'from-amber-500 to-amber-700' },
@@ -397,10 +388,9 @@ export default function ReportAndComplaintManagement() {
             </div>
           </div>
 
-          {/* Kanban Board */}
           <div>
             <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Update Status — Kanban Board</h2>
-            <div className="grid grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               <KanbanColumn
                 title="Received"
                 icon={AlertCircle}
@@ -424,9 +414,6 @@ export default function ReportAndComplaintManagement() {
               />
             </div>
           </div>
-        </div>
-      </div>
-
       <ViewComplaintModal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}

@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Search, Filter, Download, BarChart3, Edit, Trash2, Leaf, Recycle, Package, AlertTriangle, Plus, X } from 'lucide-react'
 import { toast } from 'react-toastify'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
 import api from '../api/axios'
 import DeleteWasteEntryModal from '../components/DeleteWasteEntryModal'
 
@@ -183,20 +181,14 @@ export default function WasteDataManagement() {
   const maxBar = Math.max(...barData.map(b => Number(b.value))) || 100
 
   return (
-    <div className="flex bg-mesh min-h-screen">
-      <Sidebar />
-      <div className="ml-64 flex-1">
-        <TopHeader />
-        <div className="pt-20 px-8 pb-10 animate-fade-in-up">
-
-          {/* Page header */}
-          <div className="mb-6">
-            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Waste Data Management</p>
-            <h1 className="text-xl font-black text-gray-800">Waste Data Management</h1>
-          </div>
+    <div className="space-y-6">
+      <div className="mb-6">
+        <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Waste Data Management</p>
+        <h1 className="text-xl font-black text-gray-800">Waste Data Management</h1>
+      </div>
 
           {/* Top grid: Form + Visualization */}
-          <div className="grid grid-cols-2 gap-5 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
 
             {/* Data Entry Form */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -430,9 +422,6 @@ export default function WasteDataManagement() {
               )}
             </div>
           </div>
-        </div>
-      </div>
-
       <DeleteWasteEntryModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

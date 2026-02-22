@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin, Leaf } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
+import { X, Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin, Leaf } from 'lucide-react'
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { isDark } = useTheme()
   const location = useLocation()
   const isOperationalActive = location.pathname.startsWith('/employee') || 
@@ -18,6 +18,11 @@ export default function Sidebar() {
   useEffect(() => {
     if (isOperationalActive) setExpandOperational(true)
   }, [isOperationalActive])
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    if (isOpen) onClose()
+  }, [location.pathname])
 
   const isActive = (path) => location.pathname === path
 
@@ -46,7 +51,10 @@ export default function Sidebar() {
   )
 
   return (
-    <div className="w-64 h-screen overflow-y-auto fixed left-0 top-0 flex flex-col transition-colors duration-300"
+    <div 
+      className={`fixed left-0 top-0 w-64 h-screen overflow-y-auto flex flex-col transition-all duration-300 z-50 
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        border-r lg:border-r-0`}
       style={{
         background: isDark 
           ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)' 
@@ -55,7 +63,7 @@ export default function Sidebar() {
       }}
     >
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-gray-100 dark:border-white/5 flex-shrink-0">
+      <div className="px-5 py-5 border-b border-gray-100 dark:border-white/5 flex-shrink-0 relative">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
             style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
@@ -67,6 +75,14 @@ export default function Sidebar() {
             <p className={`${!isDark ? '!text-slate-800' : 'text-gray-500'} text-[10px] font-medium`}>Panchayat Management</p>
           </div>
         </div>
+
+        {/* Mobile Close Button */}
+        <button 
+          onClick={onClose}
+          className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       {/* Navigation */}

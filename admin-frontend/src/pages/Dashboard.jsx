@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { AlertCircle, CheckCircle2, Clock, Users, Leaf } from 'lucide-react'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
 import KPICard from '../components/KPICard'
 import AttendanceCard from '../components/AttendanceCard'
 import AttendanceChart from '../components/PieChart'
@@ -46,16 +44,9 @@ export default function Dashboard() {
   const safeAttendance = attendanceStats || { total: 0, present: 0, recent: [] }
 
   return (
-    <div className="flex min-h-screen bg-mesh">
-      <Sidebar />
-
-      <div className="ml-64 flex-1">
-        <TopHeader />
-
-        <div className="pt-20 px-8 pb-10 animate-fade-in-up">
-
-          {/* Page header */}
-          <div className="mb-8 flex items-center gap-3">
+    <div className="space-y-8">
+      {/* Page header */}
+      <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1f9e9a] to-[#22c55e] flex items-center justify-center shadow-sm">
               <Leaf size={16} className="text-white" />
             </div>
@@ -65,10 +56,10 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Row 1: Complaints KPI */}
-          <section className="mb-8">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Complaints Overview</h2>
-            <div className="grid grid-cols-3 gap-5">
+      {/* Row 1: Complaints KPI */}
+      <section>
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Complaints Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               <KPICard
                 title="New Complaints"
                 value={safeStats.newComplaints}
@@ -93,11 +84,11 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* Row 2: Attendance */}
-          <section className="mb-8">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Staff Attendance — Today</h2>
-            <div className="grid grid-cols-5 gap-5">
-              <div className="col-span-2">
+      {/* Row 2: Attendance */}
+      <section>
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Staff Attendance — Today</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+          <div className="lg:col-span-2">
                 <AttendanceCard 
                   total={safeAttendance.total}
                   present={safeAttendance.present}
@@ -113,14 +104,11 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* Row 3: Waste */}
-          <section>
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Waste Collection Stats</h2>
-            <WasteStats />
-          </section>
-
-        </div>
-      </div>
+      {/* Row 3: Waste */}
+      <section>
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Waste Collection Stats</h2>
+        <WasteStats />
+      </section>
     </div>
   )
 }

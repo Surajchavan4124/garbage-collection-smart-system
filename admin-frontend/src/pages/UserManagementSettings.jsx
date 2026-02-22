@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react'
 import { Search, Upload, User as UserIcon, Settings } from 'lucide-react'
 import api from '../api/axios'
 import { toast } from 'react-toastify'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import Sidebar from '../components/Sidebar'
-import TopHeader from '../components/TopHeader'
+import { useNavigate } from 'react-router-dom'
 import ProfileSettingsModal from '../components/ProfileSettingsModal'
 import ViewProfileModal from '../components/ViewProfileModal'
 import EditProfileModal from '../components/EditProfileModal'
@@ -19,20 +17,13 @@ export default function UserManagementSettings() {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
-    const [viewUser, setViewUser] = useState(null)
-    const [editUser, setEditUser] = useState(null)
-    const [deleteUser, setDeleteUser] = useState(null)
-    
-    // Add handler function
-    const handleViewUser = (user) => {
-        setViewUser(user)
-    }
-    const handleEditUser = (user) => {
-        setEditUser(user)
-    }
-    const handleDeleteUser = (user) => {
-  setDeleteUser(user)
-}
+  const [viewUser, setViewUser] = useState(null)
+  const [editUser, setEditUser] = useState(null)
+  const [deleteUser, setDeleteUser] = useState(null)
+  
+  const handleViewUser = (user) => setViewUser(user)
+  const handleEditUser = (user) => setEditUser(user)
+  const handleDeleteUser = (user) => setDeleteUser(user)
 
   const [newUser, setNewUser] = useState({
     fullName: '',
@@ -53,7 +44,7 @@ export default function UserManagementSettings() {
       case 'email':
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!value.trim()) error = "Email is required"
-        else if (!emailRegex.test(value)) error = "Invalid email format"
+        else if (!emailRegex.test(email)) error = "Invalid email format" // Fixed variable name error
         break
       case 'contact':
         const mobileRegex = /^\d{10}$/
@@ -102,7 +93,6 @@ export default function UserManagementSettings() {
 
   const handleAddUser = async (e) => {
     e.preventDefault()
-    
     const e1 = validateField('fullName', newUser.fullName)
     const e2 = validateField('email', newUser.email)
     const e3 = validateField('contact', newUser.contact)
@@ -120,11 +110,7 @@ export default function UserManagementSettings() {
       formData.append('email', newUser.email)
       formData.append('role', newUser.role.toUpperCase())
       formData.append('isActive', newUser.status)
-      if (newUser.photo) {
-        formData.append('photo', newUser.photo)
-      }
-      
-      // Permissions as JSON string because backend expects Array or parses it
+      if (newUser.photo) formData.append('photo', newUser.photo)
       newUser.permissions.forEach(p => formData.append('permissions[]', p))
 
       const res = await api.post('/users', formData, {
@@ -150,373 +136,283 @@ export default function UserManagementSettings() {
     }
   }
 
-  
-
   return (
-    <div className="flex bg-mesh min-h-screen">
-      <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col">
-        <TopHeader onProfileSettingsClick={() => setIsProfileModalOpen(true)} />
-        <div className="pt-20 flex-1 overflow-y-auto px-6 pb-10 animate-fade-in-up">
-          
-          <div className="mb-6 text-sm text-gray-600">
-            <span>Analytics & Settings</span> &gt; <span className="font-semibold text-gray-800">User Management & Settings</span>
+    <div className="space-y-6">
+      {/* Breadcrumbs */}
+      <div>
+        <p className="text-xs text-gray-400 font-medium mb-0.5">Analytics & Settings › User Management & Settings</p>
+        <h1 className="text-xl font-black text-gray-800">User Management & Settings</h1>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* SECTION 1: USER PROFILE */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-teal-50 rounded-lg text-teal-600">
+              <UserIcon size={20} />
+            </div>
+            <h3 className="font-bold text-gray-800">Your Current Profile</h3>
           </div>
 
-          {/* 3 SECTION LAYOUT */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            
-            {/* SECTION 1: USER PROFILE */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="bg-gray-200 px-4 py-3 rounded mb-6">
-                <h3 className="text-sm font-bold text-gray-800">USER PROFILE</h3>
-              </div>
-
-              <div className="space-y-4 text-center">
-                <h4 className="text-sm font-bold text-gray-800">Your Profile</h4>
-                <p className="text-xs text-gray-700">You are logged in as:</p>
-
-                <div className="w-40 h-40 bg-teal-50 rounded-full mx-auto flex items-center justify-center border-4 border-teal-100 relative overflow-hidden">
-                  {profile?.profilePhoto ? (
-                    <img src={profile.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <UserIcon size={80} className="text-teal-600" />
-                  )}
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-32 h-32 rounded-full border-4 border-teal-50 overflow-hidden shadow-inner">
+              {profile?.profilePhoto ? (
+                <img src={profile.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-300">
+                  <UserIcon size={48} />
                 </div>
-
-                <div>
-                  <h5 className="text-lg font-bold text-gray-800">{profile?.name || 'Loading...'}</h5>
-                  <p className="text-xs text-gray-500 font-medium">Administrator</p>
-                </div>
-
-                <button
-                  onClick={() => navigate('/profile-settings')}
-                  className="w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-bold text-xs hover:bg-teal-700 transition shadow-md shadow-teal-100 flex items-center justify-center gap-2"
-                >
-                  <Settings size={16} />
-                  Go To Your Profile Settings
-                </button>
-              </div>
+              )}
             </div>
-
-            {/* SECTION 2: ADD NEW USER */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="bg-gray-200 px-4 py-3 rounded mb-6">
-                <h3 className="text-sm font-bold text-gray-800">ADD NEW USER</h3>
-              </div>
-
-              <form className="space-y-4" onSubmit={handleAddUser}>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 mb-2">Full Name:</label>
-                    <input
-                      type="text"
-                      placeholder="Enter name"
-                      value={newUser.fullName}
-                      onChange={(e) => {
-                        setNewUser({...newUser, fullName: e.target.value})
-                        validateField('fullName', e.target.value)
-                      }}
-                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs ${errors.fullName ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                    />
-                    {errors.fullName && <p className="text-[10px] text-red-500 mt-1">{errors.fullName}</p>}
-                  </div>
-
-                  <div className="flex flex-col">
-                    <label className="text-xs font-semibold text-gray-700 mb-1">Upload Photo:</label>
-                    <div 
-                      onClick={() => document.getElementById('user-photo-upload').click()}
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-2 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition min-h-[50px]"
-                    >
-                      {newUser.photo ? (
-                        <div className="flex items-center gap-2">
-                           <img src={URL.createObjectURL(newUser.photo)} alt="preview" className="w-8 h-8 rounded-full object-cover" />
-                           <span className="text-[10px] text-gray-500 overflow-hidden text-ellipsis max-w-[80px]">{newUser.photo.name}</span>
-                        </div>
-                      ) : (
-                        <>
-                          <Upload size={16} className="text-gray-400 mb-1" />
-                          <span className="text-[10px] text-gray-500">jpg/png</span>
-                        </>
-                      )}
-                    </div>
-                    <input 
-                      id="user-photo-upload"
-                      type="file" 
-                      accept="image/*"
-                      className="hidden" 
-                      onChange={(e) => {
-                        const file = e.target.files[0]
-                        if (file) {
-                          setNewUser({...newUser, photo: file})
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 mb-2">Contact Number:</label>
-                    <input
-                      type="text"
-                      placeholder="Enter contact"
-                      value={newUser.contact}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 10)
-                        setNewUser({...newUser, contact: val})
-                        validateField('contact', val)
-                      }}
-                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs ${errors.contact ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                    />
-                    {errors.contact && <p className="text-[10px] text-red-500 mt-1">{errors.contact}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 mb-2">Email:</label>
-                    <input
-                      type="email"
-                      placeholder="Enter email"
-                      value={newUser.email}
-                      onChange={(e) => {
-                        setNewUser({...newUser, email: e.target.value})
-                        validateField('email', e.target.value)
-                      }}
-                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                    />
-                    {errors.email && <p className="text-[10px] text-red-500 mt-1">{errors.email}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 mb-2">Role:</label>
-                    <select
-                      value={newUser.role}
-                      onChange={(e) => {
-                        setNewUser({...newUser, role: e.target.value})
-                        validateField('role', e.target.value)
-                      }}
-                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs ${errors.role ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                    >
-                      <option value="select role">select role</option>
-                      <option>Admin</option>
-                      <option>Manager</option>
-                      <option>Staff</option>
-                      <option>Supervisor</option>
-                      <option>Employee</option>
-                    </select>
-                    {errors.role && <p className="text-[10px] text-red-500 mt-1">{errors.role}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 mb-2">Status:</label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className={`relative w-12 h-6 rounded-full transition ${newUser.status ? 'bg-teal-500' : 'bg-gray-300'}`}>
-                        <button
-                          type="button"
-                          onClick={() => setNewUser({...newUser, status: !newUser.status})}
-                          className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition ${newUser.status ? 'translate-x-6' : ''}`}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-700">{newUser.status ? 'active' : 'inactive'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-800 mb-2">Permission:</label>
-                  <div className="flex gap-4">
-                    {['View', 'Edit', 'Delete'].map(perm => (
-                      <label key={perm} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={newUser.permissions.includes(perm)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewUser({...newUser, permissions: [...newUser.permissions, perm]})
-                            } else {
-                              setNewUser({...newUser, permissions: newUser.permissions.filter(p => p !== perm)})
-                            }
-                          }}
-                          className="w-3 h-3 accent-teal-500"
-                        />
-                        <span className="text-xs text-gray-700">{perm}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-teal-600 text-white rounded font-semibold text-xs hover:bg-teal-700 transition"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewUser({ fullName: '', contact: '', email: '', photo: null, role: 'select role', status: true, permissions: [] })}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded font-semibold text-xs hover:bg-red-700 transition"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </form>
+            <div>
+              <h5 className="text-lg font-bold text-gray-900">{profile?.name || 'Loading...'}</h5>
+              <p className="text-sm text-teal-600 font-medium capitalize">{profile?.role || 'Admin'}</p>
             </div>
+            <button
+              onClick={() => navigate('/profile-settings')}
+              className="w-full py-3 bg-teal-600 text-white rounded-xl font-bold text-sm hover:bg-teal-700 transition shadow-lg shadow-teal-100 flex items-center justify-center gap-2"
+            >
+              <Settings size={18} />
+              Manage Your Profile
+            </button>
+          </div>
+        </div>
+
+        {/* SECTION 2: ADD NEW USER */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+              <Plus size={20} />
+            </div>
+            <h3 className="font-bold text-gray-800">Create New User Account</h3>
           </div>
 
-          {/* SECTION 3: USER MANAGEMENT TABLE */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="bg-gray-200 px-6 py-3">
-              <h3 className="text-sm font-bold text-gray-800">USER MANAGEMENT</h3>
-            </div>
-
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <Search size={18} className="text-gray-400" />
+          <form className="space-y-4" onSubmit={handleAddUser}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase">Full Name</label>
                 <input
                   type="text"
-                  placeholder="Search User"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
+                  placeholder="e.g. John Doe"
+                  value={newUser.fullName}
+                  onChange={(e) => {
+                    setNewUser({...newUser, fullName: e.target.value})
+                    validateField('fullName', e.target.value)
+                  }}
+                  className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm focus:ring-2 focus:ring-teal-500 transition-all ${errors.fullName ? 'border-red-300' : 'border-transparent'}`}
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase">Profile Photo</label>
+                <div 
+                  onClick={() => document.getElementById('user-photo-upload').click()}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:bg-gray-100 transition"
+                >
+                  <Upload size={16} className="text-gray-400 mr-2" />
+                  <span className="text-xs text-gray-500 truncate max-w-[120px]">
+                    {newUser.photo ? newUser.photo.name : 'Upload file'}
+                  </span>
+                </div>
+                <input id="user-photo-upload" type="file" accept="image/*" className="hidden" 
+                  onChange={(e) => e.target.files[0] && setNewUser({...newUser, photo: e.target.files[0]})} 
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase">Contact Number</label>
+                <input
+                  type="text"
+                  placeholder="10-digit number"
+                  value={newUser.contact}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10)
+                    setNewUser({...newUser, contact: val})
+                    validateField('contact', val)
+                  }}
+                  className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm focus:ring-2 focus:ring-teal-500 transition-all ${errors.contact ? 'border-red-300' : 'border-transparent'}`}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="email@example.com"
+                  value={newUser.email}
+                  onChange={(e) => {
+                    setNewUser({...newUser, email: e.target.value})
+                    validateField('email', e.target.value)
+                  }}
+                  className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm focus:ring-2 focus:ring-teal-500 transition-all ${errors.email ? 'border-red-300' : 'border-transparent'}`}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase">Access Role</label>
+                <select
+                  value={newUser.role}
+                  onChange={(e) => {
+                    setNewUser({...newUser, role: e.target.value})
+                    validateField('role', e.target.value)
+                  }}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-transparent rounded-xl text-sm focus:ring-2 focus:ring-teal-500 transition-all"
+                >
+                  <option value="select role">Select role...</option>
+                  <option>Admin</option>
+                  <option>Manager</option>
+                  <option>Staff</option>
+                  <option>Supervisor</option>
+                  <option>Employee</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase">Account Status</label>
+                <div className="flex items-center h-[42px] gap-3">
+                  <div className={`relative w-11 h-6 rounded-full cursor-pointer transition-colors ${newUser.status ? 'bg-teal-500' : 'bg-gray-300'}`}
+                    onClick={() => setNewUser({...newUser, status: !newUser.status})}>
+                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${newUser.status ? 'translate-x-5' : ''}`} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{newUser.status ? 'Active' : 'Inactive'}</span>
+                </div>
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-teal-500 text-white">
-                      <th className="px-6 py-3 text-left text-xs font-bold">Photo</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold">User ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Contact</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold">Status</th>
-                    <th className="px-6 py-3 text-center text-xs font-bold">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user, idx) => (
-                    <tr key={user._id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-6 py-4">
-                        <img 
-                          src={user.profilePhoto || 'https://via.placeholder.com/40'} 
-                          alt="user" 
-                          className="w-10 h-10 rounded-full object-cover border"
-                          onError={(e) => e.target.src = 'https://via.placeholder.com/40'}
-                        />
-                      </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-800">{user._id?.slice(-6).toUpperCase() || 'N/A'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-800">{user.name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-800 lowercase first-letter:uppercase">{user.role}</td>
-                      <td className="px-6 py-4 text-sm text-gray-800">{user.email}</td>
-                      <td className="px-6 py-4 text-sm text-gray-800">{user.mobile}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          user.isActive
-                            ? 'bg-green-100 text-green-700 border border-green-300'
-                            : 'bg-gray-100 text-gray-700 border border-gray-300'
-                        }`}>
-                          {user.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 flex justify-center gap-2">
-                        {user.isMainAccount ? (
-                          <span className="text-gray-400 text-xs italic">System Admin</span>
-                        ) : (
-                          <>
-                            <button 
-                                      onClick={() => handleViewUser(user)}
-                                      className="px-3 py-1 text-blue-600 border border-blue-600 rounded text-xs font-semibold hover:bg-blue-50 transition"
-                                  >
-                                      view
-                                  </button>
-                            <button 
-      onClick={() => handleEditUser(user)}
-      className="px-3 py-1 text-orange-600 border border-orange-600 rounded text-xs font-semibold hover:bg-orange-50 transition"
-    >
-      edit
-    </button>
-                            <button 
-      onClick={() => handleDeleteUser(user)}
-      className="px-3 py-1 text-red-600 border border-red-600 rounded text-xs font-semibold hover:bg-red-50 transition"
-    >
-      Delete
-    </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 uppercase">Permissions</label>
+              <div className="flex gap-6">
+                {['View', 'Edit', 'Delete'].map(perm => (
+                  <label key={perm} className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={newUser.permissions.includes(perm)}
+                      onChange={(e) => {
+                        const next = e.target.checked 
+                          ? [...newUser.permissions, perm] 
+                          : newUser.permissions.filter(p => p !== perm)
+                        setNewUser({...newUser, permissions: next})
+                      }}
+                      className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                    />
+                    <span className="text-sm text-gray-600 group-hover:text-teal-600 transition-colors">{perm}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
+
+            <div className="flex gap-3 pt-4">
+              <button type="submit" className="flex-1 py-3 bg-teal-600 text-white rounded-xl font-bold text-sm hover:bg-teal-700 transition shadow-lg shadow-teal-50">Save Account</button>
+              <button type="button" onClick={() => navigate(-1)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition">Cancel</button>
+            </div>
+          </form>
         </div>
       </div>
 
-      {/* Profile Settings Modal */}
-      <ProfileSettingsModal 
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-      />
-      <ViewProfileModal 
-  isOpen={!!viewUser}
-  onClose={() => setViewUser(null)}
-  user={viewUser}
-   onEdit={handleEditUser}
-    onDelete={handleDeleteUser}
-/>
-<EditProfileModal
-  isOpen={!!editUser}
-  onClose={() => setEditUser(null)}
-  user={editUser}
-  onSave={async (updatedData) => {
-    try {
-      const formData = new FormData()
-      formData.append('name', updatedData.name)
-      formData.append('mobile', updatedData.mobile)
-      formData.append('email', updatedData.email)
-      formData.append('role', updatedData.role)
-      formData.append('isActive', updatedData.isActive)
-      
-      if (updatedData.photo instanceof File) {
-        formData.append('photo', updatedData.photo)
-      }
+      {/* SECTION 3: USER MANAGEMENT TABLE */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h3 className="font-bold text-gray-800">All Project Users</h3>
+          <div className="relative w-full sm:w-72">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500 transition-all"
+            />
+          </div>
+        </div>
 
-      // Permissions
-      if (updatedData.permissions) {
-        updatedData.permissions.forEach(p => formData.append('permissions[]', p))
-      }
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold tracking-wider">
+              <tr>
+                <th className="px-6 py-4">User</th>
+                <th className="px-6 py-4">Contact Details</th>
+                <th className="px-6 py-4">Access Level</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Settings</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredUsers.map((user) => (
+                <tr key={user._id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <img src={user.profilePhoto || 'https://via.placeholder.com/40'} alt="" className="w-10 h-10 rounded-full border bg-gray-100" />
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{user.name}</p>
+                        <p className="text-[10px] text-gray-400 font-mono">ID: {user._id?.slice(-6).toUpperCase()}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm text-gray-700">{user.email}</p>
+                    <p className="text-xs text-gray-400">{user.mobile}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-lg uppercase tracking-wide">{user.role}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                      <span className={`text-xs font-semibold ${user.isActive ? 'text-emerald-700' : 'text-gray-500'}`}>{user.isActive ? 'Active' : 'Inactive'}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    {user.isMainAccount ? (
+                      <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded">ROOT ADMIN</span>
+                    ) : (
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => handleViewUser(user)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><Search size={16} /></button>
+                        <button onClick={() => handleEditUser(user)} className="p-2 text-gray-400 hover:text-orange-600 transition-colors"><Settings size={16} /></button>
+                        <button onClick={() => handleDeleteUser(user)} className="p-2 text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      const res = await api.put(`/users/${updatedData._id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      
-      setUsers(users.map(u => u._id === res.data._id ? res.data : u))
-      setEditUser(null)
-      toast.success('User updated successfully')
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update user')
-    }
-  }}
-/>
-<DeactivateUserModal
-  isOpen={!!deleteUser}
-  onClose={() => setDeleteUser(null)}
-  user={deleteUser}
-  onDeactivate={async (user) => {
-    try {
-      await api.delete(`/users/${user._id}`)
-      setUsers(users.filter(u => u._id !== user._id))
-      setDeleteUser(null)
-      toast.success('User deleted successfully')
-    } catch (err) {
-      toast.error('Failed to delete user')
-    }
-  }}
-/>
+      <ProfileSettingsModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
+      <ViewProfileModal isOpen={!!viewUser} onClose={() => setViewUser(null)} user={viewUser} onEdit={handleEditUser} onDelete={handleDeleteUser} />
+      <EditProfileModal isOpen={!!editUser} onClose={() => setEditUser(null)} user={editUser} onSave={async (updatedData) => {
+        try {
+          const formData = new FormData()
+          formData.append('name', updatedData.name)
+          formData.append('mobile', updatedData.mobile)
+          formData.append('email', updatedData.email)
+          formData.append('role', updatedData.role)
+          formData.append('isActive', updatedData.isActive)
+          if (updatedData.photo instanceof File) formData.append('photo', updatedData.photo)
+          updatedData.permissions?.forEach(p => formData.append('permissions[]', p))
+          const res = await api.put(`/users/${updatedData._id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+          setUsers(users.map(u => u._id === res.data._id ? res.data : u))
+          setEditUser(null)
+          toast.success('User updated successfully')
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to update user')
+        }
+      }} />
+      <DeactivateUserModal isOpen={!!deleteUser} onClose={() => setDeleteUser(null)} user={deleteUser} onDeactivate={async (user) => {
+        try {
+          await api.delete(`/users/${user._id}`)
+          setUsers(users.filter(u => u._id !== user._id))
+          setDeleteUser(null)
+          toast.success('User deleted successfully')
+        } catch (err) {
+          toast.error('Failed to delete user')
+        }
+      }} />
     </div>
   )
+}
+
+function Trash2(props) {
+  return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
 }

@@ -4,8 +4,6 @@ import { Search, Plus, Eye, Pencil, UserCheck, UserX, Users, Users2, UserMinus }
 import { toast } from "react-toastify";
 import api from "../api/axios";
 
-import Sidebar from "../components/Sidebar";
-import TopHeader from "../components/TopHeader";
 import AddEmployeeModal from "../components/AddEmployeeModal";
 import ViewEmployeeModal from "../components/ViewEmployeeModal";
 import EditEmployeeModal from "../components/EditEmployeeModal";
@@ -126,14 +124,8 @@ export default function EmployeeManagement() {
   const inactiveEmployees = totalEmployees - activeEmployees;
 
   return (
-    <div className="flex bg-mesh min-h-screen">
-      <Sidebar />
-
-      <div className="ml-64 flex-1">
-        <TopHeader />
-
-        <div className="pt-20 px-8 pb-10 animate-fade-in-up">
-          {/* Page header */}
+    <div className="space-y-6">
+      {/* Page header */}
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Employee Management</p>
@@ -149,8 +141,8 @@ export default function EmployeeManagement() {
             </button>
           </div>
 
-          {/* Stat cards */}
-          <div className="grid grid-cols-3 gap-5 mb-6">
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
               { label: 'Total Employees', value: totalEmployees, icon: Users, color: 'from-[#1f9e9a] to-[#16847f]' },
               { label: 'Active', value: activeEmployees, icon: UserCheck, color: 'from-emerald-500 to-emerald-700' },
@@ -275,10 +267,7 @@ export default function EmployeeManagement() {
               </table>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* MODALS */}
+        {/* MODALS */}
       <AddEmployeeModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
