@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
-import { X, Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin, Leaf } from 'lucide-react'
+import { X, Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin } from 'lucide-react'
+import logo from '../assets/images/logo.png'
 
 export default function Sidebar({ isOpen, onClose }) {
   const { isDark } = useTheme()
@@ -65,11 +66,7 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-100 dark:border-white/5 flex-shrink-0 relative">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
-            style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
-          >
-            <Leaf size={18} className="text-white" />
-          </div>
+          <img src={logo} alt="EcoSyz Logo" className="w-9 h-9 object-contain drop-shadow-md" />
           <div>
             <p className={`${!isDark ? '!text-black' : 'text-gray-100'} font-bold text-sm leading-tight`}>EcoSyz Admin</p>
             <p className={`${!isDark ? '!text-slate-800' : 'text-gray-500'} text-[10px] font-medium`}>Panchayat Management</p>
@@ -161,7 +158,7 @@ export default function Sidebar({ isOpen, onClose }) {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-gray-100 dark:border-white/5 flex-shrink-0 bg-gray-50 dark:bg-gray-900/50">
+      <div className={`px-4 py-3 border-t flex-shrink-0 ${isDark ? 'border-white/5 bg-gray-900/50' : 'border-gray-100 bg-white'}`}>
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}

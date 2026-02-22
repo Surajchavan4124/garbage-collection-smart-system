@@ -9,6 +9,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     name: "", employeeCode: "", phone: "", address: "",
     role: "Collector", wards: [], joiningDate: "",
   });
+  const [errors, setErrors] = useState({});
   const [wards, setWards] = useState([]);
   const [files, setFiles] = useState({ photo: null, idProof: null, license: null });
   const [preview, setPreview] = useState({ photo: null, idProof: null, license: null });
@@ -32,20 +33,40 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     setPreview(p => ({ ...p, [name]: { url: URL.createObjectURL(file), type: file.type, name: file.name, key: Date.now() } }));
     e.target.value = "";
   };
-  const toggleWard = (name) => setForm(p => ({
-    ...p, wards: p.wards.includes(name) ? p.wards.filter(w => w !== name) : [...p.wards, name]
-  }));
+  const toggleWard = (name) => {
+    setForm(p => {
+      const newWards = p.wards.includes(name) ? p.wards.filter(w => w !== name) : [...p.wards, name];
+      if (newWards.length > 0) setErrors(prev => ({ ...prev, wards: "" }));
+      return { ...p, wards: newWards };
+    });
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.name.trim()) newErrors.name = "Name is required";
+    if (!form.employeeCode.trim()) newErrors.employeeCode = "Code is required";
+    
+    const phoneRegex = /^\d{10}$/;
+    if (!form.phone.trim()) newErrors.phone = "Phone is required";
+    else if (!phoneRegex.test(form.phone)) newErrors.phone = "Invalid 10-digit phone";
+    
+    if (!form.address.trim()) newErrors.address = "Address is required";
+    if (form.wards.length === 0) newErrors.wards = "Select at least one ward";
+    if (!form.joiningDate) newErrors.joiningDate = "Joining date is required";
+    
+    if (!files.photo) newErrors.photo = "Photo is required";
+    if (!files.idProof) newErrors.idProof = "ID proof is required";
+    if (form.role === "Driver" && !files.license) newErrors.license = "License is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) return toast.error("Employee name is required");
-    if (!form.employeeCode.trim()) return toast.error("Employee code is required");
-    if (!form.phone.trim()) return toast.error("Phone number is required");
-    if (!form.address.trim()) return toast.error("Address is required");
-    if (form.wards.length === 0) return toast.error("At least one ward is required");
-    if (!form.joiningDate) return toast.error("Joining date is required");
-    if (!files.photo) return toast.error("Photo is required");
-    if (!files.idProof) return toast.error("ID proof is required");
-    if (form.role === "Driver" && !files.license) return toast.error("Driving license is required");
+    if (!validate()) {
+      toast.error("Please fix the errors in the form");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -62,6 +83,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       setForm({ name: "", employeeCode: "", phone: "", address: "", role: "Collector", wards: [], joiningDate: "" });
       setFiles({ photo: null, idProof: null, license: null });
       setPreview({ photo: null, idProof: null, license: null });
+      setErrors({});
       onClose(); onSuccess?.();
     } catch (err) {
       toast.error(err.response?.data?.message || "Add employee failed");
@@ -98,36 +120,39 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Basic Information</p>
               <div className="grid grid-cols-2 gap-4">
-                <FormField label="Employee Name *">
-                  <StyledInput name="name" value={form.name} onChange={handleChange} placeholder="Full name" />
+                <FormField label="Employee Name *" error={errors.name}>
+                  <StyledInput name="name" value={form.name} onChange={handleChange} placeholder="Full name" error={errors.name} />
                 </FormField>
-                <FormField label="Employee Code *">
-                  <StyledInput name="employeeCode" value={form.employeeCode} onChange={handleChange} placeholder="EMP-001" />
+                <FormField label="Employee Code *" error={errors.employeeCode}>
+                  <StyledInput name="employeeCode" value={form.employeeCode} onChange={handleChange} placeholder="EMP-001" error={errors.employeeCode} />
                 </FormField>
-                <FormField label="Phone Number *">
-                  <StyledInput name="phone" value={form.phone} onChange={handleChange} placeholder="10-digit number" />
+                <FormField label="Phone Number *" error={errors.phone}>
+                  <StyledInput name="phone" value={form.phone} onChange={handleChange} placeholder="10-digit number" error={errors.phone} />
                 </FormField>
-                <FormField label="Joining Date *">
-                  <StyledInput type="date" name="joiningDate" value={form.joiningDate} onChange={handleChange} />
+                <FormField label="Joining Date *" error={errors.joiningDate}>
+                  <StyledInput type="date" name="joiningDate" value={form.joiningDate} onChange={handleChange} error={errors.joiningDate} />
                 </FormField>
-                <FormField label="Role *" full>
-                  <StyledSelect name="role" value={form.role} onChange={handleChange}>
+                <FormField label="Role *" full error={errors.role}>
+                  <StyledSelect name="role" value={form.role} onChange={handleChange} error={errors.role}>
                     <option>Collector</option>
                     <option>Driver</option>
                     <option>Supervisor</option>
                     <option>Helper</option>
                   </StyledSelect>
                 </FormField>
-                <FormField label="Address *" full>
-                  <StyledTextarea name="address" rows={2} value={form.address} onChange={handleChange} placeholder="Full address" />
+                <FormField label="Address *" full error={errors.address}>
+                  <StyledTextarea name="address" rows={2} value={form.address} onChange={handleChange} placeholder="Full address" error={errors.address} />
                 </FormField>
               </div>
             </div>
 
             {/* Ward Selection */}
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Ward Assignment *</p>
-              <div className="flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-100 rounded-xl min-h-[52px]">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ward Assignment *</p>
+                {errors.wards && <span className="text-[10px] text-red-500 font-bold">{errors.wards}</span>}
+              </div>
+              <div className={`flex flex-wrap gap-2 p-3 bg-gray-50 border rounded-xl min-h-[52px] transition-colors ${errors.wards ? 'border-red-200 bg-red-50/20' : 'border-gray-100'}`}>
                 {wards.map(w => {
                   const checked = form.wards.includes(w.name);
                   return (
@@ -150,10 +175,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Documents</p>
               <div className="grid grid-cols-1 gap-3">
-                <UploadCard icon={<Camera size={14} />} label="Employee Photo *" name="photo" file={files.photo} preview={preview.photo} onChange={handleFileChange} />
-                <UploadCard icon={<FileText size={14} />} label="ID Proof *" name="idProof" file={files.idProof} preview={preview.idProof} onChange={handleFileChange} />
+                <UploadCard icon={<Camera size={14} />} label="Employee Photo *" name="photo" file={files.photo} preview={preview.photo} onChange={handleFileChange} error={errors.photo} />
+                <UploadCard icon={<FileText size={14} />} label="ID Proof *" name="idProof" file={files.idProof} preview={preview.idProof} onChange={handleFileChange} error={errors.idProof} />
                 {form.role === "Driver" && (
-                  <UploadCard icon={<Car size={14} />} label="Driving License *" name="license" file={files.license} preview={preview.license} onChange={handleFileChange} />
+                  <UploadCard icon={<Car size={14} />} label="Driving License *" name="license" file={files.license} preview={preview.license} onChange={handleFileChange} error={errors.license} />
                 )}
               </div>
             </div>
@@ -177,35 +202,41 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
   );
 }
 
-function FormField({ label, children, full }) {
+function FormField({ label, children, full, error }) {
   return (
     <div className={full ? "col-span-2" : ""}>
-      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{label}</label>
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</label>
+        {error && <span className="text-[10px] text-red-500 font-bold">{error}</span>}
+      </div>
       {children}
     </div>
   );
 }
-function StyledInput(props) {
-  return <input {...props} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 transition-all placeholder-gray-300" />;
+function StyledInput({ error, ...props }) {
+  return <input {...props} className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 transition-all placeholder-gray-300 ${error ? 'border-red-300 focus:ring-red-400/20 focus:border-red-400' : 'border-gray-200 focus:ring-teal-400/30 focus:border-teal-400'}`} />;
 }
-function StyledTextarea(props) {
-  return <textarea {...props} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 transition-all placeholder-gray-300" />;
+function StyledTextarea({ error, ...props }) {
+  return <textarea {...props} className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-white resize-none focus:outline-none focus:ring-2 transition-all placeholder-gray-300 ${error ? 'border-red-300 focus:ring-red-400/20 focus:border-red-400' : 'border-gray-200 focus:ring-teal-400/30 focus:border-teal-400'}`} />;
 }
-function StyledSelect({ children, ...props }) {
-  return <select {...props} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 transition-all">{children}</select>;
+function StyledSelect({ children, error, ...props }) {
+  return <select {...props} className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 transition-all ${error ? 'border-red-300 focus:ring-red-400/20 focus:border-red-400' : 'border-gray-200 focus:ring-teal-400/30 focus:border-teal-400'}`}>{children}</select>;
 }
-function UploadCard({ icon, label, name, file, preview, onChange }) {
+function UploadCard({ icon, label, name, file, preview, onChange, error }) {
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
-      <label className="flex items-center gap-3 p-3 bg-gray-50 cursor-pointer hover:border-teal-200 hover:bg-teal-50/30 transition-all group">
-        <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 text-teal-500 group-hover:border-teal-300 transition-colors">
+    <div className={`border rounded-xl overflow-hidden transition-colors ${error ? 'border-red-200 bg-red-50/10' : 'border-gray-100'}`}>
+      <label className="flex items-center gap-3 p-3 bg-gray-50 cursor-pointer hover:bg-teal-50/30 transition-all group">
+        <div className={`w-8 h-8 rounded-lg bg-white border flex items-center justify-center flex-shrink-0 transition-colors ${error ? 'border-red-300 text-red-500' : 'border-gray-200 text-teal-500 group-hover:border-teal-300'}`}>
           {icon}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-gray-700">{label}</p>
+        <div className="flex-1 min-w-0 text-left">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-gray-700">{label}</p>
+            {error && <span className="text-[10px] text-red-500 font-bold">{error}</span>}
+          </div>
           <p className="text-[10px] text-gray-400 truncate">{file ? file.name : 'Click to upload file'}</p>
         </div>
-        <Upload size={14} className="text-gray-300 group-hover:text-teal-400 transition-colors flex-shrink-0" />
+        <Upload size={14} className={`transition-colors flex-shrink-0 ${error ? 'text-red-300' : 'text-gray-300 group-hover:text-teal-400'}`} />
         <input type="file" name={name} onChange={onChange} className="hidden" />
       </label>
       {preview && (

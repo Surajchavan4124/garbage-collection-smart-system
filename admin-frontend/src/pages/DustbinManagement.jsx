@@ -17,17 +17,17 @@ export default function DustbinManagement() {
   const [dustbins, setDustbins] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [downloadDropdownOpen, setDownloadDropdownOpen] = useState(false) // Dropdown state
-  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false) // Filter Dropdown state
+  const [downloadDropdownOpen, setDownloadDropdownOpen] = useState(false)
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState('All')
   const [typeFilter, setTypeFilter] = useState('All')
-
   const [formData, setFormData] = useState({
     location: '',
     ward: 'Ward 1',
     type: 'General',
     status: 'Good',
   })
+  const [errors, setErrors] = useState({})
 
   // Modal states
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
@@ -233,12 +233,21 @@ export default function DustbinManagement() {
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  const validate = () => {
+    const newErrors = {}
+    if (!formData.location.trim()) newErrors.location = 'Location is required'
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSaveBin = async (e) => {
     e.preventDefault()
-    if (!formData.location.trim()) {
-      toast.error('Please fill in location')
+    if (!validate()) {
+      toast.error('Please fix the errors in the form')
       return
     }
 
@@ -256,7 +265,8 @@ export default function DustbinManagement() {
       const res = await api.post('/dustbins', payload)
       // Refresh list
       fetchDustbins()
-      setFormData({ location: '', ward: 'Ward 1', type: 'General', status: 'Good' })
+      setFormData({ location: '', ward: wards[0]?.name || 'Ward 1', type: 'General', status: 'Good' })
+      setErrors({})
       toast.success('Bin added successfully!')
     } catch (error) {
       console.error(error)
@@ -581,13 +591,16 @@ export default function DustbinManagement() {
 
                   {/* Location */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">Location</label>
+                    <div className="flex items-center justify-between mb-2">
+                       <label className="block text-xs font-semibold text-gray-700">Location *</label>
+                       {errors.location && <span className="text-[10px] text-red-500 font-bold">{errors.location}</span>}
+                    </div>
                     <textarea
                       name="location"
                       placeholder="Enter location"
                       value={formData.location}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs resize-none h-16"
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all resize-none h-16 ${errors.location ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
                     ></textarea>
                   </div>
 
@@ -672,7 +685,7 @@ export default function DustbinManagement() {
                 <h3 className="text-lg font-bold text-gray-800">DUSTBIN SUMMARY</h3>
 
                 {/* Total Bins */}
-                <div className="bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg p-4 border-l-4 border-purple-500">
+                <div className="bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-900/10 rounded-lg p-4 border-l-4 border-purple-500 dark:border-purple-600">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold text-gray-700">Total Bins</p>
                     <div className="flex items-center gap-2">
@@ -683,7 +696,7 @@ export default function DustbinManagement() {
                 </div>
 
                 {/* Good */}
-                <div className="bg-gradient-to-br from-green-100 to-green-50 rounded-lg p-4 border-l-4 border-green-500">
+                <div className="bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-900/10 rounded-lg p-4 border-l-4 border-green-500 dark:border-green-600">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold text-gray-700">Good</p>
                     <div className="flex items-center gap-2">
@@ -694,7 +707,7 @@ export default function DustbinManagement() {
                 </div>
 
                 {/* Damaged */}
-                <div className="bg-gradient-to-br from-red-100 to-red-50 rounded-lg p-4 border-l-4 border-red-500">
+                <div className="bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-900/10 rounded-lg p-4 border-l-4 border-red-500 dark:border-red-600">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold text-gray-700">Damaged</p>
                     <div className="flex items-center gap-2">
@@ -705,7 +718,7 @@ export default function DustbinManagement() {
                 </div>
 
                 {/* Needs Replacement */}
-                <div className="bg-gradient-to-br from-orange-100 to-orange-50 rounded-lg p-4 border-l-4 border-orange-500">
+                <div className="bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/10 rounded-lg p-4 border-l-4 border-orange-500 dark:border-orange-600">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold text-gray-700">Needs</p>

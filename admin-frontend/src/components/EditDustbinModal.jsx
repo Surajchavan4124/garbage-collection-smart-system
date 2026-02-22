@@ -10,6 +10,7 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
     type: 'General',
     status: 'Good',
   })
+  const [errors, setErrors] = useState({})
 
   const [wards, setWards] = useState([])
 
@@ -33,6 +34,7 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
         type: dustbin.type || 'General',
         status: dustbin.status || 'Good',
       })
+      setErrors({})
     }
   }, [dustbin])
 
@@ -46,6 +48,16 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setEditData(prev => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  const validate = () => {
+    const newErrors = {}
+    if (!editData.location?.trim()) newErrors.location = 'Location is required'
+    if (!editData.ward?.trim()) newErrors.ward = 'Ward is required'
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const toggleEditing = (field) => {
@@ -53,6 +65,9 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
   }
 
   const handleSave = () => {
+    if (!validate()) {
+      return
+    }
     onUpdate(dustbin._id, editData)
     onClose()
   }
@@ -117,9 +132,12 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
             {/* Location - Editable */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-gray-700">
-                  Location:
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Location:
+                  </label>
+                  {errors.location && <span className="text-[10px] text-red-500 font-bold">{errors.location}</span>}
+                </div>
                 <button
                   onClick={() => toggleEditing('location')}
                   className="p-1 hover:bg-gray-100 rounded transition"
@@ -134,7 +152,9 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
                 disabled={!editingFields.location}
                 className={`w-full px-4 py-2 rounded text-sm resize-none h-16 border transition ${
                   editingFields.location
-                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    ? errors.location
+                        ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                        : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
                     : 'bg-gray-50 border-gray-300 text-gray-700'
                 }`}
               />
@@ -176,9 +196,12 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
             {/* Ward - Editable */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-gray-700">
-                  Ward:
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Ward:
+                  </label>
+                  {errors.ward && <span className="text-[10px] text-red-500 font-bold">{errors.ward}</span>}
+                </div>
                 <button
                   onClick={() => toggleEditing('ward')}
                   className="p-1 hover:bg-gray-100 rounded transition"
@@ -193,7 +216,9 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
                 disabled={!editingFields.ward}
                 className={`w-full px-4 py-2 rounded text-sm border transition ${
                   editingFields.ward
-                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    ? errors.ward
+                        ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                        : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
                     : 'bg-gray-50 border-gray-300 text-gray-700'
                 }`}
               >

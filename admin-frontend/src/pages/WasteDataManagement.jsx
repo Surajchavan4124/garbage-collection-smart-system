@@ -7,26 +7,35 @@ import DeleteWasteEntryModal from '../components/DeleteWasteEntryModal'
 const inputCls = "w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100/60 transition-all bg-white"
 const labelCls = "block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5"
 
-const Field = ({ label, name, value, onChange, type = 'text', suffix, children }) => (
-  <div>
-    <label className={labelCls}>{label}</label>
-    {children || (
-      <div className="relative">
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder="0"
-          className={inputCls}
-        />
-        {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">{suffix}</span>
-        )}
+const Field = ({ label, name, value, onChange, type = 'text', suffix, error, children }) => {
+  const customInputCls = error 
+    ? inputCls.replace('border-gray-200', 'border-red-300').replace('focus:border-teal-300', 'focus:border-red-500').replace('focus:ring-teal-100', 'focus:ring-red-100')
+    : inputCls;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <label className={labelCls.replace(' mb-1.5', '')}>{label}</label>
+        {error && <span className="text-[10px] text-red-500 font-bold">{error}</span>}
       </div>
-    )}
-  </div>
-)
+      {children || (
+        <div className="relative">
+          <input
+            type={type}
+            name={name}
+            value={value}
+            onChange={onChange}
+            placeholder="0"
+            className={customInputCls}
+          />
+          {suffix && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">{suffix}</span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function WasteDataManagement() {
   const [formData, setFormData] = useState({
@@ -48,6 +57,7 @@ export default function WasteDataManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [entryToDelete, setEntryToDelete] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [errors, setErrors] = useState({})
 
   const [viewMode, setViewMode] = useState('ward')
   const [allScans, setAllScans] = useState([])
@@ -96,11 +106,24 @@ export default function WasteDataManagement() {
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  const validate = () => {
+    const newErrors = {}
+    if (!formData.date) newErrors.date = 'Required'
+    if (!formData.ward) newErrors.ward = 'Required'
+    if (!formData.collectionType) newErrors.collectionType = 'Required'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSaveEntry = async (e) => {
     e.preventDefault()
-    if (!formData.date || !formData.ward) { toast.error('Date and Ward are required'); return }
+    if (!validate()) { 
+      toast.error('Please fill in required fields'); 
+      return 
+    }
     try {
       const payload = {
         date: formData.date, collectionType: formData.collectionType, ward: formData.ward,
@@ -137,6 +160,7 @@ export default function WasteDataManagement() {
 
   const handleReset = () => {
     setEditingId(null)
+    setErrors({})
     setFormData({
       date: new Date().toISOString().split('T')[0],
       collectionType: 'Daily',
@@ -206,9 +230,9 @@ export default function WasteDataManagement() {
 
               <form onSubmit={handleSaveEntry} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Date" name="date" value={formData.date} onChange={handleInputChange} type="date" />
-                  <Field label="Collection Type">
-                    <select name="collectionType" value={formData.collectionType} onChange={handleInputChange} className={inputCls}>
+                  <Field label="Date" name="date" value={formData.date} onChange={handleInputChange} type="date" error={errors.date} />
+                  <Field label="Collection Type" error={errors.collectionType}>
+                    <select name="collectionType" value={formData.collectionType} onChange={handleInputChange} className={errors.collectionType ? inputCls.replace('border-gray-200', 'border-red-300 focus:border-red-500 focus:ring-red-100') : inputCls}>
                       <option value="Daily">Daily</option>
                       <option value="Weekly">Weekly</option>
                       <option value="Monthly">Monthly</option>
@@ -216,8 +240,9 @@ export default function WasteDataManagement() {
                   </Field>
                 </div>
 
-                <Field label="Ward">
-                  <select name="ward" value={formData.ward} onChange={handleInputChange} className={inputCls}>
+                <Field label="Ward" error={errors.ward}>
+                  <select name="ward" value={formData.ward} onChange={handleInputChange} className={errors.ward ? inputCls.replace('border-gray-200', 'border-red-300 focus:border-red-500 focus:ring-red-100') : inputCls}>
+                    <option value="">Select Ward</option>
                     {wards.map(ward => <option key={ward._id} value={ward.name}>{ward.name}</option>)}
                   </select>
                 </Field>

@@ -11,8 +11,10 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
     routeName: "",
     stops: [{ stopName: "" }, { stopName: "" }],
     assignedDriver: "",
+    assignedDriver: "",
     assignedVehicle: "",
   });
+  const [errors, setErrors] = useState({});
 
   // Load drivers
   useEffect(() => {
@@ -32,18 +34,21 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
         assignedDriver: route.assignedDriver?._id || route.assignedDriver || "",
         assignedVehicle: route.assignedVehicle || "",
       });
+      setErrors({});
     }
   }, [isOpen, route]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   const handleStopChange = (index, value) => {
     const newStops = [...formData.stops];
     newStops[index].stopName = value;
     setFormData(prev => ({ ...prev, stops: newStops }));
+    if (errors.stops) setErrors(prev => ({ ...prev, stops: "" }));
   }
 
   const addStop = () => {
@@ -54,14 +59,23 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
     setFormData(prev => ({ ...prev, stops: prev.stops.filter((_, i) => i !== index) }));
   }
 
-  const handleSubmit = async () => {
-    if (!formData.routeName) {
-      toast.error("Please enter route name");
-      return;
-    }
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.routeName.trim()) newErrors.routeName = "Route name is required";
+    
     const validStops = formData.stops.filter(s => s.stopName.trim() !== "");
-    if (validStops.length < 2) {
-      toast.error("Please add at least 2 stops");
+    if (validStops.length < 2) newErrors.stops = "At least 2 valid stops required";
+    
+    if (!formData.assignedDriver) newErrors.assignedDriver = "Driver assignment is required";
+    if (!formData.assignedVehicle.trim()) newErrors.assignedVehicle = "Vehicle number is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) {
+      toast.error("Please fix the errors in the form");
       return;
     }
 
@@ -108,15 +122,18 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
           
           <div className="grid grid-cols-2 gap-4">
              <div>
-               <label className="block text-sm font-medium text-gray-700 mb-1">Route Name *</label>
-               <input
-                 type="text"
-                 name="routeName"
-                 value={formData.routeName}
-                 onChange={handleChange}
-                 placeholder="e.g. Ward 1 Morning"
-                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-               />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Route Name *</label>
+                  {errors.routeName && <span className="text-[10px] text-red-500 font-bold">{errors.routeName}</span>}
+                </div>
+                <input
+                  type="text"
+                  name="routeName"
+                  value={formData.routeName}
+                  onChange={handleChange}
+                  placeholder="e.g. Ward 1 Morning"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 outline-none transition-all ${errors.routeName ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
+                />
              </div>
              <div>
                <label className="block text-sm font-medium text-gray-700 mb-1">Route Code</label>
@@ -131,19 +148,22 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
 
           {/* Dynamic Stops */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Route Stops *</label>
+             <div className="flex items-center justify-between mb-2">
+               <label className="block text-sm font-medium text-gray-700">Route Stops *</label>
+               {errors.stops && <span className="text-[10px] text-red-500 font-bold">{errors.stops}</span>}
+             </div>
             {formData.stops.map((stop, index) => (
               <div key={index} className="flex gap-2 mb-2">
-                 <div className="relative flex-1">
-                   <MapPin className="absolute left-3 top-2.5 text-gray-400" size={16}/>
-                   <input
-                     type="text"
-                     value={stop.stopName}
-                     onChange={(e) => handleStopChange(index, e.target.value)}
-                     placeholder={`Stop ${index + 1}`}
-                     className="w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none text-sm"
-                   />
-                 </div>
+                  <div className="relative flex-1">
+                    <MapPin className={`absolute left-3 top-2.5 transition-colors ${errors.stops ? 'text-red-400' : 'text-gray-400'}`} size={16}/>
+                    <input
+                      type="text"
+                      value={stop.stopName}
+                      onChange={(e) => handleStopChange(index, e.target.value)}
+                      placeholder={`Stop ${index + 1}`}
+                      className={`w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 outline-none text-sm transition-all ${errors.stops ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
+                    />
+                  </div>
                  {formData.stops.length > 1 && (
                    <button
                      type="button"
@@ -165,38 +185,44 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-               <label className="block text-sm font-medium text-gray-700 mb-1">Assign Driver</label>
-               <div className="relative">
-                 <User className="absolute left-3 top-2.5 text-gray-400" size={16}/>
-                 <select
-                   name="assignedDriver"
-                   value={formData.assignedDriver}
-                   onChange={handleChange}
-                   className="w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none appearance-none bg-white text-sm"
-                 >
-                   <option value="">Select Driver</option>
-                   {drivers.map(driver => (
-                     <option key={driver._id} value={driver._id}>{driver.name} ({driver.employeeCode})</option>
-                   ))}
-                 </select>
-               </div>
-            </div>
+             <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Assign Driver *</label>
+                  {errors.assignedDriver && <span className="text-[10px] text-red-500 font-bold">{errors.assignedDriver}</span>}
+                </div>
+                <div className="relative">
+                  <User className={`absolute left-3 top-2.5 transition-colors ${errors.assignedDriver ? 'text-red-400' : 'text-gray-400'}`} size={16}/>
+                  <select
+                    name="assignedDriver"
+                    value={formData.assignedDriver}
+                    onChange={handleChange}
+                    className={`w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 outline-none appearance-none bg-white text-sm transition-all ${errors.assignedDriver ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
+                  >
+                    <option value="">Select Driver</option>
+                    {drivers.map(driver => (
+                      <option key={driver._id} value={driver._id}>{driver.name} ({driver.employeeCode})</option>
+                    ))}
+                  </select>
+                </div>
+             </div>
 
-            <div>
-               <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number</label>
-               <div className="relative">
-                 <Truck className="absolute left-3 top-2.5 text-gray-400" size={16}/>
-                 <input
-                   type="text"
-                   name="assignedVehicle"
-                   value={formData.assignedVehicle}
-                   onChange={handleChange}
-                   placeholder="e.g. GA-01-AB-1234"
-                   className="w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none text-sm"
-                 />
-               </div>
-            </div>
+             <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Vehicle Number *</label>
+                  {errors.assignedVehicle && <span className="text-[10px] text-red-500 font-bold">{errors.assignedVehicle}</span>}
+                </div>
+                <div className="relative">
+                  <Truck className={`absolute left-3 top-2.5 transition-colors ${errors.assignedVehicle ? 'text-red-400' : 'text-gray-400'}`} size={16}/>
+                  <input
+                    type="text"
+                    name="assignedVehicle"
+                    value={formData.assignedVehicle}
+                    onChange={handleChange}
+                    placeholder="e.g. GA-01-AB-1234"
+                    className={`w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 outline-none text-sm transition-all ${errors.assignedVehicle ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
+                  />
+                </div>
+             </div>
           </div>
 
         </div>

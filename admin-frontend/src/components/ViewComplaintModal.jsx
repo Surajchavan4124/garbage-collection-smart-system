@@ -1,14 +1,33 @@
 import { useState } from 'react'
 import { X, MapPin, Phone, Calendar, FileText } from 'lucide-react'
+import { toast } from 'react-toastify'
+
 
 export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatusUpdate, employees }) {
   const [selectedStatus, setSelectedStatus] = useState(complaint?.status || 'Received')
   const [selectedEmployee, setSelectedEmployee] = useState(complaint?.assignedEmployee?._id || '')
   const [resolutionTime, setResolutionTime] = useState('')
+  const [errors, setErrors] = useState({})
 
   if (!isOpen || !complaint) return null
 
+  const validate = () => {
+    const newErrors = {}
+    if (selectedStatus === 'In Progress' && !selectedEmployee) {
+      newErrors.employee = 'Required for In Progress'
+    }
+    if (selectedStatus === 'Resolved' && !resolutionTime?.trim()) {
+      newErrors.resolutionTime = 'Required'
+    }
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleUpdateStatus = () => {
+    if (!validate()) {
+      toast.error("Please fill in required fields")
+      return;
+    }
     onStatusUpdate(complaint.originalId || complaint.id, {
       status: selectedStatus,
       assignedTo: selectedEmployee,
@@ -172,11 +191,19 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Assigned To</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold text-gray-600">Assigned To</label>
+                      {errors.employee && <span className="text-[10px] text-red-500 font-bold">{errors.employee}</span>}
+                    </div>
                     <select
                       value={selectedEmployee}
-                      onChange={(e) => setSelectedEmployee(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      onChange={(e) => {
+                        setSelectedEmployee(e.target.value)
+                        if (errors.employee) setErrors(prev => ({ ...prev, employee: '' }))
+                      }}
+                      className={`w-full px-3 py-2 border rounded text-gray-700 text-sm focus:outline-none transition-all ${
+                        errors.employee ? 'border-red-300 focus:ring-2 focus:ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-teal-500'
+                      }`}
                     >
                       <option value="">Search a employee</option>
                       {employees && employees.map(emp => (
@@ -223,13 +250,21 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
 
                   {selectedStatus === 'Resolved' && (
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-2">Resolution Time</label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-semibold text-gray-600">Resolution Time</label>
+                        {errors.resolutionTime && <span className="text-[10px] text-red-500 font-bold">{errors.resolutionTime}</span>}
+                      </div>
                       <input
                         type="text"
                         placeholder="time taken from received to resolved"
                         value={resolutionTime}
-                        onChange={(e) => setResolutionTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        onChange={(e) => {
+                          setResolutionTime(e.target.value)
+                          if (errors.resolutionTime) setErrors(prev => ({ ...prev, resolutionTime: '' }))
+                        }}
+                        className={`w-full px-3 py-2 border rounded text-gray-700 text-sm focus:outline-none transition-all ${
+                          errors.resolutionTime ? 'border-red-300 focus:ring-2 focus:ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-teal-500'
+                        }`}
                       />
                     </div>
                   )}

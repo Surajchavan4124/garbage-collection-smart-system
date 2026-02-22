@@ -15,6 +15,7 @@ export default function AttendanceManagement() {
   const [showManualModal, setShowManualModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [reason, setReason] = useState("");
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
@@ -61,11 +62,15 @@ export default function AttendanceManagement() {
   const openManualModal = (row) => {
     setSelectedEmployee(row);
     setReason("");
+    setErrors({});
     setShowManualModal(true);
   };
 
   const handleManualMark = async () => {
-    if (!reason.trim()) { toast.warn("Reason is required"); return; }
+    if (!reason.trim()) { 
+      setErrors({ reason: "Reason is required" });
+      return; 
+    }
     try {
       setSubmitting(true);
       await api.post("/attendance/manual", {
@@ -307,11 +312,21 @@ export default function AttendanceManagement() {
               <p className="text-white/70 text-xs mt-0.5">Marking present for: {selectedEmployee?.labour?.name}</p>
             </div>
             <div className="p-6">
-              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Reason *</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">Reason *</label>
+                {errors.reason && <span className="text-[10px] text-red-500 font-bold">{errors.reason}</span>}
+              </div>
               <textarea
                 value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl p-3 text-sm text-gray-700 resize-none outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
+                onChange={(e) => {
+                  setReason(e.target.value);
+                  if (errors.reason) setErrors({});
+                }}
+                className={`w-full border rounded-xl p-3 text-sm resize-none outline-none transition-all ${
+                  errors.reason 
+                    ? 'border-red-300 focus:ring-2 focus:ring-red-100 text-gray-700' 
+                    : 'border-gray-200 text-gray-700 focus:border-teal-300 focus:ring-2 focus:ring-teal-100'
+                }`}
                 rows={3}
                 placeholder="Enter reason for manual override…"
               />

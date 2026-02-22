@@ -1,4 +1,4 @@
-import { Leaf } from "lucide-react";
+import logo from '../assets/images/logo.png';
 
 export default function LoadingSpinner() {
   return (
@@ -17,8 +17,8 @@ export default function LoadingSpinner() {
           <div className="absolute inset-0 rounded-full border-[3px] border-t-emerald-500 border-r-transparent border-b-transparent border-l-transparent spin-ring" />
           
           {/* Logo Icon */}
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1f9e9a] to-[#22c55e] flex items-center justify-center shadow-lg shadow-emerald-500/20 breathe-logo">
-            <Leaf size={24} className="text-white" />
+          <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center shadow-lg shadow-emerald-500/10 breathe-logo">
+            <img src={logo} alt="EcoSyz Logo" className="w-8 h-8 object-contain drop-shadow-sm" />
           </div>
         </div>
 

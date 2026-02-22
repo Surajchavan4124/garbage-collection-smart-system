@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Phone, Key, X, Leaf, ArrowRight, RefreshCw } from "lucide-react";
+import { Phone, Key, X, ArrowRight, RefreshCw } from "lucide-react";
+import logo from '../assets/images/logo.png';
 import api from "../api/axios";
 import { toast } from "react-toastify";
 
@@ -128,10 +129,7 @@ export default function Login() {
       <div className="hidden lg:flex w-1/2 flex-col justify-between p-16 relative z-10">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/20"
-            style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}>
-            <Leaf size={20} className="text-white" />
-          </div>
+          <img src={logo} alt="EcoSyz Logo" className="w-11 h-11 object-contain drop-shadow-sm" />
           <div>
             <p className="text-gray-800 font-bold text-base">EcoSyz</p>
             <p className="text-gray-400 text-xs font-medium">Smart Waste Management</p>
@@ -195,10 +193,7 @@ export default function Login() {
 
             {/* Logo (mobile only) */}
             <div className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md"
-                style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}>
-                <Leaf size={16} className="text-white" />
-              </div>
+              <img src={logo} alt="EcoSyz Logo" className="w-9 h-9 object-contain drop-shadow-sm" />
               <p className="text-gray-800 font-bold">EcoSyz Admin</p>
             </div>
 

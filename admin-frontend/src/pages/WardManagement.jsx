@@ -16,6 +16,7 @@ export default function WardManagement() {
   const [selectedWard, setSelectedWard] = useState(null);
   const [wardDustbins, setWardDustbins] = useState([]);
   const [wardName, setWardName] = useState("");
+  const [errors, setErrors] = useState({});
 
   useEffect(() => { loadWards(); }, []);
 
@@ -33,11 +34,15 @@ export default function WardManagement() {
 
   const handleAddWard = async (e) => {
     e.preventDefault();
-    if (!wardName.trim()) return toast.warning("Please enter ward name");
+    if (!wardName.trim()) {
+      setErrors({ wardName: "Ward name is required" });
+      return;
+    }
     try {
       await api.post("/wards", { name: wardName });
       toast.success("Ward added successfully");
       setWardName("");
+      setErrors({});
       setIsAddModalOpen(false);
       loadWards();
     } catch (err) {
@@ -47,11 +52,15 @@ export default function WardManagement() {
 
   const handleEditWard = async (e) => {
     e.preventDefault();
-    if (!wardName.trim()) return toast.warning("Please enter ward name");
+    if (!wardName.trim()) {
+      setErrors({ wardName: "Ward name is required" });
+      return;
+    }
     try {
       await api.put(`/wards/${selectedWard._id}`, { name: wardName });
       toast.success("Ward updated successfully");
       setWardName("");
+      setErrors({});
       setSelectedWard(null);
       setIsEditModalOpen(false);
       loadWards();
@@ -220,19 +229,23 @@ export default function WardManagement() {
 
       <AddWardModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => { setIsAddModalOpen(false); setErrors({}); }}
         onSuccess={loadWards}
         wardName={wardName}
         setWardName={setWardName}
         handleAddWard={handleAddWard}
+        errors={errors}
+        setErrors={setErrors}
       />
 
       <EditWardModal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={() => { setIsEditModalOpen(false); setErrors({}); }}
         wardName={wardName}
         setWardName={setWardName}
         handleEditWard={handleEditWard}
+        errors={errors}
+        setErrors={setErrors}
       />
 
       <DeleteWardModal
@@ -250,19 +263,29 @@ function AddWardModal({ isOpen, onClose, wardName, setWardName, handleAddWard })
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-up">
         <div className="p-5 border-b flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}>
-          <h3 className="text-white font-bold">Add New Ward</h3>
-          <button onClick={onClose} className="text-white/80 hover:text-white"><X size={20} /></button>
+          <h3 className="text-white font-bold text-sm">Add New Ward</h3>
+          <button onClick={onClose} className="p-1 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"><X size={18} /></button>
         </div>
         <form onSubmit={handleAddWard} className="p-6">
-          <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Ward Name</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ward Name</label>
+            {errors.wardName && <span className="text-[10px] text-red-500 font-bold">{errors.wardName}</span>}
+          </div>
           <input
             type="text"
             value={wardName}
-            onChange={(e) => setWardName(e.target.value)}
+            onChange={(e) => {
+               setWardName(e.target.value);
+               if (errors.wardName) setErrors(prev => ({ ...prev, wardName: "" }));
+            }}
             placeholder="e.g. Aquem"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100 transition-all"
+            className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all ${
+               errors.wardName 
+               ? 'border-red-300 focus:ring-2 focus:ring-red-100' 
+               : 'border-gray-200 focus:border-teal-300 focus:ring-2 focus:ring-teal-100'
+            }`}
             autoFocus
           />
           <button
@@ -282,19 +305,29 @@ function EditWardModal({ isOpen, onClose, wardName, setWardName, handleEditWard 
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-up">
         <div className="p-5 border-b flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
-          <h3 className="text-white font-bold">Edit Ward</h3>
-          <button onClick={onClose} className="text-white/80 hover:text-white"><X size={20} /></button>
+          <h3 className="text-white font-bold text-sm">Edit Ward</h3>
+          <button onClick={onClose} className="p-1 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"><X size={18} /></button>
         </div>
         <form onSubmit={handleEditWard} className="p-6">
-          <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Ward Name</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ward Name</label>
+            {errors.wardName && <span className="text-[10px] text-red-500 font-bold">{errors.wardName}</span>}
+          </div>
           <input
             type="text"
             value={wardName}
-            onChange={(e) => setWardName(e.target.value)}
+            onChange={(e) => {
+               setWardName(e.target.value);
+               if (errors.wardName) setErrors(prev => ({ ...prev, wardName: "" }));
+            }}
             placeholder="e.g. Aquem"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+            className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all ${
+               errors.wardName 
+               ? 'border-red-300 focus:ring-2 focus:ring-red-100' 
+               : 'border-gray-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-100'
+            }`}
             autoFocus
           />
           <button

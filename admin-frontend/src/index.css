@@ -124,6 +124,17 @@
 .dark .hover\:bg-teal-50\/30:hover { background-color: rgba(31,158,154,0.08) !important; }
 .dark .bg-emerald-50 { background-color: rgba(16,185,129,0.1) !important; }
 .dark .bg-red-50 { background-color: rgba(239,68,68,0.1) !important; }
+.dark .bg-teal-50 { background-color: rgba(20,184,166,0.1) !important; }
+.dark .bg-blue-50 { background-color: rgba(59,130,246,0.1) !important; }
+.dark .bg-amber-50 { background-color: rgba(245,158,11,0.1) !important; }
+.dark .bg-orange-50 { background-color: rgba(249,115,22,0.1) !important; }
+.dark .bg-orange-100 { background-color: rgba(249,115,22,0.15) !important; }
+.dark .bg-cyan-100 { background-color: rgba(6,182,212,0.15) !important; }
+.dark .bg-purple-50 { background-color: rgba(168,85,247,0.1) !important; }
+.dark .bg-green-50 { background-color: rgba(34,197,94,0.1) !important; }
+.dark .bg-gray-200 { background-color: #334155 !important; }
+.dark .bg-gray-300 { background-color: #475569 !important; }
+
 .dark .text-gray-900 { color: var(--text-primary); }
 .dark .text-slate-900 { color: var(--text-primary); }
 .dark .text-gray-800 { color: var(--text-primary); }
@@ -133,13 +144,29 @@
 .dark .text-gray-400 { color: var(--text-muted); }
 .dark .text-slate-500 { color: var(--text-secondary); }
 .dark .text-slate-400 { color: var(--text-muted); }
+
 .dark .border-gray-100 { border-color: rgba(255,255,255,0.08) !important; }
 .dark .border-gray-200 { border-color: rgba(255,255,255,0.15) !important; }
-.dark input, .dark select, .dark textarea { border-color: rgba(255,255,255,0.2) !important; }
+.dark .border-gray-300 { border-color: rgba(255,255,255,0.2) !important; }
+
+.dark input, .dark select, .dark textarea { 
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(255,255,255,0.2) !important; 
+}
+.dark input::placeholder, .dark textarea::placeholder {
+  color: var(--text-muted) !important;
+}
 .dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important; }
 .dark .shadow-lg { box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; }
 .dark .shadow-xl { box-shadow: 0 16px 48px rgba(0,0,0,0.6) !important; }
 .dark .shadow-2xl { box-shadow: 0 24px 64px rgba(0,0,0,0.7) !important; }
+
+/* Calendar icon visibility in dark mode */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
 
 /* Forced Light Mode (for Login etc) */
 .forced-light {

@@ -31,11 +31,11 @@ export default function ReportGenerationAnalytics() {
   }, [generatedReports.length])
 
   const reports = [
-    { id: 1, title: 'Waste Collection Summaries', description: 'Generate detailed reports on waste collection activities and trends', icon: TrendingUp, color: 'bg-blue-50', iconColor: 'text-blue-600', borderColor: 'border-blue-100' },
-    { id: 2, title: 'Complaint & Grievance Resolution', description: 'Analyze complaint handling and resolution timelines', icon: BarChart3, color: 'bg-green-50', iconColor: 'text-green-600', borderColor: 'border-green-100' },
-    { id: 3, title: 'Segregation Compliance Metrics', description: 'View segregation compliance percentages across wards', icon: FileText, color: 'bg-purple-50', iconColor: 'text-purple-600', borderColor: 'border-purple-100' },
-    { id: 4, title: 'Employee Attendance Summaries', description: 'Generate employee attendance reports and statistics', icon: Users, color: 'bg-red-50', iconColor: 'text-red-600', borderColor: 'border-red-100' },
-    { id: 5, title: 'Year-on-Year Growth Charts', description: 'Compare performance metrics across different years', icon: BarChart3, color: 'bg-indigo-50', iconColor: 'text-indigo-600', borderColor: 'border-indigo-100' }
+    { id: 1, title: 'Waste Collection Summaries', description: 'Generate detailed reports on waste collection activities and trends', icon: TrendingUp, color: 'bg-blue-50 dark:bg-blue-900/20', iconColor: 'text-blue-600 dark:text-blue-400', borderColor: 'border-blue-100 dark:border-blue-800/50' },
+    { id: 2, title: 'Complaint & Grievance Resolution', description: 'Analyze complaint handling and resolution timelines', icon: BarChart3, color: 'bg-green-50 dark:bg-green-900/20', iconColor: 'text-green-600 dark:text-green-400', borderColor: 'border-green-100 dark:border-green-800/50' },
+    { id: 3, title: 'Segregation Compliance Metrics', description: 'View segregation compliance percentages across wards', icon: FileText, color: 'bg-purple-50 dark:bg-purple-900/20', iconColor: 'text-purple-600 dark:text-purple-400', borderColor: 'border-purple-100 dark:border-purple-800/50' },
+    { id: 4, title: 'Employee Attendance Summaries', description: 'Generate employee attendance reports and statistics', icon: Users, color: 'bg-red-50 dark:bg-red-900/20', iconColor: 'text-red-600 dark:text-red-400', borderColor: 'border-red-100 dark:border-red-800/50' },
+    { id: 5, title: 'Year-on-Year Growth Charts', description: 'Compare performance metrics across different years', icon: BarChart3, color: 'bg-indigo-50 dark:bg-indigo-900/20', iconColor: 'text-indigo-600 dark:text-indigo-400', borderColor: 'border-indigo-100 dark:border-indigo-800/50' }
   ]
 
   const handleGenerateReport = (report) => {
@@ -70,7 +70,7 @@ export default function ReportGenerationAnalytics() {
               return (
                 <div key={report.id} className={`${report.color} border ${report.borderColor} rounded-2xl p-6 text-center space-y-4 hover:shadow-md transition-all group`}>
                   <div className="flex justify-center">
-                    <div className={`p-4 bg-white rounded-xl shadow-sm ${report.iconColor} group-hover:scale-110 transition-transform`}>
+                    <div className={`p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm ${report.iconColor} group-hover:scale-110 transition-transform`}>
                       <Icon size={32} />
                     </div>
                   </div>

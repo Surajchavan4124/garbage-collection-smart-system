@@ -24,6 +24,7 @@ export default function HouseholdManagement() {
     headName: '',
     contact: '',
   })
+  const [errors, setErrors] = useState({})
   
   // Modal states
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
@@ -200,12 +201,27 @@ export default function HouseholdManagement() {
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  const validate = () => {
+    const newErrors = {}
+    if (!formData.houseNumber.trim()) newErrors.houseNumber = 'House Number is required'
+    if (!formData.address.trim()) newErrors.address = 'Address is required'
+    if (!formData.headName.trim()) newErrors.headName = 'Owner Name is required'
+    
+    const contactRegex = /^\d{10}$/
+    if (!formData.contact.trim()) newErrors.contact = 'Contact is required'
+    else if (!contactRegex.test(formData.contact)) newErrors.contact = 'Invalid 10-digit contact'
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSaveHousehold = async (e) => {
     e.preventDefault()
-    if (!formData.address.trim() || !formData.headName.trim() || !formData.contact.trim() || !formData.houseNumber.trim()) {
-      toast.error('Please fill in all fields')
+    if (!validate()) {
+      toast.error('Please fix the errors in the form')
       return
     }
 
@@ -223,7 +239,8 @@ export default function HouseholdManagement() {
 
       await api.post('/households', payload)
       fetchHouseholds()
-      setFormData({ houseNumber: '', address: '', wardAssigned: 'Ward 1', headName: '', contact: '' })
+      setFormData({ houseNumber: '', address: '', wardAssigned: wards[0]?.name || 'Ward 1', headName: '', contact: '' })
+      setErrors({})
       toast.success('Household added successfully!')
     } catch (error) {
       console.error(error)
@@ -624,30 +641,32 @@ export default function HouseholdManagement() {
 
                   {/* House Number (Manual) */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      House Number
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                       <label className="block text-xs font-semibold text-gray-700">House Number *</label>
+                       {errors.houseNumber && <span className="text-[10px] text-red-500 font-bold">{errors.houseNumber}</span>}
+                    </div>
                     <input
                       type="text"
                       name="houseNumber"
                       placeholder="e.g. H-101"
                       value={formData.houseNumber}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.houseNumber ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
                     />
                   </div>
 
                   {/* Address */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Address
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                       <label className="block text-xs font-semibold text-gray-700">Address *</label>
+                       {errors.address && <span className="text-[10px] text-red-500 font-bold">{errors.address}</span>}
+                    </div>
                     <textarea
                       name="address"
                       placeholder="Enter address"
                       value={formData.address}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs resize-none h-16"
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all resize-none h-16 ${errors.address ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
                     ></textarea>
                   </div>
 
@@ -672,31 +691,33 @@ export default function HouseholdManagement() {
 
                   {/* Name of the Head */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Name of the Head
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                       <label className="block text-xs font-semibold text-gray-700">Owner Name *</label>
+                       {errors.headName && <span className="text-[10px] text-red-500 font-bold">{errors.headName}</span>}
+                    </div>
                     <input
                       type="text"
                       name="headName"
                       placeholder="Enter name"
                       value={formData.headName}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.headName ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
                     />
                   </div>
 
                   {/* Contact */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Contact
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                       <label className="block text-xs font-semibold text-gray-700">Contact *</label>
+                       {errors.contact && <span className="text-[10px] text-red-500 font-bold">{errors.contact}</span>}
+                    </div>
                     <input
                       type="text"
                       name="contact"
-                      placeholder="Enter contact number"
+                      placeholder="10-digit number"
                       value={formData.contact}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.contact ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
                     />
                   </div>
 
@@ -710,7 +731,10 @@ export default function HouseholdManagement() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ houseNumber: '', address: '', wardAssigned: 'Ward 1', headName: '', contact: '' })}
+                      onClick={() => {
+                        setFormData({ houseNumber: '', address: '', wardAssigned: wards[0]?.name || 'Ward 1', headName: '', contact: '' });
+                        setErrors({});
+                      }}
                       className="flex-1 px-3 py-2 bg-red-500 text-white rounded font-semibold text-xs hover:bg-red-600 transition"
                     >
                       Cancel

@@ -10,6 +10,7 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
     address: household?.address || '', // Added address
     ward: household?.ward || '',       // Added ward
   })
+  const [errors, setErrors] = useState({})
 
   const [wards, setWards] = useState([])
 
@@ -36,6 +37,7 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
         address: household.address || '',
         ward: household.ward || ''
       })
+      setErrors({})
     }
   }, [household])
 
@@ -50,6 +52,21 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setEditData(prev => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  const validate = () => {
+    const newErrors = {}
+    if (!editData.headOfHousehold?.trim()) newErrors.headOfHousehold = 'Name is required'
+    if (!editData.address?.trim()) newErrors.address = 'Address is required'
+    if (!editData.ward?.trim()) newErrors.ward = 'Ward is required'
+    
+    const contactRegex = /^\d{10}$/
+    if (!editData.contact?.trim()) newErrors.contact = 'Contact is required'
+    else if (!contactRegex.test(editData.contact)) newErrors.contact = 'Invalid 10-digit number'
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const toggleEditing = (field) => {
@@ -57,6 +74,10 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
   }
 
   const handleSave = () => {
+    if (!validate()) {
+      toast.error('Please fix the errors in the form')
+      return
+    }
     onUpdate(household._id, editData)
     onClose()
   }
@@ -105,9 +126,12 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
             {/* Household Head Name - Editable */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-gray-700">
-                  Household Head Name:
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Household Head Name:
+                  </label>
+                  {errors.headOfHousehold && <span className="text-[10px] text-red-500 font-bold">{errors.headOfHousehold}</span>}
+                </div>
                 <button
                   onClick={() => toggleEditing('headOfHousehold')}
                   className="p-1 hover:bg-gray-100 rounded transition"
@@ -123,7 +147,9 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 disabled={!editingFields.headOfHousehold}
                 className={`w-full px-4 py-2 rounded text-sm border transition ${
                   editingFields.headOfHousehold
-                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    ? errors.headOfHousehold 
+                        ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                        : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
                     : 'bg-gray-50 border-gray-300 text-gray-700'
                 }`}
               />
@@ -132,9 +158,12 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
             {/* Address - Editable */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-gray-700">
-                  Address:
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Address:
+                  </label>
+                  {errors.address && <span className="text-[10px] text-red-500 font-bold">{errors.address}</span>}
+                </div>
                 <button
                   onClick={() => toggleEditing('address')}
                   className="p-1 hover:bg-gray-100 rounded transition"
@@ -149,7 +178,9 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 disabled={!editingFields.address}
                 className={`w-full px-4 py-2 rounded text-sm border transition resize-none h-20 ${
                   editingFields.address
-                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    ? errors.address
+                        ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                        : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
                     : 'bg-gray-50 border-gray-300 text-gray-700'
                 }`}
               />
@@ -158,9 +189,12 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
             {/* Assigned Ward - Editable */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-gray-700">
-                  Assigned Ward:
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Assigned Ward:
+                  </label>
+                  {errors.ward && <span className="text-[10px] text-red-500 font-bold">{errors.ward}</span>}
+                </div>
                 <button
                   onClick={() => toggleEditing('ward')}
                   className="p-1 hover:bg-gray-100 rounded transition"
@@ -175,7 +209,9 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 disabled={!editingFields.ward}
                 className={`w-full px-4 py-2 rounded text-sm border transition ${
                   editingFields.ward
-                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    ? errors.ward
+                        ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                        : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
                     : 'bg-gray-50 border-gray-300 text-gray-700'
                 }`}
               >
@@ -189,9 +225,12 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
             {/* Contact - Editable */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-gray-700">
-                  Contact:
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Contact:
+                  </label>
+                  {errors.contact && <span className="text-[10px] text-red-500 font-bold">{errors.contact}</span>}
+                </div>
                 <button
                   onClick={() => toggleEditing('contact')}
                   className="p-1 hover:bg-gray-100 rounded transition"
@@ -207,7 +246,9 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 disabled={!editingFields.contact}
                 className={`w-full px-4 py-2 rounded text-sm border transition ${
                   editingFields.contact
-                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                    ? errors.contact
+                        ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                        : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
                     : 'bg-gray-50 border-gray-300 text-gray-700'
                 }`}
               />

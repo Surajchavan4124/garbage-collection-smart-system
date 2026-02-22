@@ -1,4 +1,4 @@
-import { Leaf } from 'lucide-react'
+import logo from '../assets/images/logo.png'
 
 /**
  * Full-page loading overlay with animated teal-green pulse ring.
@@ -17,10 +17,10 @@ export default function PageLoader({ message = 'Loading…' }) {
           style={{ animationDelay: '0.3s', background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }} />
 
         {/* Core icon */}
-        <div className="relative w-16 h-16 rounded-2xl shadow-xl flex items-center justify-center animate-bounce"
-          style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)', animationDuration: '1.4s' }}
+        <div className="relative w-16 h-16 rounded-2xl shadow-xl flex items-center justify-center animate-bounce bg-white border border-gray-50"
+          style={{ animationDuration: '1.4s' }}
         >
-          <Leaf size={28} className="text-white drop-shadow" />
+          <img src={logo} alt="EcoSyz Logo" className="w-10 h-10 object-contain drop-shadow-sm" />
         </div>
       </div>
 

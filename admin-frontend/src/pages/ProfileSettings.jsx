@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { Edit2, Shield, Calendar, CreditCard, ChevronRight } from "lucide-react";
 import DeactivateProfileModal from "../components/DeactivateProfileModal";
 import { toast } from "react-toastify";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function ProfileSettings() {
   const [profile, setProfile] = useState(null);
@@ -10,6 +11,7 @@ export default function ProfileSettings() {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState({});
   const [isDeactivateOpen, setIsDeactivateOpen] = useState(false);
+  const { isDark } = useTheme();
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -182,11 +184,13 @@ export default function ProfileSettings() {
               </div>
 
               {/* Security Note */}
-              <div className="flex items-start gap-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
-                <div className="p-2 bg-white rounded-lg text-blue-600 shadow-sm"><Shield size={18} /></div>
+              <div className={`flex items-start gap-4 p-4 rounded-xl border ${isDark ? 'bg-blue-900/30 border-blue-800/50' : 'bg-blue-50 border-blue-100'}`}>
+                <div className={`p-2 rounded-lg shadow-sm ${isDark ? 'bg-slate-800 text-blue-400' : 'bg-white text-blue-600'}`}>
+                  <Shield size={18} />
+                </div>
                 <div>
-                  <h4 className="text-xs font-bold text-blue-900">Security & Privacy</h4>
-                  <p className="text-xs text-blue-700/70 mt-1 leading-relaxed">
+                  <h4 className={`text-xs font-bold ${isDark ? 'text-blue-200' : 'text-blue-900'}`}>Security & Privacy</h4>
+                  <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
                     Some account details like your Panchayat Name and Root Admin status are managed by Ecosyz Support.
                   </p>
                 </div>
