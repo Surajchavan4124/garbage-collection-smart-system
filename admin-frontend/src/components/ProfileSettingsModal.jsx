@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Edit2 } from 'lucide-react'
+import { X, Edit2, Settings } from 'lucide-react'
 
 export default function ProfileSettingsModal({ isOpen, onClose }) {
   const [isEditing, setIsEditing] = useState({})
@@ -38,16 +38,27 @@ export default function ProfileSettingsModal({ isOpen, onClose }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl my-8">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-2xl font-bold text-gray-800">Your Profile Settings</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X size={24} />
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8 border border-gray-100 animate-fade-in-up overflow-hidden">
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-5"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <Settings size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Admin</p>
+                <h2 className="text-white font-bold text-sm">Profile Settings</h2>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
 
         {/* Content */}
         <div className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -277,21 +288,19 @@ export default function ProfileSettingsModal({ isOpen, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 justify-end border-t border-gray-200 px-6 py-4">
-          <button
-            onClick={handleDeleteProfile}
-            className="px-6 py-2 bg-red-600 text-white rounded font-semibold text-sm hover:bg-red-700"
-          >
-            Delete Your Profile
+        <div className="flex gap-3 justify-end border-t border-gray-100 px-6 py-4">
+          <button onClick={handleDeleteProfile}
+            className="px-5 py-2.5 bg-red-50 text-red-500 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors">
+            Delete Profile
           </button>
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-teal-600 text-white rounded font-semibold text-sm hover:bg-teal-700"
-          >
-            Save changes
+          <button onClick={onClose}
+            className="px-5 py-2.5 text-white rounded-xl text-sm font-bold"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            Save Changes
           </button>
         </div>
+       </div>
       </div>
-    </div>
+    </>
   )
 }

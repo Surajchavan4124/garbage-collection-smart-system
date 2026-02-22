@@ -67,17 +67,11 @@ export default function ManagePhotoGallery() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar - Fixed */}
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
-
-      {/* Main Content */}
-      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
-        {/* Top Header - Fixed */}
+      <div className="ml-64 flex-1 flex flex-col">
         <TopHeader />
-
-        {/* Page Content - Scrollable below header */}
-        <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
+        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
           
           {/* Breadcrumbs */}
           <div className="mb-6 text-sm text-gray-600">

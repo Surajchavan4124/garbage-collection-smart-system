@@ -71,7 +71,7 @@ export default function WasteStats() {
   return (
     <div className="grid grid-cols-3 gap-6">
       {/* Weekly Collection */}
-      <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Weekly collection</h3>
         <p className="text-4xl font-bold text-gray-900 mb-1">{stats.weeklyTotal}</p>
         <p className="text-xs text-gray-500 mb-6">kg collected this week</p>
@@ -90,14 +90,14 @@ export default function WasteStats() {
                 cursor={{ fill: '#f3f4f6' }}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
-              <Bar dataKey="total" fill="#1f9e9a" radius={[4, 4, 0, 0]} barSize={20} />
+              <Bar dataKey="total" fill="url(#tealGradient)" radius={[4, 4, 0, 0]} barSize={20} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Monthly Collection */}
-      <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Monthly collection</h3>
         <p className="text-4xl font-bold text-gray-900 mb-1">{stats.monthlyTotal}</p>
         <p className="text-xs text-gray-500 mb-6">kg collected this month<br />vs last month {stats.lastMonthTotal} kg</p>
@@ -128,7 +128,7 @@ export default function WasteStats() {
       </div>
 
       {/* Collection Summary with Filters */}
-      <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Waste collection summary</h3>
           
@@ -138,7 +138,7 @@ export default function WasteStats() {
             <div className="relative">
               <button
                 onClick={() => setShowDayDropdown(!showDayDropdown)}
-                className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-200 transition flex items-center gap-1"
+                className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-200 transition flex items-center gap-1 border border-gray-200"
               >
                 {filterDay}
                 <ChevronDown size={14} className={`transition-transform ${showDayDropdown ? 'rotate-180' : ''}`} />
@@ -154,10 +154,10 @@ export default function WasteStats() {
                         setFilterDay(day)
                         setShowDayDropdown(false)
                       }}
-                      className={`w-full text-left px-4 py-2 text-xs font-medium transition ${
+                      className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors ${
                         filterDay === day
-                          ? 'bg-[#1f9e9a] text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white'
+                          : 'text-gray-700 hover:bg-teal-50 hover:text-teal-700'
                       }`}
                     >
                       {day}
@@ -171,7 +171,7 @@ export default function WasteStats() {
             <div className="relative">
               <button
                 onClick={() => setShowWardDropdown(!showWardDropdown)}
-                className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-200 transition flex items-center gap-1"
+                className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-200 transition flex items-center gap-1 border border-gray-200"
               >
                 {filterWard}
                 <ChevronDown size={14} className={`transition-transform ${showWardDropdown ? 'rotate-180' : ''}`} />
@@ -187,10 +187,10 @@ export default function WasteStats() {
                         setFilterWard(ward.name)
                         setShowWardDropdown(false)
                       }}
-                      className={`w-full text-left px-4 py-2 text-xs font-medium transition ${
+                      className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors ${
                         filterWard === ward.name
-                          ? 'bg-[#1f9e9a] text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white'
+                          : 'text-gray-700 hover:bg-teal-50 hover:text-teal-700'
                       }`}
                     >
                       {ward.name}

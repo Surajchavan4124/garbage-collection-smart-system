@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
+import { AlertCircle, CheckCircle2, Clock, Users, Leaf } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
 import KPICard from '../components/KPICard'
@@ -11,21 +12,16 @@ import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function Dashboard() {
   
-  // 1. Complaint Stats Query
-  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: async () => {
       const res = await api.get('/complaints/stats')
       return res.data
     },
-    onError: (err) => {
-        console.error("Failed to fetch dashboard stats", err)
-        toast.error("Failed to fetch dashboard stats")
-    },
+    onError: () => toast.error("Failed to fetch dashboard stats"),
     refetchInterval: 10000
   })
 
-  // 2. Attendance Query
   const { data: attendanceStats, isLoading: attendanceLoading } = useQuery({
     queryKey: ['attendanceToday'],
     queryFn: async () => {
@@ -35,7 +31,6 @@ export default function Dashboard() {
     select: (data) => {
       const total = data.length
       const present = data.filter(d => d.present).length
-      // Map for recent list (taking first 5)
       const recent = data.slice(0, 5).map(d => ({
         name: d.labour.name,
         status: d.present ? 'Present' : 'Absent'
@@ -45,43 +40,63 @@ export default function Dashboard() {
     refetchInterval: 10000
   })
 
-  if (statsLoading || attendanceLoading) {
-    return <LoadingSpinner />
-  }
+  if (statsLoading || attendanceLoading) return <LoadingSpinner />
 
-  // Fallback values if data is missing or error occurred
   const safeStats = stats || { newComplaints: 0, pendingComplaints: 0, resolvedComplaints: 0 }
   const safeAttendance = attendanceStats || { total: 0, present: 0, recent: [] }
 
   return (
-    <div className="flex bg-[#e5e9f0]">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-mesh">
       <Sidebar />
 
-      {/* Main Content */}
-      <div className="ml-64 w-full">
-        {/* Top Header */}
+      <div className="ml-64 flex-1">
         <TopHeader />
 
-        {/* Content Area */}
-        <div className="pt-20 px-8 pb-8">
-          {/* Breadcrumb */}
-          <p className="text-sm text-gray-600 mb-6 font-medium">Main {'>'} Central Admin Dashboard</p>
+        <div className="pt-20 px-8 pb-10 animate-fade-in-up">
 
-          {/* Row 1: Complaints KPI */}
-          <div className="mb-8">
-            <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide mb-4">Complaints Overview</h2>
-            <div className="grid grid-cols-3 gap-6">
-              <KPICard title="New Complaints" value={safeStats.newComplaints} subtitle="In last 24 hours" />
-              <KPICard title="Pending Complaints" value={safeStats.pendingComplaints} subtitle="Status: Received" />
-              <KPICard title="Resolved Complaints" value={safeStats.resolvedComplaints} subtitle="This Month" />
+          {/* Page header */}
+          <div className="mb-8 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1f9e9a] to-[#22c55e] flex items-center justify-center shadow-sm">
+              <Leaf size={16} className="text-white" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 font-medium">Main › Central Admin Dashboard</p>
+              <h1 className="text-lg font-bold text-gray-800 leading-tight">Overview</h1>
             </div>
           </div>
 
+          {/* Row 1: Complaints KPI */}
+          <section className="mb-8">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Complaints Overview</h2>
+            <div className="grid grid-cols-3 gap-5">
+              <KPICard
+                title="New Complaints"
+                value={safeStats.newComplaints}
+                subtitle="In last 24 hours"
+                icon={AlertCircle}
+                color="blue"
+              />
+              <KPICard
+                title="Pending Complaints"
+                value={safeStats.pendingComplaints}
+                subtitle="Status: Received"
+                icon={Clock}
+                color="orange"
+              />
+              <KPICard
+                title="Resolved This Month"
+                value={safeStats.resolvedComplaints}
+                subtitle="Resolved complaints"
+                icon={CheckCircle2}
+                color="green"
+              />
+            </div>
+          </section>
+
           {/* Row 2: Attendance */}
-          <div className="mb-8">
-            <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide mb-4">Staff Attendance Summary</h2>
-            <div className="grid grid-cols-5 gap-6">
+          <section className="mb-8">
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Staff Attendance — Today</h2>
+            <div className="grid grid-cols-5 gap-5">
               <div className="col-span-2">
                 <AttendanceCard 
                   total={safeAttendance.total}
@@ -96,13 +111,14 @@ export default function Dashboard() {
                 />
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Row 3: Waste Collection */}
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide mb-4">Quick Waste Collection Stats</h2>
+          {/* Row 3: Waste */}
+          <section>
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Waste Collection Stats</h2>
             <WasteStats />
-          </div>
+          </section>
+
         </div>
       </div>
     </div>

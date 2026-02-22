@@ -318,22 +318,14 @@ export default function DustbinManagement() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar - Fixed */}
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
-
-      {/* Main Content */}
-      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
-        {/* Top Header - Fixed */}
+      <div className="ml-64 flex-1 flex flex-col">
         <TopHeader />
-
-        {/* Page Content - Scrollable below header */}
-        <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
-          
-          {/* Breadcrumbs */}
-          <div className="mb-6 text-sm text-gray-600">
-            <span>Main</span> &gt; <span>Operational Management Dashboard</span> &gt;{' '}
-            <span className="font-semibold text-gray-800">Dustbin Management</span>
+        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
+          <div className="mb-6">
+            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Dustbin Management</p>
+            <h1 className="text-xl font-black text-gray-800">Dustbin Management</h1>
           </div>
 
           {/* Main Container - 2 Column Layout */}
@@ -343,9 +335,9 @@ export default function DustbinManagement() {
             <div className="lg:col-span-2 space-y-6">
               
               {/* ===== DUSTBIN REGISTRY TABLE ===== */}
-              <div className="bg-white rounded-lg shadow">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 {/* Title & Search Toolbar */}
-                <div className="px-6 py-4 border-b border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-50">
                   <h2 className="text-lg font-bold text-gray-800 mb-4">DUSTBIN REGISTRY</h2>
                   
                   <div className="flex items-center gap-3">
@@ -459,40 +451,47 @@ export default function DustbinManagement() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-teal-500 text-white">
-                        <th className="px-6 py-3 text-left text-xs font-bold">Bin ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Ward</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Location</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Type</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Actions</th>
+                      <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                        {['Bin ID', 'Ward', 'Location', 'Type', 'Status', 'Actions'].map(h => (
+                          <th key={h} className="px-5 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                        ))}
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-gray-50">
                       {filteredDustbins.map((bin, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-6 py-4 text-sm font-semibold text-gray-800">{bin.id}</td>
-                          <td className="px-6 py-4 text-sm text-gray-800 font-bold">{bin.ward}</td>
-                          <td className="px-6 py-4 text-sm text-gray-700">{bin.location}</td>
-                          <td className="px-6 py-4 text-sm text-gray-700">{bin.type}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(bin.status)}`}>
+                        <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-teal-50/30`}>
+                          <td className="px-5 py-3.5">
+                            <span className="text-xs font-mono font-bold text-teal-600">{bin.id}</span>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className="text-xs font-semibold text-gray-700 bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-100">{bin.ward}</span>
+                          </td>
+                          <td className="px-5 py-3.5 text-xs text-gray-500 max-w-32 truncate">{bin.location}</td>
+                          <td className="px-5 py-3.5 text-xs text-gray-600 font-medium">{bin.type}</td>
+                          <td className="px-5 py-3.5">
+                            <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full border ${
+                              bin.status === 'Good' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                              bin.status === 'Damaged' ? 'bg-orange-50 text-orange-500 border-orange-100' :
+                              'bg-red-50 text-red-500 border-red-100'
+                            }`}>
                               {bin.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 flex gap-2">
-                            <button
-                              onClick={() => handleViewBin(bin)}
-                              className="p-2 text-blue-500 border border-blue-500 rounded hover:bg-blue-50 transition"
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDirectTableDelete(bin)}
-                              className="p-2 text-red-500 border border-red-500 rounded hover:bg-red-50 transition"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleViewBin(bin)}
+                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleDirectTableDelete(bin)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -502,7 +501,7 @@ export default function DustbinManagement() {
               </div>
 
               {/* ===== MAP VIEW ===== */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">MAP VIEW</h3>
 
                 <div className="w-full bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg overflow-hidden" style={{ height: '300px' }}>

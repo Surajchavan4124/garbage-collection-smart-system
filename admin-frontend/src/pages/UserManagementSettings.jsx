@@ -153,12 +153,11 @@ export default function UserManagementSettings() {
   
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
+      <div className="ml-64 flex-1 flex flex-col">
         <TopHeader onProfileSettingsClick={() => setIsProfileModalOpen(true)} />
-        
-        <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
+        <div className="pt-20 flex-1 overflow-y-auto px-6 pb-10 animate-fade-in-up">
           
           <div className="mb-6 text-sm text-gray-600">
             <span>Analytics & Settings</span> &gt; <span className="font-semibold text-gray-800">User Management & Settings</span>

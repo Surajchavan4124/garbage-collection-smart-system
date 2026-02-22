@@ -63,29 +63,29 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
 
   return (
     <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-50"
-        onClick={onClose}
-      ></div>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
 
-      {/* Modal Container */}
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-          
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-800">EDIT BIN DETAILS</h2>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded transition"
-            >
-              <X size={24} className="text-gray-600" />
+          <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1e293b, #334155)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+                <Edit2 size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/60 text-[10px] font-medium uppercase tracking-wider">Edit Record</p>
+                <h2 className="text-white font-bold text-sm">Edit Bin Details</h2>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
             </button>
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6 overflow-y-auto flex-1">
             
             {/* Bin ID - Read Only */}
             <div>
@@ -290,19 +290,16 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
             </div>
           </div>
 
-          {/* Footer - Action Buttons */}
-          <div className="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end">
-            <button
-              onClick={handleSave}
-              className="px-6 py-2 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 transition"
-            >
-              Update & Save
-            </button>
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition"
-            >
+          {/* Footer */}
+          <div className="px-6 pb-6 pt-4 border-t border-gray-50 flex gap-3 flex-shrink-0">
+            <button onClick={onClose}
+              className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
               Cancel
+            </button>
+            <button onClick={handleSave}
+              className="flex-1 px-4 py-2.5 text-white rounded-xl text-sm font-bold"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+              Update & Save
             </button>
           </div>
         </div>

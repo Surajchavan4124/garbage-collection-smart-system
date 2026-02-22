@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Calendar, Plus } from 'lucide-react'
+import { X, Calendar, Plus, FileText } from 'lucide-react'
 import { toast } from 'react-toastify'
 import api from '../api/axios'
 import { generatePDF, generateExcel } from '../utils/reportGenerator'
@@ -122,22 +122,30 @@ export default function GenerationOfReportModal({ isOpen, onClose, reportType, o
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl max-h-screen overflow-y-auto">
-        
-        {/* Modal Header */}
-        <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
-          <h2 className="text-2xl font-bold text-gray-800">GENERATE REPORT</h2>
-          <button
-            onClick={handleCancel}
-            className="p-1 hover:bg-gray-100 rounded transition"
-          >
-            <X size={28} className="text-gray-600" />
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={handleCancel} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
 
-        {/* Form Content */}
-        <div className="space-y-6">
+          {/* Header */}
+          <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <FileText size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Reports</p>
+                <h2 className="text-white font-bold text-sm">Generate Report</h2>
+              </div>
+            </div>
+            <button onClick={handleCancel} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Form Content */}
+          <div className="p-6 space-y-6 overflow-y-auto flex-1">
 
           {/* Date Range Section */}
           <div className="space-y-4">
@@ -278,26 +286,21 @@ export default function GenerationOfReportModal({ isOpen, onClose, reportType, o
               </label>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200">
-          <button
-            onClick={handleCancel}
-            disabled={loading}
-            className="flex-1 px-6 py-2 bg-red-500 text-white rounded font-semibold text-sm hover:bg-red-600 transition"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="flex-1 px-6 py-2 bg-teal-500 text-white rounded font-semibold text-sm hover:bg-teal-600 transition disabled:opacity-50"
-          >
-            {loading ? 'Generating...' : 'Generate'}
-          </button>
+          {/* Action Buttons */}
+          <div className="flex gap-3 px-6 pb-6 pt-4 border-t border-gray-100 flex-shrink-0">
+            <button onClick={handleCancel} disabled={loading}
+              className="flex-1 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
+              Cancel
+            </button>
+            <button onClick={handleGenerate} disabled={loading}
+              className="flex-1 px-5 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+              {loading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generating...</> : 'Generate Report'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

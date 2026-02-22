@@ -310,22 +310,14 @@ export default function HouseholdManagement() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar - Fixed */}
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
-
-      {/* Main Content */}
-      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
-        {/* Top Header - Fixed */}
+      <div className="ml-64 flex-1 flex flex-col">
         <TopHeader />
-
-        {/* Page Content - Scrollable below header */}
-        <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
-          
-          {/* Breadcrumbs */}
-          <div className="mb-6 text-sm text-gray-600">
-            <span>Main</span> &gt; <span>Operational Management Dashboard</span> &gt;{' '}
-            <span className="font-semibold text-gray-800">Household Management</span>
+        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
+          <div className="mb-6">
+            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Household Management</p>
+            <h1 className="text-xl font-black text-gray-800">Household Management</h1>
           </div>
 
           {/* Main Container - 2 Column Layout */}
@@ -335,9 +327,9 @@ export default function HouseholdManagement() {
             <div className="lg:col-span-2 space-y-6">
               
               {/* ===== HOUSEHOLD REGISTRY TABLE ===== */}
-              <div className="bg-white rounded-lg shadow">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 {/* Title & Search Toolbar */}
-                <div className="px-6 py-4 border-b border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-50">
                   <h2 className="text-lg font-bold text-gray-800 mb-4">HOUSEHOLD REGISTRY</h2>
                   
                   <div className="flex items-center gap-3">
@@ -448,27 +440,34 @@ export default function HouseholdManagement() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-teal-500 text-white">
-                        <th className="px-6 py-3 text-left text-xs font-bold">Household ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Head of Household</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Ward</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Contact</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold">Actions</th>
+                      <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                        {['Household ID', 'Head of Household', 'Ward', 'Contact', 'Status', 'Actions'].map(h => (
+                          <th key={h} className="px-5 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                        ))}
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-gray-50">
                       {filteredHouseholds.map((household, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-6 py-4 text-sm font-semibold text-gray-800">{household.id}</td>
-                          <td className="px-6 py-4 text-sm text-gray-700">{household.headOfHousehold}</td>
-                          <td className="px-6 py-4 text-sm text-gray-700">{household.ward}</td>
-                          <td className="px-6 py-4 text-sm text-gray-700">{household.contact}</td>
-                          <td className="px-6 py-4">
-                             <span className={`px-2 py-1 text-xs rounded-full font-semibold ${
-                                household.status === 'Approved' ? 'bg-green-100 text-green-700 border border-green-300' :
-                                household.status === 'Rejected' ? 'bg-red-100 text-red-700 border border-red-300' :
-                                'bg-yellow-100 text-yellow-700 border border-yellow-300'
+                        <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-teal-50/30`}>
+                          <td className="px-5 py-3.5">
+                            <span className="text-xs font-mono font-bold text-teal-600">{household.id}</span>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                                style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}>
+                                {household.headOfHousehold?.charAt(0)}
+                              </div>
+                              <span className="text-sm font-semibold text-gray-800">{household.headOfHousehold}</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-xs text-gray-500">{household.ward}</td>
+                          <td className="px-5 py-3.5 text-xs text-gray-500">{household.contact}</td>
+                          <td className="px-5 py-3.5">
+                             <span className={`px-2.5 py-1 text-[10px] rounded-full font-bold border ${
+                                household.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                household.status === 'Rejected' ? 'bg-red-50 text-red-500 border-red-100' :
+                                'bg-amber-50 text-amber-600 border-amber-100'
                              }`}>
                                 {household.status || 'Pending'}
                              </span>

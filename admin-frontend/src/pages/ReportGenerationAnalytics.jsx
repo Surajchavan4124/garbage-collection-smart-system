@@ -99,13 +99,13 @@ export default function ReportGenerationAnalytics() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
 
-      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
+      <div className="ml-64 flex-1 flex flex-col">
         <TopHeader />
 
-        <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
+        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
           
           <div className="mb-6 text-sm text-gray-600">
             <span>Analytics & Settings</span> &gt;{' '}
@@ -157,7 +157,7 @@ export default function ReportGenerationAnalytics() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-gray-100 border-b border-gray-300">
+                      <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">Report Name</th>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">Generated At</th>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800">Status</th>

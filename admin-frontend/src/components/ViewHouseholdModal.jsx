@@ -1,137 +1,70 @@
-import { X } from 'lucide-react'
+import { X, Home, Edit, Trash2 } from 'lucide-react'
+
+const InfoRow = ({ label, value, wide }) => (
+  <div className={wide ? 'col-span-2' : ''}>
+    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{label}</p>
+    <p className="text-sm font-semibold text-gray-800">{value || '—'}</p>
+  </div>
+)
 
 export default function ViewHouseholdModal({ isOpen, onClose, household, onEdit, onDelete }) {
   if (!isOpen || !household) return null
 
+  const statusColor = {
+    Approved: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    Rejected:  'bg-red-50 text-red-500 border-red-100',
+  }[household.status] || 'bg-amber-50 text-amber-600 border-amber-100'
+
   return (
     <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-50"
-        onClick={onClose}
-      ></div>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden">
 
-      {/* Modal Container */}
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-          
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-800">HOUSEHOLD DETAILS</h2>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded transition"
-            >
-              <X size={24} className="text-gray-600" />
-            </button>
+          <div className="px-6 py-5 flex items-center justify-between"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <Home size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Household Details</p>
+                <h2 className="text-white font-bold text-sm">{household.headOfHousehold}</h2>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full border ${statusColor}`}>
+                {household.status || 'Pending'}
+              </span>
+              <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-4">
-            
-            {/* Household ID */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Household ID:
-              </label>
-              <input
-                type="text"
-                value={household.id}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm font-medium"
-              />
-            </div>
-
-            {/* Household Head Name */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Household Head Name:
-              </label>
-              <input
-                type="text"
-                value={household.headOfHousehold}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm font-medium"
-              />
-            </div>
-
-            {/* Address */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Address:
-              </label>
-              <textarea
-                value={household.address || 'N/A'}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm resize-none h-20"
-              />
-            </div>
-
-            {/* Assigned Ward */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Assigned Ward:
-              </label>
-              <input
-                type="text"
-                value={household.ward}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm font-medium"
-              />
-            </div>
-
-            {/* Contact */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Contact:
-              </label>
-              <input
-                type="text"
-                value={household.contact}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm font-medium"
-              />
-            </div>
-
-            {/* Segregation Compliance */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Segregation Compliance:
-              </label>
-              <input
-                type="text"
-                value={household.segregationCompliance}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm font-medium"
-              />
-            </div>
-
-            {/* Complaints */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Complaints:
-              </label>
-              <textarea
-                value={household.complaints}
-                disabled
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded text-gray-700 text-sm resize-none h-20"
-              />
+          <div className="p-6">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+              <InfoRow label="Household ID" value={household.id} />
+              <InfoRow label="Ward" value={household.ward} />
+              <InfoRow label="Contact" value={household.contact} />
+              <InfoRow label="Segregation" value={household.segregationCompliance} />
+              <InfoRow label="Address" value={household.address} wide />
+              {household.complaints && <InfoRow label="Complaints" value={household.complaints} wide />}
             </div>
           </div>
 
-          {/* Footer - Action Buttons */}
-          <div className="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end">
-            <button
-              onClick={onEdit}
-              className="px-6 py-2 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600 transition"
-            >
-              Edit
+          {/* Footer */}
+          <div className="px-6 pb-6 flex gap-3">
+            <button onClick={onDelete}
+              className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-500 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors">
+              <Trash2 size={14} /> Remove
             </button>
-            <button
-              onClick={onDelete}
-              className="px-6 py-2 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition"
-            >
-              Remove Household
+            <button onClick={onEdit}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-white rounded-xl text-sm font-bold"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+              <Edit size={14} /> Edit Details
             </button>
           </div>
         </div>

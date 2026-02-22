@@ -1,11 +1,34 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, Download, BarChart3, Edit, Trash2 } from 'lucide-react'
+import { Search, Filter, Download, BarChart3, Edit, Trash2, Leaf, Recycle, Package, AlertTriangle, Plus, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
 import api from '../api/axios'
-// Removed mock import
 import DeleteWasteEntryModal from '../components/DeleteWasteEntryModal'
+
+const inputCls = "w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100/60 transition-all bg-white"
+const labelCls = "block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5"
+
+const Field = ({ label, name, value, onChange, type = 'text', suffix, children }) => (
+  <div>
+    <label className={labelCls}>{label}</label>
+    {children || (
+      <div className="relative">
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder="0"
+          className={inputCls}
+        />
+        {suffix && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">{suffix}</span>
+        )}
+      </div>
+    )}
+  </div>
+)
 
 export default function WasteDataManagement() {
   const [formData, setFormData] = useState({
@@ -17,35 +40,27 @@ export default function WasteDataManagement() {
     nonBiodegradable: '',
     mixed: ''
   })
-
   const [wasteRecords, setWasteRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedWard, setSelectedWard] = useState('')
   const [wards, setWards] = useState([])
   const [editingId, setEditingId] = useState(null)
-  
-  // Delete Modal State
+
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [entryToDelete, setEntryToDelete] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
-  
-  // Real-time View States
-  const [viewMode, setViewMode] = useState('ward') // 'ward' or 'bin'
-  const [allScans, setAllScans] = useState([])
 
+  const [viewMode, setViewMode] = useState('ward')
+  const [allScans, setAllScans] = useState([])
 
   useEffect(() => {
     refreshData()
-    const interval = setInterval(refreshData, 5000) // Poll every 5s
+    const interval = setInterval(refreshData, 5000)
     return () => clearInterval(interval)
   }, [])
 
-  const refreshData = () => {
-    fetchWasteData()
-    fetchAllScans()
-    fetchWards()
-  }
+  const refreshData = () => { fetchWasteData(); fetchAllScans(); fetchWards(); }
 
   const fetchWards = async () => {
     try {
@@ -55,65 +70,45 @@ export default function WasteDataManagement() {
         if (!selectedWard) setSelectedWard(res.data[0].name)
         if (!formData.ward) setFormData(prev => ({ ...prev, ward: res.data[0].name }))
       }
-    } catch (error) {
-      console.error("Failed to fetch wards", error)
-    }
+    } catch (error) { console.error("Failed to fetch wards", error) }
   }
 
   const fetchAllScans = async () => {
     try {
       const res = await api.get('/attendance/all-scans')
       setAllScans(res.data)
-    } catch (error) {
-      console.error("Failed to fetch all scans", error)
-    }
+    } catch (error) { console.error("Failed to fetch all scans", error) }
   }
-
 
   const fetchWasteData = async () => {
     try {
       const res = await api.get('/waste-data')
       setWasteRecords(res.data)
     } catch (error) {
-      console.error("Failed to fetch waste data", error)
       toast.error("Failed to fetch waste data")
     } finally {
       setLoading(false)
     }
   }
 
-  // Filter records based on search
   const filteredRecords = wasteRecords.filter(record =>
     record.entryId.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // Handle form input change
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  // Handle form submission
-  // Handle form submission
   const handleSaveEntry = async (e) => {
     e.preventDefault()
-    
-    if (!formData.date || !formData.ward) {
-      toast.error('Date and Ward are required')
-      return
-    }
-
+    if (!formData.date || !formData.ward) { toast.error('Date and Ward are required'); return }
     try {
       const payload = {
-        date: formData.date,
-        collectionType: formData.collectionType,
-        ward: formData.ward,
-        biodegradable: formData.biodegradable,
-        recyclable: formData.recyclable,
-        nonBiodegradable: formData.nonBiodegradable,
-        mixed: formData.mixed
+        date: formData.date, collectionType: formData.collectionType, ward: formData.ward,
+        biodegradable: formData.biodegradable, recyclable: formData.recyclable,
+        nonBiodegradable: formData.nonBiodegradable, mixed: formData.mixed
       }
-
       if (editingId) {
         await api.put(`/waste-data/${editingId}`, payload)
         toast.success('Waste entry updated successfully!')
@@ -121,16 +116,13 @@ export default function WasteDataManagement() {
         await api.post('/waste-data', payload)
         toast.success('Waste entry saved successfully!')
       }
-      
       fetchWasteData()
       handleReset()
     } catch (error) {
-      console.error(error)
       toast.error(error.response?.data?.message || 'Failed to save entry')
     }
   }
 
-  // Handle Edit Click
   const handleEdit = (record) => {
     setEditingId(record._id)
     setFormData({
@@ -142,34 +134,22 @@ export default function WasteDataManagement() {
       nonBiodegradable: record.nonBiodegradable,
       mixed: record.mixed
     })
-    // Scroll to top to see form
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Handle reset
   const handleReset = () => {
     setEditingId(null)
     setFormData({
       date: new Date().toISOString().split('T')[0],
       collectionType: 'Daily',
       ward: wards.length > 0 ? wards[0].name : '',
-      biodegradable: '',
-      recyclable: '',
-      nonBiodegradable: '',
-      mixed: ''
+      biodegradable: '', recyclable: '', nonBiodegradable: '', mixed: ''
     })
   }
 
-  // Handle Delete Click (Open Modal)
-  const handleDeleteClick = (record) => {
-    setEntryToDelete(record)
-    setShowDeleteModal(true)
-  }
-
-  // Confirm Delete
+  const handleDeleteClick = (record) => { setEntryToDelete(record); setShowDeleteModal(true) }
   const handleConfirmDelete = async () => {
     if (!entryToDelete) return
-
     setDeleteLoading(true)
     try {
       await api.delete(`/waste-data/${entryToDelete._id}`)
@@ -178,398 +158,270 @@ export default function WasteDataManagement() {
       setShowDeleteModal(false)
       setEntryToDelete(null)
     } catch (error) {
-      console.error(error)
       toast.error("Failed to delete record")
     } finally {
       setDeleteLoading(false)
     }
   }
 
-  // Calculate chart data for selected ward
   const wardRecords = wasteRecords.filter(r => r.ward === selectedWard)
-  const avgBiodegradable = wardRecords.length > 0 
-    ? (wardRecords.reduce((sum, r) => sum + r.biodegradable, 0) / wardRecords.length).toFixed(0)
-    : 0
-  const avgNonBiodegradable = wardRecords.length > 0 
-    ? (wardRecords.reduce((sum, r) => sum + r.nonBiodegradable, 0) / wardRecords.length).toFixed(0)
-    : 0
+  const avgBiodegradable = wardRecords.length > 0
+    ? (wardRecords.reduce((sum, r) => sum + r.biodegradable, 0) / wardRecords.length).toFixed(0) : 0
+  const avgRecyclable = wardRecords.length > 0
+    ? (wardRecords.reduce((sum, r) => sum + r.recyclable, 0) / wardRecords.length).toFixed(0) : 0
+  const avgNonBiodegradable = wardRecords.length > 0
+    ? (wardRecords.reduce((sum, r) => sum + r.nonBiodegradable, 0) / wardRecords.length).toFixed(0) : 0
+  const avgMixed = wardRecords.length > 0
+    ? (wardRecords.reduce((sum, r) => sum + (r.mixed || 0), 0) / wardRecords.length).toFixed(0) : 0
 
-  const maxValue = Math.max(avgBiodegradable, avgNonBiodegradable) || 100
+  const barData = [
+    { label: 'Bio', value: avgBiodegradable, color: '#22c55e', icon: Leaf },
+    { label: 'Non-Bio', value: avgNonBiodegradable, color: '#ef4444', icon: AlertTriangle },
+    { label: 'Recyclable', value: avgRecyclable, color: '#3b82f6', icon: Recycle },
+    { label: 'Mixed', value: avgMixed, color: '#f59e0b', icon: Package },
+  ]
+  const maxBar = Math.max(...barData.map(b => Number(b.value))) || 100
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar - Fixed */}
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
-
-      {/* Main Content */}
-      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
-        {/* Top Header - Fixed */}
+      <div className="ml-64 flex-1">
         <TopHeader />
+        <div className="pt-20 px-8 pb-10 animate-fade-in-up">
 
-        {/* Page Content - Scrollable below header */}
-        <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
-          
-          {/* Breadcrumbs */}
-          <div className="mb-6 text-sm text-gray-600">
-            <span>Reports & Complaints</span> &gt; <span>Waste Data Management</span> &gt;{' '}
-            <span className="font-semibold text-gray-800">Waste Collection Data Entry</span>
+          {/* Page header */}
+          <div className="mb-6">
+            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Waste Data Management</p>
+            <h1 className="text-xl font-black text-gray-800">Waste Data Management</h1>
           </div>
 
-          {/* TOP SECTION - Data Entry & Visualization */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            
-            {/* LEFT CARD - WASTE COLLECTION DATA ENTRY */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-6">WASTE COLLECTION DATA ENTRY</h2>
+          {/* Top grid: Form + Visualization */}
+          <div className="grid grid-cols-2 gap-5 mb-6">
 
-              <form onSubmit={handleSaveEntry} className="space-y-4">
-                {/* Date & Collection Type Row */}
+            {/* Data Entry Form */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 flex items-center justify-between" style={{ background: editingId ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                <div>
+                  <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Waste Collection</p>
+                  <h2 className="text-white font-bold text-base">{editingId ? 'Edit Entry' : 'New Data Entry'}</h2>
+                </div>
+                {editingId && (
+                  <button onClick={handleReset} className="p-1.5 rounded-lg bg-white/20 text-white hover:bg-white/30">
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              <form onSubmit={handleSaveEntry} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Date */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">Date:</label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Collection Type */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">Collection Type:</label>
-                    <select
-                      name="collectionType"
-                      value={formData.collectionType}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    >
+                  <Field label="Date" name="date" value={formData.date} onChange={handleInputChange} type="date" />
+                  <Field label="Collection Type">
+                    <select name="collectionType" value={formData.collectionType} onChange={handleInputChange} className={inputCls}>
                       <option value="Daily">Daily</option>
                       <option value="Weekly">Weekly</option>
                       <option value="Monthly">Monthly</option>
                     </select>
-                  </div>
+                  </Field>
                 </div>
 
-                {/* Ward */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-2">Ward:</label>
-                   <select
-                    name="ward"
-                    value={formData.ward}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  >
-                    {wards.map(ward => (
-                      <option key={ward._id} value={ward.name}>{ward.name}</option>
-                    ))}
+                <Field label="Ward">
+                  <select name="ward" value={formData.ward} onChange={handleInputChange} className={inputCls}>
+                    {wards.map(ward => <option key={ward._id} value={ward.name}>{ward.name}</option>)}
                   </select>
-                </div>
+                </Field>
 
-                {/* Waste Metrics Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Biodegradable Waste */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Biodegradable Waste Collected:
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        name="biodegradable"
-                        placeholder="0"
-                        value={formData.biodegradable}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      />
-                      <span className="absolute right-3 top-2 text-xs text-gray-600 font-semibold">kgs</span>
-                    </div>
-                  </div>
-
-                  {/* Recyclable Waste */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Recyclable Waste:
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        name="recyclable"
-                        placeholder="0"
-                        value={formData.recyclable}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      />
-                      <span className="absolute right-3 top-2 text-xs text-gray-600 font-semibold">kgs</span>
-                    </div>
-                  </div>
-
-                  {/* Non-Biodegradable Waste */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Non-Biodegradable Waste Collected:
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        name="nonBiodegradable"
-                        placeholder="0"
-                        value={formData.nonBiodegradable}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      />
-                      <span className="absolute right-3 top-2 text-xs text-gray-600 font-semibold">kgs</span>
-                    </div>
-                  </div>
-
-                  {/* Mixed/Others */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Mixed/Others:
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        name="mixed"
-                        placeholder="0"
-                        value={formData.mixed}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                      />
-                      <span className="absolute right-3 top-2 text-xs text-gray-600 font-semibold">kgs</span>
-                    </div>
-                  </div>
+                  <Field label="Biodegradable (kgs)" name="biodegradable" value={formData.biodegradable} onChange={handleInputChange} type="number" />
+                  <Field label="Recyclable (kgs)" name="recyclable" value={formData.recyclable} onChange={handleInputChange} type="number" />
+                  <Field label="Non-Biodegradable (kgs)" name="nonBiodegradable" value={formData.nonBiodegradable} onChange={handleInputChange} type="number" />
+                  <Field label="Mixed / Others (kgs)" name="mixed" value={formData.mixed} onChange={handleInputChange} type="number" />
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-2">
                   <button
-            type="submit"
-            className={`flex-1 py-3 px-4 ${editingId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-teal-600 hover:bg-teal-700'} text-white rounded font-bold shadow-md transition`}
-          >
-            {editingId ? 'Update Entry' : 'Save Entry'}
-          </button>
-          
-          {editingId && (
-             <button
-              type="button"
-              onClick={handleReset}
-              className="px-4 py-3 bg-gray-500 text-white rounded font-bold hover:bg-gray-600 transition"
-            >
-              Cancel Edit
-            </button>
-          )}
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="flex-1 px-4 py-2 bg-red-500 text-white rounded font-semibold text-sm hover:bg-red-600 transition"
+                    type="submit"
+                    className="flex-1 py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2"
+                    style={{ background: editingId ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'linear-gradient(135deg, #1f9e9a, #16847f)' }}
                   >
+                    {editingId ? <><Edit size={15} /> Update Entry</> : <><Plus size={15} /> Save Entry</>}
+                  </button>
+                  <button type="button" onClick={handleReset}
+                    className="px-4 py-3 rounded-xl text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">
                     Reset
                   </button>
                 </div>
               </form>
             </div>
 
-            {/* RIGHT CARD - DATA VISUALIZATION */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">DATA VISUALIZATION</h2>
-
-              {/* Ward Selector */}
-              <div className="mb-6">
-                <label className="block text-xs font-semibold text-gray-700 mb-2">Select Ward:</label>
-                 <select
-                  value={selectedWard}
-                  onChange={(e) => setSelectedWard(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                >
-                  {wards.map(ward => (
-                    <option key={ward._id} value={ward.name}>{ward.name}</option>
-                  ))}
-                </select>
+            {/* Visualization Card */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, #0f1923, #0d2620)' }}>
+                <p className="text-white/60 text-[10px] font-medium uppercase tracking-wider">Analytics</p>
+                <h2 className="text-white font-bold text-base">Ward Visualization</h2>
               </div>
+              <div className="p-6">
+                <div className="mb-5">
+                  <label className={labelCls}>Select Ward</label>
+                  <select value={selectedWard} onChange={(e) => setSelectedWard(e.target.value)} className={inputCls}>
+                    {wards.map(ward => <option key={ward._id} value={ward.name}>{ward.name}</option>)}
+                  </select>
+                </div>
 
-              {/* Bar Chart */}
-              <div className="bg-cyan-50 rounded-lg p-8 min-h-64 flex flex-col items-center justify-center border border-cyan-200">
                 {wardRecords.length > 0 ? (
-                  <div className="w-full">
-                    <div className="flex items-end justify-center gap-8 h-40 mb-6">
-                      {/* Biodegradable Bar */}
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="flex items-end justify-center h-40">
-                          <div
-                            className="w-12 bg-teal-500 rounded-t"
-                            style={{ height: `${(avgBiodegradable / maxValue) * 140}px` }}
-                          ></div>
+                  <div>
+                    <div className="flex items-end justify-around h-44 gap-3 mb-4 px-2">
+                      {barData.map(({ label, value, color }) => (
+                        <div key={label} className="flex flex-col items-center gap-2 flex-1">
+                          <span className="text-[10px] font-bold text-gray-600">{value} kg</span>
+                          <div className="w-full rounded-t-lg transition-all duration-700 min-h-1"
+                            style={{
+                              height: `${(Number(value) / maxBar) * 140}px`,
+                              background: `linear-gradient(180deg, ${color}cc, ${color})`,
+                            }}
+                          />
+                          <p className="text-[10px] font-semibold text-gray-500">{label}</p>
                         </div>
-                        <p className="text-xs font-semibold text-gray-700">Bio</p>
-                        <p className="text-sm font-bold text-gray-800">{avgBiodegradable} kgs</p>
-                      </div>
-
-                      {/* Non-Biodegradable Bar */}
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="flex items-end justify-center h-40">
-                          <div
-                            className="w-12 bg-gray-600 rounded-t"
-                            style={{ height: `${(avgNonBiodegradable / maxValue) * 140}px` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs font-semibold text-gray-700">Non-Bio</p>
-                        <p className="text-sm font-bold text-gray-800">{avgNonBiodegradable} kgs</p>
-                      </div>
+                      ))}
                     </div>
-                    <p className="text-center text-sm font-semibold text-gray-700">
-                      Bar Chart: Waste collected per ward (Bio vs Non-Bio)
-                    </p>
+                    <p className="text-center text-[10px] text-gray-400 font-medium">Average kg collected — {selectedWard}</p>
                   </div>
                 ) : (
-                  <div className="text-center">
-                    <BarChart3 size={48} className="text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-gray-600">No data available for {selectedWard}</p>
+                  <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                    <BarChart3 size={40} className="mb-3 opacity-30" />
+                    <p className="text-sm font-medium">No data for {selectedWard}</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* BOTTOM SECTION - WASTE COLLECTION RECORDS TABLE */}
-          <div className="bg-white rounded-lg shadow">
-            {/* Title & Search Toolbar */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800 uppercase tracking-tight">COLLECTION RECORDS</h2>
-                <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
-                  <button 
-                    onClick={() => setViewMode('ward')}
-                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === 'ward' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                  >
-                    WARD WISE
-                  </button>
-                  <button 
-                    onClick={() => setViewMode('bin')}
-                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === 'bin' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                  >
-                    BIN WISE (LIVE)
-                  </button>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
+          {/* Records Table Card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            {/* Toolbar */}
+            <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3 flex-wrap">
+              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Collection Records</h2>
 
-                <Search size={18} className="text-gray-400" />
+              {/* View toggle */}
+              <div className="flex bg-gray-100 p-1 rounded-xl gap-1 ml-2">
+                {[{ mode: 'ward', label: 'Ward Wise' }, { mode: 'bin', label: 'Bin Wise (Live)' }].map(({ mode, label }) => (
+                  <button key={mode} onClick={() => setViewMode(mode)}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      viewMode === mode ? 'bg-white text-teal-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                    }`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="ml-auto flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 w-52 border border-transparent focus-within:border-teal-300/50">
+                <Search size={14} className="text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search Entry by ID"
+                  placeholder="Search by entry ID…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
+                  className="flex-1 outline-none text-xs bg-transparent text-gray-700 placeholder-gray-400"
                 />
-                <button className="p-2 hover:bg-gray-100 rounded transition">
-                  <Filter size={18} className="text-gray-600" />
-                </button>
-                <button className="p-2 hover:bg-gray-100 rounded transition">
-                  <Download size={18} className="text-gray-600" />
-                </button>
               </div>
             </div>
 
-            {/* Table */}
+            {/* Ward-wise Table */}
             <div className="overflow-x-auto">
               {viewMode === 'ward' ? (
-                <table className="w-full">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-teal-500 text-white">
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Entry ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Date Entered</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Ward</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Bio Degradable (kgs)</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Non Bio (kgs)</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Recyclable (kgs)</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Others (kgs)</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Total (kgs)</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Actions</th>
+                    <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                      {['Entry ID', 'Date', 'Ward', 'Bio (kg)', 'Non-Bio (kg)', 'Recyclable (kg)', 'Mixed (kg)', 'Total (kg)', 'Actions'].map(h => (
+                        <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    {filteredRecords.map((record, idx) => (
-                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 text-sm font-bold text-teal-700">{record.entryId}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700 font-medium">{new Date(record.date).toLocaleDateString()}</td>
-                        <td className="px-6 py-4 text-sm text-gray-800 font-bold">{record.ward}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700">{record.biodegradable}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700">{record.nonBiodegradable}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700">{record.recyclable}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700">{record.others}</td>
-                        <td className="px-6 py-4 text-sm font-bold text-gray-900">{record.total}</td>
-                        <td className="px-6 py-4 flex gap-2">
-                          <button 
-                            onClick={() => handleEdit(record)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteClick(record)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                  <tbody className="divide-y divide-gray-50">
+                    {loading ? (
+                      <tr><td colSpan="9" className="px-4 py-12 text-center text-gray-400 text-sm">Loading records…</td></tr>
+                    ) : filteredRecords.length === 0 ? (
+                      <tr><td colSpan="9" className="px-4 py-12 text-center text-gray-400 text-sm">No records found</td></tr>
+                    ) : (
+                      filteredRecords.map((record, idx) => (
+                        <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-teal-50/30`}>
+                          <td className="px-4 py-3.5">
+                            <span className="text-xs font-mono font-bold text-teal-600">{record.entryId}</span>
+                          </td>
+                          <td className="px-4 py-3.5 text-xs text-gray-500">{new Date(record.date).toLocaleDateString()}</td>
+                          <td className="px-4 py-3.5">
+                            <span className="text-xs font-semibold text-gray-700 bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-100">{record.ward}</span>
+                          </td>
+                          <td className="px-4 py-3.5 text-xs font-semibold text-emerald-600">{record.biodegradable}</td>
+                          <td className="px-4 py-3.5 text-xs font-semibold text-red-500">{record.nonBiodegradable}</td>
+                          <td className="px-4 py-3.5 text-xs font-semibold text-blue-500">{record.recyclable}</td>
+                          <td className="px-4 py-3.5 text-xs text-gray-500">{record.others ?? record.mixed ?? '—'}</td>
+                          <td className="px-4 py-3.5">
+                            <span className="text-xs font-black text-gray-800">{record.total}</span>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => handleEdit(record)} className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 transition-colors">
+                                <Edit size={14} />
+                              </button>
+                              <button onClick={() => handleDeleteClick(record)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               ) : (
-                <table className="w-full">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-800 text-white">
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Bin Code</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Ward</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Location</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Collector</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Weight (kgs)</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Scanned At</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase">Status</th>
+                    <tr style={{ background: 'linear-gradient(135deg, #1e293b, #334155)' }}>
+                      {['Bin Code', 'Ward', 'Location', 'Collector', 'Type', 'Weight (kg)', 'Scanned At', 'Status'].map(h => (
+                        <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-gray-50">
                     {allScans.map((scan, idx) => (
-                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 text-sm font-bold text-gray-900">{scan.dustbin?.binCode || 'N/A'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-800 font-bold">{scan.dustbin?.ward || 'N/A'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600 italic">{scan.dustbin?.locationText || 'N/A'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700 font-medium">{scan.labour?.name || 'Unknown'}</td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                            scan.dustbin?.type === 'Organic' ? 'bg-green-100 text-green-700' :
-                            scan.dustbin?.type === 'Recyclable' ? 'bg-blue-100 text-blue-700' :
-                            'bg-gray-100 text-gray-700'
+                      <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-slate-50`}>
+                        <td className="px-4 py-3.5">
+                          <span className="text-xs font-mono font-bold text-gray-700">{scan.dustbin?.binCode || 'N/A'}</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs font-semibold text-gray-700">{scan.dustbin?.ward || 'N/A'}</td>
+                        <td className="px-4 py-3.5 text-xs text-gray-400 italic">{scan.dustbin?.locationText || 'N/A'}</td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0"
+                              style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}>
+                              {scan.labour?.name?.charAt(0) || '?'}
+                            </div>
+                            <span className="text-xs text-gray-700">{scan.labour?.name || 'Unknown'}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            scan.dustbin?.type === 'Organic' ? 'bg-green-50 text-green-600 border-green-100' :
+                            scan.dustbin?.type === 'Recyclable' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                            'bg-gray-50 text-gray-500 border-gray-100'
                           }`}>
                             {scan.dustbin?.type || 'Other'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm font-bold text-teal-600">{scan.estimatedWeight || 0}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-4 py-3.5">
+                          <span className="text-xs font-black text-teal-600">{scan.estimatedWeight || 0}</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs text-gray-400">
                           {new Date(scan.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </td>
-                        <td className="px-6 py-4 text-sm font-bold text-center">
-                           { (scan.action === 'collected' || (scan.estimatedWeight > 0 && !scan.action)) ? (
-                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200 uppercase tracking-wider shadow-sm">
-                               COLLECTED
-                             </span>
-                           ) : scan.action === 'issue' ? (
-                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 border border-red-200 uppercase tracking-wider shadow-sm">
-                               REPORTED
-                             </span>
-                           ) : (
-                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200 uppercase tracking-wider shadow-sm">
-                               SCANNED
-                             </span>
-                           )}
+                        <td className="px-4 py-3.5">
+                          {(scan.action === 'collected' || (scan.estimatedWeight > 0 && !scan.action)) ? (
+                            <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full">COLLECTED</span>
+                          ) : scan.action === 'issue' ? (
+                            <span className="text-[10px] font-bold bg-red-50 text-red-600 border border-red-100 px-2 py-0.5 rounded-full">REPORTED</span>
+                          ) : (
+                            <span className="text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-full">SCANNED</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -577,12 +429,10 @@ export default function WasteDataManagement() {
                 </table>
               )}
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       <DeleteWasteEntryModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

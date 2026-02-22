@@ -92,18 +92,17 @@ export default function ProfileSettings() {
 
   /* ================= RENDER ================= */
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
-
-      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
+      <div className="ml-64 flex-1 flex flex-col">
         <TopHeader />
+        <div className="pt-20 flex-1 overflow-y-auto px-8 pb-10 animate-fade-in-up">
+          <div className="mb-6">
+            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Settings › Profile</p>
+            <h1 className="text-xl font-black text-gray-800">Profile Settings</h1>
+          </div>
 
-        <div className="mt-16 flex-1 overflow-y-auto p-6">
-          <h1 className="text-2xl font-bold text-gray-700 mb-6">
-            Profile Settings
-          </h1>
-
-          <div className="bg-white rounded-lg shadow p-6 space-y-4 max-w-3xl">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 space-y-5 max-w-2xl">
             {/* PANCHAYAT NAME (READ ONLY) */}
             <ReadOnlyField label="Panchayat Name" value={profile.name} />
 
@@ -116,11 +115,9 @@ export default function ProfileSettings() {
             >
               <input
                 value={profile.contact}
-                onChange={(e) =>
-                  setProfile({ ...profile, contact: e.target.value })
-                }
+                onChange={(e) => setProfile({ ...profile, contact: e.target.value })}
                 onBlur={() => toggleEdit("contact")}
-                className="w-full border px-3 py-1 rounded"
+                className="w-full border border-gray-200 px-3 py-2 rounded-xl text-sm outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
                 autoFocus
               />
             </EditableField>
@@ -135,80 +132,50 @@ export default function ProfileSettings() {
               <input
                 type="email"
                 value={profile.email}
-                onChange={(e) =>
-                  setProfile({ ...profile, email: e.target.value })
-                }
+                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                 onBlur={() => toggleEdit("email")}
-                className="w-full border px-3 py-1 rounded"
+                className="w-full border border-gray-200 px-3 py-2 rounded-xl text-sm outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
                 autoFocus
               />
             </EditableField>
 
             {/* SUBSCRIPTION STATUS */}
-            <div className="border rounded px-4 py-3 bg-gray-50">
-              <label className="block text-xs font-bold mb-2">
-                Subscription Status
-              </label>
-
+            <div className="rounded-xl border border-gray-100 bg-gray-50 px-5 py-4">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">Subscription Status</label>
               {sub ? (
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Plan</span>
-                    <span className="font-semibold">{sub.plan}</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Status</span>
-                    <span
-                      className={`font-bold ${
-                        isActive ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {sub.status}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Valid From</span>
-                    <span>
-                      {formatDate(sub.startDate)}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Valid Till</span>
-                    <span>
-                      {formatDate(sub.endDate)}
-                    </span>
-                  </div>
+                <div className="space-y-2 text-sm">
+                  {[
+                    { label: 'Plan', value: sub.plan },
+                    { label: 'Status', value: sub.status, bold: true, color: isActive ? 'text-emerald-600' : 'text-red-500' },
+                    { label: 'Valid From', value: formatDate(sub.startDate) },
+                    { label: 'Valid Till', value: formatDate(sub.endDate) },
+                  ].map(({ label, value, bold, color }) => (
+                    <div key={label} className="flex justify-between">
+                      <span className="text-gray-500">{label}</span>
+                      <span className={`${bold ? 'font-bold' : 'font-medium'} ${color || 'text-gray-800'}`}>{value}</span>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <div className="text-sm font-semibold text-red-600">
-                  No active subscription
-                </div>
+                <p className="text-sm font-semibold text-red-500">No active subscription</p>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 mt-6">
+          <div className="flex justify-end gap-3 mt-6 max-w-2xl">
             <button
-              onClick={() => {
-                toast.warn("Profile deactivation requested");
-                setIsDeactivateOpen(true);
-              }}
-              className="px-6 py-2 bg-red-600 text-white rounded"
+              onClick={() => { toast.warn("Profile deactivation requested"); setIsDeactivateOpen(true); }}
+              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
             >
               Delete Profile
             </button>
-
             <button
               onClick={saveProfile}
               disabled={saving}
-              className={`px-6 py-2 rounded text-white ${
-                saving ? "bg-gray-400" : "bg-teal-600"
-              }`}
+              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white btn-lift"
+              style={{ background: saving ? '#9ca3af' : 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? "Saving…" : "Save Changes"}
             </button>
           </div>
         </div>

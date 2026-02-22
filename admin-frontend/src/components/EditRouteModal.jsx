@@ -82,15 +82,26 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-lg mx-4">
-        {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b">
-          <h3 className="text-xl font-semibold text-gray-800">Edit Route</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X size={24} />
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex justify-between items-center px-6 py-5 flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <MapPin size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Edit Record</p>
+                <h2 className="text-white font-bold text-sm">Edit Route</h2>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
 
         {/* Form Body */}
         <div className="p-6 space-y-4">
@@ -190,23 +201,20 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
 
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 p-6 border-t bg-gray-50 rounded-b-lg">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 font-medium hover:bg-gray-200 rounded-lg transition"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="px-6 py-2 bg-[#1f9e9a] text-white font-medium rounded-lg hover:bg-[#178582] transition disabled:opacity-50"
-          >
-            {loading ? "Updating..." : "Update Route"}
-          </button>
+          {/* Footer */}
+          <div className="flex justify-end gap-3 px-6 pb-6 pt-4 border-t border-gray-50 flex-shrink-0">
+            <button onClick={onClose}
+              className="px-4 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-xl text-sm hover:bg-gray-200 transition-colors">
+              Cancel
+            </button>
+            <button onClick={handleSubmit} disabled={loading}
+              className="px-6 py-2.5 text-white font-bold rounded-xl text-sm disabled:opacity-50 flex items-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+              {loading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Updating...</> : 'Update Route'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

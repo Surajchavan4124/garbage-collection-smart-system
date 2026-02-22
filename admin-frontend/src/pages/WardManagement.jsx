@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import TopHeader from "../components/TopHeader";
-import { Plus, Edit2, Trash2, Eye, MapPin, Search, X } from "lucide-react";
+import { Plus, Edit2, Trash2, Eye, MapPin, Search, X, Layers } from "lucide-react";
 import api from "../api/axios";
 import { toast } from "react-toastify";
 import WardDustbinsModal from "../components/WardDustbinsModal";
@@ -10,20 +10,15 @@ export default function WardManagement() {
   const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // Modal states
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedWard, setSelectedWard] = useState(null);
   const [wardDustbins, setWardDustbins] = useState([]);
-  
-  // Form states
   const [wardName, setWardName] = useState("");
 
-  useEffect(() => {
-    loadWards();
-  }, []);
+  useEffect(() => { loadWards(); }, []);
 
   const loadWards = async () => {
     try {
@@ -40,7 +35,6 @@ export default function WardManagement() {
   const handleAddWard = async (e) => {
     e.preventDefault();
     if (!wardName.trim()) return toast.warning("Please enter ward name");
-    
     try {
       await api.post("/wards", { name: wardName });
       toast.success("Ward added successfully");
@@ -55,7 +49,6 @@ export default function WardManagement() {
   const handleEditWard = async (e) => {
     e.preventDefault();
     if (!wardName.trim()) return toast.warning("Please enter ward name");
-
     try {
       await api.put(`/wards/${selectedWard._id}`, { name: wardName });
       toast.success("Ward updated successfully");
@@ -70,7 +63,6 @@ export default function WardManagement() {
 
   const handleDeleteWard = async (id) => {
     if (!window.confirm("Are you sure you want to delete this ward?")) return;
-    
     try {
       await api.delete(`/wards/${id}`);
       toast.success("Ward deleted successfully");
@@ -91,113 +83,128 @@ export default function WardManagement() {
     }
   };
 
-  const filteredWards = wards.filter(w => 
+  const filteredWards = wards.filter(w =>
     w.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalBins = wards.reduce((acc, w) => acc + (w.dustbinCount || 0), 0);
+
   return (
-    <div className="flex bg-[#e5e9f0] min-h-screen">
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
-      <div className="ml-64 w-full">
+      <div className="ml-64 flex-1">
         <TopHeader />
-        
-        <div className="pt-20 px-8 pb-8">
-          <div className="flex items-center justify-between mb-8">
+        <div className="pt-20 px-8 pb-10 animate-fade-in-up">
+
+          {/* Page header */}
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm text-gray-600 mb-1 font-medium">Main {'>'} Operational Management {'>'} Ward Management</p>
-              <h1 className="text-2xl font-bold uppercase tracking-tight">Ward Management</h1>
+              <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Ward Management</p>
+              <h1 className="text-xl font-black text-gray-800">Ward Management</h1>
             </div>
-            <button 
-              onClick={() => {
-                setWardName("");
-                setIsAddModalOpen(true);
-              }}
-              className="flex items-center gap-2 bg-[#1f9e9a] text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-[#18807d] transition-all"
+            <button
+              onClick={() => { setWardName(""); setIsAddModalOpen(true); }}
+              className="flex items-center gap-2 px-5 py-2.5 text-white rounded-xl font-semibold text-sm shadow-lg btn-lift"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)', boxShadow: '0 4px 16px rgba(31,158,154,0.3)' }}
             >
-              <Plus size={20} /> Add Ward
+              <Plus size={17} /> Add Ward
             </button>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            {/* Table Header / Search */}
-            <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
-              <h2 className="font-bold text-gray-800 uppercase text-sm tracking-wider">Ward List</h2>
-              <div className="relative w-64">
-                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input 
+          {/* Stat cards */}
+          <div className="grid grid-cols-2 gap-5 mb-6">
+            {[
+              { label: 'Total Wards', value: wards.length, icon: Layers, color: 'from-[#1f9e9a] to-[#16847f]' },
+              { label: 'Total Dustbins', value: totalBins, icon: MapPin, color: 'from-emerald-500 to-emerald-700' },
+            ].map(({ label, value, icon: Icon, color }) => (
+              <div key={label} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                  <Icon size={19} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 font-medium">{label}</p>
+                  <p className="text-2xl font-black text-gray-800">{value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Table card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Ward List</h2>
+              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 w-60 border border-transparent focus-within:border-teal-300/50">
+                <Search size={14} className="text-gray-400" />
+                <input
                   type="text"
-                  placeholder="Search ward..."
+                  placeholder="Search ward…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1f9e9a]/20"
+                  className="flex-1 outline-none text-xs bg-transparent text-gray-700 placeholder-gray-400"
                 />
               </div>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-[#1f9e9a] text-white text-[10px] uppercase font-bold tracking-widest">
-                  <tr>
-                    <th className="px-6 py-4">Sr No.</th>
-                    <th className="px-6 py-4">Ward Name</th>
-                    <th className="px-6 py-4">Dustbins Allotted</th>
-                    <th className="px-6 py-4 text-center">Action</th>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                    {['#', 'Ward Name', 'Dustbins', 'Actions'].map(h => (
+                      <th key={h} className={`px-6 py-3.5 text-white text-[10px] font-bold uppercase tracking-wider ${h === 'Actions' ? 'text-center' : 'text-left'}`}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-50">
                   {loading ? (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-10 text-center text-gray-500">Loading wards...</td>
-                    </tr>
+                    <tr><td colSpan="4" className="px-6 py-12 text-center text-gray-400 text-sm">Loading wards…</td></tr>
                   ) : filteredWards.length > 0 ? (
                     filteredWards.map((w, idx) => (
-                      <tr key={w._id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-gray-400">{String(idx + 1).padStart(2, '0')}</td>
-                        <td className="px-6 py-4">
+                      <tr key={w._id} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-teal-50/30`}>
+                        <td className="px-6 py-3.5">
+                          <span className="text-xs font-bold text-gray-400">{String(idx + 1).padStart(2, '0')}</span>
+                        </td>
+                        <td className="px-6 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                              style={{ background: 'rgba(31,158,154,0.1)' }}>
+                              <MapPin size={14} className="text-teal-600" />
+                            </div>
+                            <span className="font-semibold text-gray-800">{w.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-3.5">
                           <div className="flex items-center gap-2">
-                             <div className="bg-teal-50 p-1.5 rounded text-[#1f9e9a]">
-                                <MapPin size={14} />
-                             </div>
-                             <span className="font-bold text-gray-700">{w.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-4">
-                            <span className="font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">{w.dustbinCount} Bins</span>
-                            <button 
+                            <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">{w.dustbinCount} Bins</span>
+                            <button
                               onClick={() => openViewModal(w)}
-                              className="text-[#1f9e9a] hover:underline flex items-center gap-1 font-bold text-xs"
+                              className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1 hover:underline"
                             >
-                              <Eye size={14} /> View
+                              <Eye size={12} /> View
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex justify-center gap-2 font-bold uppercase tracking-tighter">
-                            <button 
-                              onClick={() => {
-                                setSelectedWard(w);
-                                setWardName(w.name);
-                                setIsEditModalOpen(true);
-                              }}
-                              className="px-3 py-1 border border-orange-500 text-orange-500 rounded text-xs hover:bg-orange-50"
+                        <td className="px-6 py-3.5">
+                          <div className="flex justify-center items-center gap-2">
+                            <button
+                              onClick={() => { setSelectedWard(w); setWardName(w.name); setIsEditModalOpen(true); }}
+                              className="p-1.5 rounded-lg text-orange-500 hover:bg-orange-50 transition-colors"
+                              title="Edit"
                             >
-                              Edit
+                              <Edit2 size={15} />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteWard(w._id)}
-                              className="px-3 py-1 border border-red-500 text-red-500 rounded text-xs hover:bg-red-50"
+                              className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                              title="Delete"
                             >
-                              Delete
+                              <Trash2 size={15} />
                             </button>
                           </div>
                         </td>
                       </tr>
                     ))
                   ) : (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-10 text-center text-gray-500 font-medium">No wards found</td>
-                    </tr>
+                    <tr><td colSpan="4" className="px-6 py-12 text-center text-gray-400 text-sm">No wards found</td></tr>
                   )}
                 </tbody>
               </table>
@@ -206,59 +213,42 @@ export default function WardManagement() {
         </div>
       </div>
 
-      {/* Add Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <form onSubmit={handleAddWard} className="bg-white rounded-lg shadow-2xl w-full max-w-md p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold uppercase">Add New Ward</h2>
-              <button type="button" onClick={() => setIsAddModalOpen(false)}><X size={24} /></button>
+      {/* Add / Edit Ward Modal */}
+      {(isAddModalOpen || isEditModalOpen) && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <form
+            onSubmit={isEditModalOpen ? handleEditWard : handleAddWard}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+          >
+            <div className="p-5 border-b flex justify-between items-center" style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}>
+              <h2 className="text-white font-bold text-base">{isEditModalOpen ? 'Rename Ward' : 'Add New Ward'}</h2>
+              <button type="button" onClick={() => { setIsAddModalOpen(false); setIsEditModalOpen(false); }}>
+                <X size={20} className="text-white/80 hover:text-white" />
+              </button>
             </div>
-            <div className="mb-6">
-              <label className="block text-sm font-semibold mb-2">Ward Name</label>
-              <input 
+            <div className="p-6">
+              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Ward Name</label>
+              <input
                 type="text"
                 value={wardName}
                 onChange={(e) => setWardName(e.target.value)}
-                placeholder="Ex. Ward 1"
-                className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#1f9e9a]/20 outline-none"
+                placeholder="e.g. Aquem"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100 transition-all"
                 autoFocus
               />
+              <button
+                type="submit"
+                className="w-full mt-5 py-3 rounded-xl text-white font-bold text-sm"
+                style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}
+              >
+                {isEditModalOpen ? 'Update Ward' : 'Save Ward'}
+              </button>
             </div>
-            <button className="w-full bg-[#1f9e9a] text-white py-4 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all">
-               SAVE WARD
-            </button>
           </form>
         </div>
       )}
 
-      {/* Edit Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <form onSubmit={handleEditWard} className="bg-white rounded-lg shadow-2xl w-full max-w-md p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold uppercase">Rename Ward</h2>
-              <button type="button" onClick={() => setIsEditModalOpen(false)}><X size={24} /></button>
-            </div>
-            <div className="mb-6">
-              <label className="block text-sm font-semibold mb-2">Ward Name</label>
-              <input 
-                type="text"
-                value={wardName}
-                onChange={(e) => setWardName(e.target.value)}
-                className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#1f9e9a]/20 outline-none"
-                autoFocus
-              />
-            </div>
-            <button className="w-full bg-[#1f9e9a] text-white py-4 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all">
-               UPDATE WARD
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* View Dustbins Modal */}
-      <WardDustbinsModal 
+      <WardDustbinsModal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         wardName={selectedWard?.name}

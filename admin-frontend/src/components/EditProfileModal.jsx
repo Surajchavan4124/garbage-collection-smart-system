@@ -80,19 +80,27 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">USER PROFILE</h2>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
+
+          {/* Header */}
+          <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <Upload size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Edit Record</p>
+                <h2 className="text-white font-bold text-sm">User Profile</h2>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
 
         {/* Content */}
         <div className="p-8 bg-gray-50">
@@ -248,23 +256,21 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
             </div>
           </div>
 
-          {/* Bottom Buttons */}
-          <div className="flex justify-end gap-3 mt-12 pt-6 border-t border-gray-200">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700"
-            >
+          {/* Footer */}
+          <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+            <button onClick={onClose}
+              className="px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors">
               Cancel
             </button>
-            <button
-              onClick={handleSave}
-              className="px-8 py-2 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700"
-            >
+            <button onClick={handleSave}
+              className="px-6 py-2.5 text-white text-sm font-bold rounded-xl"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
               Update & Save
             </button>
           </div>
         </div>
+       </div>
       </div>
-    </div>
+    </>
   )
 }

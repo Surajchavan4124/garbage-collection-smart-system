@@ -1,7 +1,7 @@
-// src/components/TopHeader.jsx - Updated with Logout Confirmation
+// src/components/TopHeader.jsx - Enhanced UI
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Bell, User, Settings, LogOut } from 'lucide-react'
+import { Search, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react'
 import LogoutConfirmation from './LogoutConfirmation'
 import api from '../api/axios'
 
@@ -10,13 +10,7 @@ export default function TopHeader() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState({ 
-    households: [], 
-    dustbins: [], 
-    complaints: [],
-    employees: [],
-    wards: [],
-    routes: [],
-    wasteRecords: [] 
+    households: [], dustbins: [], complaints: [], employees: [], wards: [], routes: [], wasteRecords: [] 
   })
   const [isSearching, setIsSearching] = useState(false)
   const [showResults, setShowResults] = useState(false)
@@ -41,19 +35,10 @@ export default function TopHeader() {
       if (searchQuery.length >= 2) {
         performSearch()
       } else {
-        setSearchResults({ 
-          households: [], 
-          dustbins: [], 
-          complaints: [],
-          employees: [],
-          wards: [],
-          routes: [],
-          wasteRecords: [] 
-        })
+        setSearchResults({ households: [], dustbins: [], complaints: [], employees: [], wards: [], routes: [], wasteRecords: [] })
         setShowResults(false)
       }
     }, 300)
-
     return () => clearTimeout(delayDebounceFn)
   }, [searchQuery])
 
@@ -70,223 +55,127 @@ export default function TopHeader() {
     }
   }
 
-  const handleResultClick = (type, item) => {
+  const handleResultClick = (type) => {
     setSearchQuery('')
     setShowResults(false)
-    switch (type) {
-      case 'household':
-        navigate('/household')
-        break
-      case 'dustbin':
-        navigate('/dustbin')
-        break
-      case 'complaint':
-        navigate('/report-complaint')
-        break
-      case 'employee':
-        navigate('/employee')
-        break
-      case 'ward':
-        navigate('/ward')
-        break
-      case 'route':
-        navigate('/route')
-        break
-      case 'waste-record':
-        navigate('/waste-data')
-        break
-      default:
-        break
+    const routes = {
+      household: '/household', dustbin: '/dustbin', complaint: '/report-complaint',
+      employee: '/employee', ward: '/ward', route: '/route', 'waste-record': '/waste-data'
     }
+    if (routes[type]) navigate(routes[type])
   }
 
-  const handleProfileSettings = () => {
-    navigate('/profile-settings')
-    setIsDropdownOpen(false)
-  }
-
-  const handleLogoutClick = () => {
-    setIsDropdownOpen(false)
-    setShowLogoutConfirm(true)
-  }
-
+  const handleProfileSettings = () => { navigate('/profile-settings'); setIsDropdownOpen(false) }
+  const handleLogoutClick = () => { setIsDropdownOpen(false); setShowLogoutConfirm(true) }
   const handleLogoutConfirm = async () => {
-    // Call Logout API
-    try {
-      await api.post("/auth/logout");
-    } catch (err) {
-      console.error("Logout API failed", err);
-    }
-
-    // Clear all auth data
+    try { await api.post("/auth/logout"); } catch (err) { console.error("Logout API failed", err); }
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     sessionStorage.clear()
-    
-    // Redirect to login
     navigate('/', { replace: true })
   }
 
-  const handleStayLoggedIn = () => {
-    setShowLogoutConfirm(false)
-  }
+  const ResultSection = ({ title, items, type, renderItem }) => items.length > 0 && (
+    <div className="px-2 pb-1">
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 py-1.5">{title}</p>
+      {items.map((item) => (
+        <button
+          key={item._id}
+          className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-lg transition-colors group"
+          onClick={() => handleResultClick(type, item)}
+        >
+          {renderItem(item)}
+        </button>
+      ))}
+    </div>
+  )
+
+  const hasResults = Object.values(searchResults).some(arr => arr.length > 0)
 
   return (
     <>
-      {/* Top Header */}
-      <div className="fixed top-0 right-0 left-64 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 z-40">
+      <div className="fixed top-0 right-0 left-64 h-16 flex items-center justify-between px-6 z-40"
+        style={{
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 1px 20px rgba(0,0,0,0.04)'
+        }}
+      >
         {/* Search Bar */}
         <div className="flex-1 max-w-2xl relative" ref={searchRef}>
-          <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-2.5">
-            <Search size={20} className="text-gray-400" />
+          <div className="flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-200"
+            style={{ background: '#f4f6fa', border: '1.5px solid transparent' }}
+            onFocusCapture={(e) => e.currentTarget.style.borderColor = 'rgba(31,158,154,0.4)'}
+            onBlurCapture={(e) => e.currentTarget.style.borderColor = 'transparent'}
+          >
+            <Search size={17} className="text-gray-400 flex-shrink-0" />
             <input
               type="text"
-              placeholder="Search everything (Wards, Bins, Employees, etc.)...."
+              placeholder="Search wards, bins, employees, complaints..."
               className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-400 text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
             />
             {isSearching && (
-              <div className="animate-spin h-4 w-4 border-2 border-[#1f9e9a] border-t-transparent rounded-full" />
+              <div className="w-4 h-4 border-2 border-[#1f9e9a] border-t-transparent rounded-full animate-spin flex-shrink-0" />
             )}
           </div>
 
           {/* Search Results Dropdown */}
           {showResults && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-[85vh] overflow-y-auto z-50">
-              {/* Households */}
-              {searchResults.households.length > 0 && (
-                <div className="p-2">
-                  <h3 className="text-xs font-bold text-gray-400 border-b pb-1 mb-1 uppercase px-3">Households</h3>
-                  {searchResults.households.map(h => (
-                    <button
-                      key={h._id}
-                      className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-md transition flex flex-col group"
-                      onClick={() => handleResultClick('household', h)}
-                    >
-                      <span className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{h.ownerName}</span>
-                      <span className="text-[11px] text-gray-500">Number: {h.houseNumber} | {h.address}</span>
-                    </button>
-                  ))}
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl max-h-[80vh] overflow-y-auto z-50 border border-gray-100">
+              {hasResults ? (
+                <div className="py-2 divide-y divide-gray-50">
+                  <ResultSection title="Employees" items={searchResults.employees} type="employee"
+                    renderItem={(e) => (
+                      <>
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{e.name}</p>
+                        <p className="text-[11px] text-gray-400">ID: {e.employeeCode} · {e.phone}</p>
+                      </>
+                    )}
+                  />
+                  <ResultSection title="Households" items={searchResults.households} type="household"
+                    renderItem={(h) => (
+                      <>
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{h.ownerName}</p>
+                        <p className="text-[11px] text-gray-400">{h.houseNumber} · {h.address}</p>
+                      </>
+                    )}
+                  />
+                  <ResultSection title="Dustbins" items={searchResults.dustbins} type="dustbin"
+                    renderItem={(d) => (
+                      <>
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{d.binCode}</p>
+                        <p className="text-[11px] text-gray-400">{d.locationText} · {d.ward}</p>
+                      </>
+                    )}
+                  />
+                  <ResultSection title="Wards" items={searchResults.wards} type="ward"
+                    renderItem={(w) => <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{w.name}</p>}
+                  />
+                  <ResultSection title="Complaints" items={searchResults.complaints} type="complaint"
+                    renderItem={(c) => (
+                      <>
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{c.complaintId}</p>
+                        <p className="text-[11px] text-gray-400">{c.type} · {c.reporterName}</p>
+                      </>
+                    )}
+                  />
+                  <ResultSection title="Waste Records" items={searchResults.wasteRecords} type="waste-record"
+                    renderItem={(wr) => (
+                      <>
+                        <p className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{wr.entryId}</p>
+                        <p className="text-[11px] text-gray-400">{wr.ward} · {new Date(wr.date).toLocaleDateString()}</p>
+                      </>
+                    )}
+                  />
                 </div>
-              )}
-
-              {/* Employees */}
-              {searchResults.employees.length > 0 && (
-                <div className="p-2 border-t border-gray-50">
-                  <h3 className="text-xs font-bold text-gray-400 border-b pb-1 mb-1 uppercase px-3">Employees</h3>
-                  {searchResults.employees.map(e => (
-                    <button
-                      key={e._id}
-                      className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-md transition flex flex-col group"
-                      onClick={() => handleResultClick('employee', e)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{e.name}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded-full text-gray-600 uppercase font-bold">{e.role}</span>
-                      </div>
-                      <span className="text-[11px] text-gray-500">ID: {e.employeeCode} | {e.phone}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Dustbins */}
-              {searchResults.dustbins.length > 0 && (
-                <div className="p-2 border-t border-gray-50">
-                  <h3 className="text-xs font-bold text-gray-400 border-b pb-1 mb-1 uppercase px-3">Dustbins</h3>
-                  {searchResults.dustbins.map(d => (
-                    <button
-                      key={d._id}
-                      className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-md transition flex flex-col group"
-                      onClick={() => handleResultClick('dustbin', d)}
-                    >
-                      <span className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{d.binCode}</span>
-                      <span className="text-[11px] text-gray-500">{d.locationText} | {d.ward}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Wards & Routes */}
-              {(searchResults.wards.length > 0 || searchResults.routes.length > 0) && (
-                <div className="p-2 border-t border-gray-50 grid grid-cols-2 gap-2">
-                  {searchResults.wards.length > 0 && (
-                    <div>
-                      <h3 className="text-xs font-bold text-gray-400 border-b pb-1 mb-1 uppercase px-3">Wards</h3>
-                      {searchResults.wards.map(w => (
-                        <button
-                          key={w._id}
-                          className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-md transition group"
-                          onClick={() => handleResultClick('ward', w)}
-                        >
-                          <span className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{w.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {searchResults.routes.length > 0 && (
-                    <div>
-                      <h3 className="text-xs font-bold text-gray-400 border-b pb-1 mb-1 uppercase px-3">Routes</h3>
-                      {searchResults.routes.map(r => (
-                        <button
-                          key={r._id}
-                          className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-md transition flex flex-col group"
-                          onClick={() => handleResultClick('route', r)}
-                        >
-                          <span className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{r.routeCode}</span>
-                          <span className="text-[10px] text-gray-500 truncate">{r.routeName}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Waste Records */}
-              {searchResults.wasteRecords.length > 0 && (
-                <div className="p-2 border-t border-gray-50">
-                  <h3 className="text-xs font-bold text-gray-400 border-b pb-1 mb-1 uppercase px-3">Waste Records</h3>
-                  {searchResults.wasteRecords.map(wr => (
-                    <button
-                      key={wr._id}
-                      className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-md transition flex flex-col group"
-                      onClick={() => handleResultClick('waste-record', wr)}
-                    >
-                      <span className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{wr.entryId}</span>
-                      <span className="text-[11px] text-gray-500">{wr.ward} | {new Date(wr.date).toLocaleDateString()}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Complaints */}
-              {searchResults.complaints.length > 0 && (
-                <div className="p-2 border-t border-gray-50">
-                  <h3 className="text-xs font-bold text-gray-400 border-b pb-1 mb-1 uppercase px-3">Complaints</h3>
-                  {searchResults.complaints.map(c => (
-                    <button
-                      key={c._id}
-                      className="w-full text-left px-3 py-2 hover:bg-teal-50 rounded-md transition flex flex-col group"
-                      onClick={() => handleResultClick('complaint', c)}
-                    >
-                      <span className="text-sm font-semibold text-gray-800 group-hover:text-teal-700">{c.complaintId}</span>
-                      <span className="text-[11px] text-gray-500">{c.type} | {c.reporterName}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {searchResults.households.length === 0 && 
-               searchResults.dustbins.length === 0 && 
-               searchResults.complaints.length === 0 && 
-               searchResults.employees.length === 0 && 
-               searchResults.wards.length === 0 && 
-               searchResults.routes.length === 0 &&
-               searchResults.wasteRecords.length === 0 && (
-                <div className="p-6 text-center text-gray-500 text-sm">
-                  No results found for "{searchQuery}"
+              ) : (
+                <div className="p-8 text-center">
+                  <p className="text-sm text-gray-400">No results for "<span className="font-semibold text-gray-600">{searchQuery}</span>"</p>
                 </div>
               )}
             </div>
@@ -294,36 +183,48 @@ export default function TopHeader() {
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-6 ml-8">
-          <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-            <Bell size={20} className="text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">3 Alerts</span>
+        <div className="flex items-center gap-3 ml-6">
+          {/* Notifications Bell */}
+          <button className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors">
+            <Bell size={18} />
+            <span className="text-sm font-medium">3 Alerts</span>
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
           </button>
 
+          {/* Avatar / Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-10 h-10 rounded-full bg-[#1f9e9a] flex items-center justify-center hover:bg-[#198a87] transition shadow-sm"
+              className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
             >
-              <User size={20} className="text-white" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm"
+                style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
+              >
+                A
+              </div>
+              <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
+              <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-50">
+                <div className="px-4 py-2.5 border-b border-gray-50">
+                  <p className="text-sm font-bold text-gray-800">Panchayat Admin</p>
+                  <p className="text-xs text-gray-400">ecosyz.in</p>
+                </div>
                 <button
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors mt-1"
                   onClick={handleProfileSettings}
                 >
-                  <Settings size={16} className="text-gray-500" />
+                  <Settings size={15} className="text-gray-400" />
                   <span>Profile Settings</span>
                 </button>
-                <div className="h-px bg-gray-100 my-1" />
+                <div className="h-px bg-gray-100 mx-3 my-1" />
                 <button
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
-                  onClick={handleLogoutClick}  // Updated to show confirmation
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                  onClick={handleLogoutClick}
                 >
-                  <LogOut size={16} />
-                  <span>Logout</span>
+                  <LogOut size={15} />
+                  <span>Sign Out</span>
                 </button>
               </div>
             )}
@@ -331,10 +232,9 @@ export default function TopHeader() {
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
       <LogoutConfirmation
         isOpen={showLogoutConfirm}
-        onClose={handleStayLoggedIn}
+        onClose={() => setShowLogoutConfirm(false)}
         onLogout={handleLogoutConfirm}
       />
     </>

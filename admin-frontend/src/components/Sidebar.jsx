@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin } from 'lucide-react'
+import { Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin, Leaf } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-
 
 export default function Sidebar() {
   const location = useLocation()
@@ -14,266 +13,147 @@ export default function Sidebar() {
 
   const [expandOperational, setExpandOperational] = useState(isOperationalActive)
   
-  // Auto-expand if active
   useEffect(() => {
-    if (isOperationalActive) {
-      setExpandOperational(true)
-    }
+    if (isOperationalActive) setExpandOperational(true)
   }, [isOperationalActive])
 
   const isActive = (path) => location.pathname === path
 
+  const NavLink = ({ to, icon: Icon, label, small = false }) => {
+    const active = isActive(to)
+    return (
+      <Link
+        to={to}
+        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative ${
+          active
+            ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white shadow-md shadow-teal-500/25'
+            : 'text-slate-700 hover:text-slate-900 hover:bg-teal-50'
+        }`}
+      >
+        {active && (
+          <span className="absolute left-0 inset-y-0 w-0.5 rounded-r bg-teal-300/60" />
+        )}
+        <Icon size={small ? 16 : 18} className={active ? 'text-white' : 'text-slate-500 group-hover:text-teal-600 transition-colors'} />
+        <span className={`${small ? 'text-xs' : 'text-sm'} font-medium leading-tight`}>{label}</span>
+      </Link>
+    )
+  }
+
+  const SectionLabel = ({ label }) => (
+    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[1.5px] px-4 mb-2 mt-1">{label}</p>
+  )
 
   return (
-    <div className="w-64 bg-[#f0f2f5] h-screen overflow-y-auto fixed left-0 top-0 border-r border-gray-200">
+    <div className="w-64 h-screen overflow-y-auto fixed left-0 top-0 flex flex-col"
+      style={{
+        background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+        borderRight: '1px solid #e2e8f0'
+      }}
+    >
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-gray-200">
+      <div className="px-5 py-5 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#1f9e9a] rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xl">🌱</span>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
+          >
+            <Leaf size={18} className="text-white" />
           </div>
-          <h1 className="text-lg font-bold text-[#333333]">EcoSyz Admin</h1>
+          <div>
+            <p className="text-gray-800 font-bold text-sm leading-tight">EcoSyz Admin</p>
+            <p className="text-gray-400 text-[10px] font-medium">Panchayat Management</p>
+          </div>
         </div>
       </div>
 
-
       {/* Navigation */}
-      <nav className="px-4 py-6">
+      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
+
         {/* Main */}
-        <div className="mb-8">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">Main</h3>
-          <div className="space-y-2">
-            <Link
-              to="/dashboard"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/dashboard')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Home size={20} />
-              <span className="font-medium">Central Admin Dashboard</span>
-            </Link>
-
-
-            {/* Operational Management - Collapsible */}
-            <div>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setExpandOperational(!expandOperational);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  isOperationalActive || expandOperational
-                    ? 'bg-[#1f9e9a] text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <Settings size={20} />
-                <span className="font-medium flex-1 text-left">Operational Management</span>
-                <ChevronDown 
-                  size={16} 
-                  className={`transition-transform duration-200 ${expandOperational ? 'rotate-180' : ''}`}
-                />
-              </button>
-
-
-              {/* Dropdown Submenu */}
-              {expandOperational && (
-                <div className="mt-2 space-y-2 pl-4 border-l-2 border-[#1f9e9a]">
-                  <Link
-                    to="/employee"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      isActive('/employee')
-                        ? 'bg-[#1f9e9a] text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Users2 size={18} />
-                    <span className="font-medium text-sm">Employee Management</span>
-                  </Link>
-
-
-                  <Link
-                    to="/attendance"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      isActive('/attendance')
-                        ? 'bg-[#1f9e9a] text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Clock size={18} />
-                    <span className="font-medium text-sm">Attendance Management</span>
-                  </Link>
-
-
-                  <Link
-                    to="/dustbin"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      isActive('/dustbin')
-                        ? 'bg-[#1f9e9a] text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Trash2 size={18} />
-                    <span className="font-medium text-sm">Dustbin Management</span>
-                  </Link>
-
-
-                  <Link
-                    to="/household"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      isActive('/household')
-                        ? 'bg-[#1f9e9a] text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <HomeIcon size={18} />
-                    <span className="font-medium text-sm">Household Management</span>
-                  </Link>
-
-                  <Link
-                    to="/route"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      isActive('/route')
-                        ? 'bg-[#1f9e9a] text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <MapPin size={18} />
-                    <span className="font-medium text-sm">Route Management</span>
-                  </Link>
-
-                  <Link
-                    to="/ward"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      isActive('/ward')
-                        ? 'bg-[#1f9e9a] text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <MapPin size={18} />
-                    <span className="font-medium text-sm">Ward Management</span>
-                  </Link>
-                </div>
-              )}
-            </div>
+        <div>
+          <SectionLabel label="Main" />
+          <div className="space-y-1">
+            <NavLink to="/dashboard" icon={Home} label="Central Admin Dashboard" />
           </div>
         </div>
 
+        {/* Operational */}
+        <div>
+          <SectionLabel label="Operational" />
+          <div className="space-y-1">
+            <button
+              type="button"
+              onClick={() => setExpandOperational(!expandOperational)}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group ${
+                isOperationalActive
+                  ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white shadow-md shadow-teal-500/25'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-teal-50'
+              }`}
+            >
+              <Settings size={18} className={isOperationalActive ? 'text-white' : 'text-slate-500 group-hover:text-teal-600 transition-colors'} />
+              <span className="text-sm font-medium flex-1 text-left">Operational Mgmt</span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform duration-300 ${expandOperational ? 'rotate-180' : ''} ${isOperationalActive ? 'text-white' : 'text-slate-500'}`}
+              />
+            </button>
 
-        {/* Reports & Complaints */}
-        <div className="mb-8">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">Reports & Complaints</h3>
-          <div className="space-y-2">
-            <Link
-              to="/report-complaint"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/report-complaint')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <FileText size={20} />
-              <span className="font-medium">Report & Complaint Management</span>
-            </Link>
-            <Link
-              to="/waste-data"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/waste-data')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <BarChart3 size={20} />
-              <span className="font-medium">Waste Data Management</span>
-            </Link>
+            {expandOperational && (
+              <div className="ml-3 pl-3 border-l border-teal-400/30 space-y-0.5 mt-1">
+                <NavLink to="/employee" icon={Users2} label="Employee Management" small />
+                <NavLink to="/attendance" icon={Clock} label="Attendance Management" small />
+                <NavLink to="/dustbin" icon={Trash2} label="Dustbin Management" small />
+                <NavLink to="/household" icon={HomeIcon} label="Household Management" small />
+                <NavLink to="/route" icon={MapPin} label="Route Management" small />
+                <NavLink to="/ward" icon={MapPin} label="Ward Management" small />
+              </div>
+            )}
           </div>
         </div>
 
-
-        {/* Public Website CMS */}
-        <div className="mb-8">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">Public Website CMS</h3>
-          <div className="space-y-2">
-            <Link
-              to="/edit-about-us"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/edit-about-us')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <BookOpen size={20} />
-              <span className="font-medium">Edit About Us</span>
-            </Link>
-            <Link
-              to="/edit-guide"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/edit-guide')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <BookOpen size={20} />
-              <span className="font-medium">Edit Segregation Guide</span>
-            </Link>
-            <Link
-              to="/gallery"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/gallery')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Image size={20} />
-              <span className="font-medium">Manage Photo Gallery</span>
-            </Link>
+        {/* Reports */}
+        <div>
+          <SectionLabel label="Reports & Complaints" />
+          <div className="space-y-1">
+            <NavLink to="/report-complaint" icon={FileText} label="Report & Complaint Mgmt" />
+            <NavLink to="/waste-data" icon={BarChart3} label="Waste Data Management" />
           </div>
         </div>
 
+        {/* CMS */}
+        <div>
+          <SectionLabel label="Public Website CMS" />
+          <div className="space-y-1">
+            <NavLink to="/edit-about-us" icon={BookOpen} label="Edit About Us" />
+            <NavLink to="/edit-guide" icon={BookOpen} label="Edit Segregation Guide" />
+            <NavLink to="/gallery" icon={Image} label="Manage Photo Gallery" />
+          </div>
+        </div>
 
-        {/* Analytics & Settings */}
-        <div className="mb-8">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">Analytics & Settings</h3>
-          <div className="space-y-2">
-            <Link
-              to="/reports"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/reports')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <TrendingUp size={20} />
-              <span className="font-medium">Report Generation & Analytics</span>
-            </Link>
-            <Link
-              to="/settings"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/settings')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Users size={20} />
-              <span className="font-medium">User Management & Settings</span>
-            </Link>
-            <Link
-              to="/legal"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive('/legal')
-                  ? 'bg-[#1f9e9a] text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Scale size={20} />
-              <span className="font-medium">Legal & Transparency</span>
-            </Link>
+        {/* Settings */}
+        <div>
+          <SectionLabel label="Analytics & Settings" />
+          <div className="space-y-1">
+            <NavLink to="/reports" icon={TrendingUp} label="Report Generation & Analytics" />
+            <NavLink to="/settings" icon={Users} label="User Management & Settings" />
+            <NavLink to="/legal" icon={Scale} label="Legal & Transparency" />
           </div>
         </div>
       </nav>
+
+      {/* Footer */}
+      <div className="px-4 py-3 border-t border-gray-100 flex-shrink-0 bg-gray-50">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
+          >
+            A
+          </div>
+          <div className="min-w-0">
+            <p className="text-gray-800 text-xs font-bold truncate">Panchayat Admin</p>
+            <p className="text-gray-500 text-[10px]">ecosyz.in</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

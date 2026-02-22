@@ -1,79 +1,84 @@
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2 } from "lucide-react"
 
 export default function WardDustbinsModal({ isOpen, onClose, wardName, dustbins }) {
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl relative max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-bold uppercase text-gray-800">
-            Dustbins in {wardName}
-          </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X size={20} />
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[80vh]">
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1">
-          {dustbins.length > 0 ? (
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 text-gray-700 border-b">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Bin Code</th>
-                    <th className="px-4 py-3 font-semibold">Location</th>
-                    <th className="px-4 py-3 font-semibold">Type</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {dustbins.map((bin) => (
-                    <tr key={bin._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900">{bin.binCode}</td>
-                      <td className="px-4 py-3 text-gray-600">{bin.locationText}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          bin.type === 'Organic' ? 'bg-green-100 text-green-700' :
-                          bin.type === 'Recyclable' ? 'bg-blue-100 text-blue-700' :
-                          'bg-gray-100 text-gray-700'
-                        }`}>
-                          {bin.type}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          bin.status === 'Good' ? 'bg-green-100 text-green-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {bin.status}
-                        </span>
-                      </td>
+          {/* Header */}
+          <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <Trash2 size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Ward Details</p>
+                <h2 className="text-white font-bold text-sm">Dustbins in {wardName}</h2>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 overflow-y-auto flex-1">
+            {dustbins.length > 0 ? (
+              <div className="rounded-xl overflow-hidden border border-gray-100">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                      {['Bin Code', 'Location', 'Type', 'Status'].map(h => (
+                        <th key={h} className="px-4 py-3 text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-10 bg-gray-50 rounded-lg border-2 border-dashed">
-              <Trash2 className="mx-auto text-gray-300 mb-2" size={40} />
-              <p className="text-gray-500 font-medium">No dustbins alloted to this ward yet.</p>
-            </div>
-          )}
-        </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {dustbins.map((bin, i) => (
+                      <tr key={bin._id} className={`transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-teal-50/30`}>
+                        <td className="px-4 py-3 font-mono font-bold text-teal-600 text-xs">{bin.binCode}</td>
+                        <td className="px-4 py-3 text-gray-600 text-xs">{bin.locationText}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            bin.type === 'Organic' ? 'bg-green-50 text-green-600 border-green-100' :
+                            bin.type === 'Recyclable' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                            'bg-gray-50 text-gray-600 border-gray-100'
+                          }`}>{bin.type}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            bin.status === 'Good' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                            'bg-red-50 text-red-500 border-red-100'
+                          }`}>{bin.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <Trash2 className="mx-auto text-gray-300 mb-3" size={36} />
+                <p className="text-sm font-semibold text-gray-400">No dustbins allotted to this ward yet.</p>
+              </div>
+            )}
+          </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-[#1f9e9a] text-white rounded font-semibold text-sm"
-          >
-            Close
-          </button>
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-gray-50 flex justify-end flex-shrink-0">
+            <button onClick={onClose}
+              className="px-5 py-2.5 text-white rounded-xl text-sm font-bold"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+              Close
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    </>
+  )
 }

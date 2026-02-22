@@ -1,61 +1,56 @@
-export default function LogoutConfirmation({ 
-  isOpen, 
-  onClose, 
-  onLogout, 
-  userName = "Admin Singh" 
-}) {
+import { LogOut, X } from 'lucide-react'
+
+export default function LogoutConfirmation({ isOpen, onClose, onLogout }) {
   if (!isOpen) return null
 
-  const handleLogout = () => {
-    // Call logout callback
-    if (onLogout) onLogout()
-  }
-
-  const handleStayLoggedIn = () => {
-    onClose()
-  }
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border border-gray-300 rounded-xl shadow-2xl w-full max-w-md mx-auto">
-        
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-t-xl">
-          <h2 className="text-xl font-bold text-center">Log Out</h2>
-        </div>
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-gray-100 animate-fade-in-up overflow-hidden">
 
-        {/* Content */}
-        <div className="p-8 text-center">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-3xl">👋</span>
-          </div>
-          
-          <h3 className="text-lg font-bold text-gray-800 mb-2">
-            LOG OUT
-          </h3>
-          
-          <p className="text-sm text-gray-700 mb-8 leading-relaxed">
-            Are you sure you want to log out? You can log in anytime using your credentials.
-          </p>
-
-          {/* Buttons */}
-          <div className="flex gap-4 justify-center">
-            <button
-              onClick={handleLogout}
-              className="px-8 py-3 bg-red-600 text-white font-semibold text-sm rounded-lg hover:bg-red-700 transition-all shadow-lg"
-            >
-              Log Out
+          {/* Header */}
+          <div className="px-6 py-5 flex items-center justify-between"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <LogOut size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Session</p>
+                <h2 className="text-white font-bold text-sm">Log Out</h2>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
             </button>
-            
-            <button
-              onClick={handleStayLoggedIn}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold text-sm rounded-lg hover:bg-blue-700 transition-all shadow-lg"
-            >
+          </div>
+
+          {/* Content */}
+          <div className="p-6 text-center space-y-3">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a22, #22c55e22)' }}>
+              <span className="text-3xl">👋</span>
+            </div>
+            <p className="text-sm text-gray-500">
+              Are you sure you want to <span className="font-bold text-gray-700">log out</span>? You can log in again anytime with your credentials.
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 pb-6 flex gap-3">
+            <button onClick={onClose}
+              className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
               Stay Logged In
+            </button>
+            <button onClick={onLogout}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-white rounded-xl text-sm font-bold"
+              style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
+              <LogOut size={14} /> Log Out
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

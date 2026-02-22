@@ -1,92 +1,76 @@
-import { X, User, CheckCircle } from "lucide-react";
+import { X, User, CheckCircle } from "lucide-react"
 
-const RAW_API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "https://ecosyz-backend.onrender.com/api";
+const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:10000/api"
+const STATIC_BASE = RAW_API_BASE.replace(/\/api$/, "")
+const isImage = (path = "") => /\.(jpg|jpeg|png|webp)$/i.test(path)
 
-const STATIC_BASE = RAW_API_BASE.replace(/\/api$/, "");
+export default function ActivateEmployeeModal({ isOpen, onClose, employee, onConfirm }) {
+  if (!isOpen || !employee) return null
 
-const isImage = (path = "") =>
-  /\.(jpg|jpeg|png|webp)$/i.test(path);
-
-export default function ActivateEmployeeModal({
-  isOpen,
-  onClose,
-  employee,
-  onConfirm,
-}) {
-  if (!isOpen || !employee) return null;
-
-  const handleActivate = () => {
-    onConfirm(employee._id);
-    onClose();
-  };
-
-  const formatDate = (date) =>
-    date ? new Date(date).toLocaleDateString() : "-";
+  const handleActivate = () => { onConfirm(employee._id); onClose() }
+  const formatDate = (date) => date ? new Date(date).toLocaleDateString() : "-"
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 overflow-y-auto">
-      <div className="flex justify-center py-10 px-4">
-        <div className="bg-white rounded-lg shadow-2xl w-full max-w-md relative">
-          <div className="flex items-center justify-between px-6 py-4 border-b">
-            <h2 className="text-sm font-bold uppercase text-green-600">
-              Activate Employee
-            </h2>
-            <button onClick={onClose}>
-              <X size={20} />
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-gray-100 animate-fade-in-up overflow-hidden">
+
+          {/* Header */}
+          <div className="px-6 py-5 flex items-center justify-between"
+            style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <CheckCircle size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Confirm Action</p>
+                <h2 className="text-white font-bold text-sm">Activate Employee</h2>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
             </button>
           </div>
 
-          <div className="p-6 text-center">
-            <div className="mb-4 flex justify-center">
-               <div className="bg-green-100 p-3 rounded-full">
-                  <CheckCircle size={32} className="text-green-600" />
-               </div>
-            </div>
-            
-            <p className="text-sm mb-6">
-              Are you sure you want to reactivate this employee? They will be able to access the system again.
+          {/* Content */}
+          <div className="p-6 space-y-4">
+            <p className="text-sm text-gray-500 text-center">
+              This employee will regain <span className="font-bold text-gray-700">full system access</span> upon activation.
             </p>
 
-            <div className="flex flex-col items-center gap-4 mb-6 p-5 bg-gray-50 rounded-lg">
-              <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
-                {employee.documents?.photo &&
-                isImage(employee.documents.photo) ? (
-                  <img
-                    src={`${STATIC_BASE}/${employee.documents.photo}`}
-                    className="w-full h-full object-cover"
-                    alt="Employee"
-                  />
-                ) : (
-                  <User size={40} className="text-gray-400" />
-                )}
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                {employee.documents?.photo && isImage(employee.documents.photo)
+                  ? <img src={`${STATIC_BASE}/${employee.documents.photo}`} className="w-full h-full object-cover" alt="Employee" />
+                  : <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                      style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
+                      {employee.name?.charAt(0)}
+                    </div>
+                }
               </div>
-
-              <div className="text-left w-full space-y-2 text-sm">
-                <p><b>Name:</b> {employee.name}</p>
-                <p><b>Code:</b> {employee.employeeCode}</p>
-                <p><b>Role:</b> {employee.role}</p>
-                <p><b>Joining:</b> {formatDate(employee.joiningDate)}</p>
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-bold text-gray-800 truncate">{employee.name}</p>
+                <p className="text-xs text-gray-500 font-mono">{employee.employeeCode}</p>
+                <p className="text-xs text-gray-500">{employee.role} · Joined {formatDate(employee.joiningDate)}</p>
               </div>
             </div>
+          </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={handleActivate}
-                className="flex-1 bg-green-500 text-white py-2 rounded font-semibold"
-              >
-                Activate
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 bg-gray-100 text-gray-700 py-2 rounded font-semibold border"
-              >
-                Cancel
-              </button>
-            </div>
+          {/* Footer */}
+          <div className="px-6 pb-6 flex gap-3">
+            <button onClick={onClose}
+              className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
+              Cancel
+            </button>
+            <button onClick={handleActivate}
+              className="flex-1 px-4 py-2.5 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
+              <CheckCircle size={14} /> Activate
+            </button>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </>
+  )
 }

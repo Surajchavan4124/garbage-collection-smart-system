@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, Download, Eye, ImageIcon, FileText, Table } from 'lucide-react'
+import { Search, Filter, Download, Eye, ImageIcon, FileText, Table, AlertCircle, Clock, CheckCircle2, Users, X } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { toast } from 'react-toastify'
@@ -15,24 +15,16 @@ export default function ReportAndComplaintManagement() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [selectedComplaint, setSelectedComplaint] = useState(null)
-  
-  // Filter & Download States
+
   const [statusFilter, setStatusFilter] = useState('All')
   const [showFilterMenu, setShowFilterMenu] = useState(false)
   const [showDownloadMenu, setShowDownloadMenu] = useState(false)
-  
-  const [metrics, setMetrics] = useState({
-    new: 0,
-    pending: 0,
-    resolved: 0
-  })
+
+  const [metrics, setMetrics] = useState({ new: 0, pending: 0, resolved: 0 })
 
   useEffect(() => {
     fetchData()
-    const interval = setInterval(() => {
-      fetchData(true)
-    }, 10000) // Poll every 10 seconds
-
+    const interval = setInterval(() => fetchData(true), 10000)
     return () => clearInterval(interval)
   }, [])
 
@@ -43,22 +35,20 @@ export default function ReportAndComplaintManagement() {
         api.get('/complaints'),
         api.get('/employees')
       ])
-
       const mappedComplaints = complaintsRes.data.map(c => ({
         originalId: c._id,
-        id: c.complaintId || c._id, 
+        id: c.complaintId || c._id,
         createdAt: c.createdAt,
         dateSubmitted: new Date(c.createdAt).toLocaleDateString(),
         name: c.reporterName,
         mobile: c.reporterMobile,
         category: c.type,
-        ward: c.ward || 'N/A', 
+        ward: c.ward || 'N/A',
         photo: c.photo,
         status: c.status,
-        assignedEmployee: c.assignedTo || null, // Keeping the whole object or null
+        assignedEmployee: c.assignedTo || null,
         description: c.description
       }))
-
       setComplaints(mappedComplaints)
       setEmployees(employeesRes.data)
       calculateMetrics(mappedComplaints)
@@ -70,47 +60,28 @@ export default function ReportAndComplaintManagement() {
   }
 
   const calculateMetrics = (data) => {
-    const newComplaints = data.filter(c => c.status === 'Received').length
-    const pending = data.filter(c => c.status === 'In Progress' || (c.status === 'Received' && !c.assignedEmployee)).length
-    const resolved = data.filter(c => c.status === 'Resolved').length
-
     setMetrics({
-      new: newComplaints,
-      pending: pending,
-      resolved: resolved
+      new: data.filter(c => c.status === 'Received').length,
+      pending: data.filter(c => c.status === 'In Progress' || (c.status === 'Received' && !c.assignedEmployee)).length,
+      resolved: data.filter(c => c.status === 'Resolved').length,
     })
   }
 
-  // Filter complaints based on search and status
-  const filteredComplaints = complaints.filter(
-    (complaint) => {
-      const matchesSearch = complaint.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            complaint.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesStatus = statusFilter === 'All' || complaint.status === statusFilter
-      
-      return matchesSearch && matchesStatus
-    }
-  )
+  const filteredComplaints = complaints.filter(complaint => {
+    const matchesSearch =
+      complaint.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'All' || complaint.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
-  // Download Handlers
   const handleDownloadCSV = () => {
-    const headers = ['Complaint ID', 'Date', 'Name', 'Category', 'Ward', 'Status', 'Assigned To', 'Resolution Time']
+    const headers = ['Complaint ID', 'Date', 'Name', 'Category', 'Ward', 'Status', 'Assigned To']
     const rows = filteredComplaints.map(c => [
-      c.id,
-      c.dateSubmitted,
-      c.name,
-      c.category,
-      c.ward,
-      c.status,
-      c.assignedEmployee ? c.assignedEmployee.name : 'Unassigned',
-      c.resolutionTime || '-'
+      c.id, c.dateSubmitted, c.name, c.category, c.ward, c.status,
+      c.assignedEmployee ? c.assignedEmployee.name : 'Unassigned'
     ])
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(item => `"${item}"`).join(','))
-    ].join('\n')
-
+    const csvContent = [headers.join(','), ...rows.map(row => row.map(item => `"${item}"`).join(','))].join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
@@ -122,177 +93,210 @@ export default function ReportAndComplaintManagement() {
   const handleDownloadPDF = () => {
     try {
       const doc = new jsPDF()
-      
       doc.text('Complaints Report', 14, 15)
       doc.setFontSize(10)
       doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22)
-
-      const tableColumn = ['ID', 'Date', 'Name', 'Category', 'Ward', 'Status', 'Assigned']
-      const tableRows = filteredComplaints.map(c => [
-        c.id,
-        c.dateSubmitted,
-        c.name,
-        c.category,
-        c.ward,
-        c.status,
-        c.assignedEmployee ? c.assignedEmployee.name : 'Unassigned'
-      ])
-
-      // Functional usage of autoTable with fallback
-      if (typeof autoTable === 'function') {
-        autoTable(doc, {
-          startY: 25,
-          head: [tableColumn],
-          body: tableRows,
-        })
-      } else {
-        doc.autoTable({
-          startY: 25,
-          head: [tableColumn],
-          body: tableRows,
-        })
-      }
-
+      autoTable(doc, {
+        startY: 25,
+        head: [['ID', 'Date', 'Name', 'Category', 'Ward', 'Status', 'Assigned']],
+        body: filteredComplaints.map(c => [
+          c.id, c.dateSubmitted, c.name, c.category, c.ward, c.status,
+          c.assignedEmployee ? c.assignedEmployee.name : 'Unassigned'
+        ]),
+        headStyles: { fillColor: [31, 158, 154] },
+      })
       doc.save(`complaints_report_${new Date().toISOString().split('T')[0]}.pdf`)
       setShowDownloadMenu(false)
     } catch (error) {
-      console.error("PDF Export Error:", error)
       toast.error(`Failed to download PDF: ${error.message}`)
     }
   }
 
-  // Get complaints by status
   const receivedComplaints = complaints.filter(c => c.status === 'Received')
   const inProgressComplaints = complaints.filter(c => c.status === 'In Progress')
   const resolvedComplaints = complaints.filter(c => c.status === 'Resolved')
 
-  // Handle view complaint details
   const handleViewComplaint = (complaint) => {
     setSelectedComplaint(complaint)
     setIsViewModalOpen(true)
   }
 
-  // Handle status update from modal or kanban
   const handleStatusUpdate = async (complaintId, updatedData) => {
     try {
-        await api.patch(`/complaints/${complaintId}`, updatedData)
-        fetchData() // Refresh data
-        toast.success("Complaint updated successfully")
+      await api.patch(`/complaints/${complaintId}`, updatedData)
+      fetchData()
+      toast.success("Complaint updated successfully")
     } catch (error) {
-        console.error(error)
-        toast.error('Failed to update complaint')
+      toast.error('Failed to update complaint')
     }
   }
 
   const handleAssignEmployee = async (complaintId, employeeId) => {
     if (!employeeId) return
     try {
-      await api.patch(`/complaints/${complaintId}`, {
-        assignedTo: employeeId,
-        status: 'In Progress' // Auto-move to In Progress on assignment? Optional but common.
-      })
+      await api.patch(`/complaints/${complaintId}`, { assignedTo: employeeId, status: 'In Progress' })
       fetchData()
       toast.success("Employee assigned successfully")
     } catch (err) {
-      console.error(err)
       toast.error("Failed to assign employee")
     }
   }
 
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'Received': return 'bg-red-100 text-red-700'
-      case 'In Progress': return 'bg-yellow-100 text-yellow-700'
-      case 'Resolved': return 'bg-teal-100 text-teal-700'
-      default: return 'bg-gray-100 text-gray-700'
-    }
+  const statusConfig = {
+    'Received': { badge: 'bg-red-50 text-red-600 border-red-100', dot: 'bg-red-500', col: 'border-t-4 border-red-400', colBg: 'bg-red-50/60', link: 'text-red-600' },
+    'In Progress': { badge: 'bg-amber-50 text-amber-600 border-amber-100', dot: 'bg-amber-500', col: 'border-t-4 border-amber-400', colBg: 'bg-amber-50/60', link: 'text-amber-600' },
+    'Resolved': { badge: 'bg-emerald-50 text-emerald-600 border-emerald-100', dot: 'bg-emerald-500', col: 'border-t-4 border-emerald-400', colBg: 'bg-emerald-50/60', link: 'text-emerald-600' },
   }
 
-  const getKanbanCardBorder = (status) => {
-    switch (status) {
-      case 'Received': return 'border-l-4 border-red-500 bg-red-50'
-      case 'In Progress': return 'border-l-4 border-yellow-500 bg-yellow-50'
-      case 'Resolved': return 'border-l-4 border-teal-500 bg-teal-50'
-      default: return 'border-l-4 border-gray-500 bg-gray-50'
-    }
+  const KanbanCard = ({ complaint, columnStatus }) => {
+    const cfg = statusConfig[columnStatus] || statusConfig['Received']
+    return (
+      <div className={`bg-white rounded-xl border ${cfg.col} shadow-sm hover:shadow-md transition-shadow duration-200 p-4 space-y-3`}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] text-gray-400 font-mono">{complaint.id?.substring(0, 12)}…</p>
+            <p className="text-sm font-bold text-gray-800 mt-0.5 truncate">{complaint.category}</p>
+          </div>
+          <span className={`flex-shrink-0 text-[10px] font-bold border rounded-full px-2 py-0.5 ${cfg.badge}`}>{complaint.ward}</span>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <span>{complaint.dateSubmitted}</span>
+          {complaint.photo && <ImageIcon size={12} className="text-teal-500" />}
+        </div>
+
+        {columnStatus === 'Received' && (
+          <div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Assign To</p>
+            <select
+              onChange={(e) => handleAssignEmployee(complaint.originalId, e.target.value)}
+              value={complaint.assignedEmployee ? complaint.assignedEmployee._id : ""}
+              className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-teal-300 focus:ring-1 focus:ring-teal-100 text-gray-700 bg-gray-50"
+            >
+              <option value="">+ Assign employee</option>
+              {employees.map(emp => (
+                <option key={emp._id} value={emp._id}>{emp.name} — {emp.role}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {complaint.assignedEmployee && columnStatus !== 'Received' && (
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}>
+              {complaint.assignedEmployee.name?.charAt(0)}
+            </div>
+            <span className="text-xs font-semibold text-gray-700">{complaint.assignedEmployee.name}</span>
+          </div>
+        )}
+
+        <button
+          onClick={() => handleViewComplaint(complaint)}
+          className={`text-xs font-bold hover:underline ${cfg.link}`}
+        >
+          View details →
+        </button>
+      </div>
+    )
+  }
+
+  const KanbanColumn = ({ title, icon: Icon, complaints: items, status, accentClass }) => {
+    const cfg = statusConfig[status] || {}
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className={`px-5 py-4 border-b ${accentClass}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon size={16} className="text-white" />
+              <h3 className="text-sm font-bold text-white">{title}</h3>
+            </div>
+            <span className="bg-white/30 text-white text-xs font-bold rounded-full px-2.5 py-0.5 min-w-6 text-center">{items.length}</span>
+          </div>
+        </div>
+        <div className="p-4 space-y-3 max-h-[520px] overflow-y-auto">
+          {items.length > 0 ? (
+            items.map(c => <KanbanCard key={c.id} complaint={c} columnStatus={status} />)
+          ) : (
+            <div className="text-center py-10 text-gray-400">
+              <p className="text-sm font-medium">No {title.toLowerCase()} complaints</p>
+            </div>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex bg-mesh min-h-screen">
       <Sidebar />
-      <div className="ml-64 flex-1 flex flex-col overflow-hidden">
+      <div className="ml-64 flex-1">
         <TopHeader />
-        <div className="mt-16 flex-1 overflow-y-auto p-6 bg-gray-100">
-          
-          <div className="mb-6 text-sm text-gray-600">
-            <span>Reports & Complaints</span> &gt;{' '}
-            <span className="font-semibold text-gray-800">Report & Complaint Management</span>
+        <div className="pt-20 px-8 pb-10 animate-fade-in-up">
+
+          {/* Page header */}
+          <div className="mb-6">
+            <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Reports &amp; Complaints</p>
+            <h1 className="text-xl font-black text-gray-800">Report &amp; Complaint Management</h1>
           </div>
 
-          {/* ===== COMPLAINTS OVERVIEW (KPI CARDS) ===== */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-lg shadow p-6 text-center hover:shadow-md transition">
-              <p className="text-sm font-semibold text-gray-600 mb-2">New Complaints</p>
-              <p className="text-4xl font-bold text-gray-800 mb-1">
-                {String(metrics.new).padStart(2, '0')}
-              </p>
-              <p className="text-xs text-gray-500">Status: Received</p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6 text-center hover:shadow-md transition">
-              <p className="text-sm font-semibold text-gray-600 mb-2">Pending Complaints</p>
-              <p className="text-4xl font-bold text-gray-800 mb-1">
-                {String(metrics.pending).padStart(2, '0')}
-              </p>
-              <p className="text-xs text-gray-500">In Progress or Unassigned</p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6 text-center hover:shadow-md transition">
-              <p className="text-sm font-semibold text-gray-600 mb-2">Resolved Complaints</p>
-              <p className="text-4xl font-bold text-gray-800 mb-1">
-                {metrics.resolved}
-              </p>
-              <p className="text-xs text-gray-500">Total Resolved</p>
-            </div>
+          {/* KPI Stat Cards */}
+          <div className="grid grid-cols-3 gap-5 mb-6">
+            {[
+              { label: 'New Complaints', value: String(metrics.new).padStart(2, '0'), sub: 'Status: Received', icon: AlertCircle, color: 'from-rose-500 to-rose-700' },
+              { label: 'Pending Complaints', value: String(metrics.pending).padStart(2, '0'), sub: 'In Progress or Unassigned', icon: Clock, color: 'from-amber-500 to-amber-700' },
+              { label: 'Resolved Complaints', value: metrics.resolved, sub: 'Total Resolved', icon: CheckCircle2, color: 'from-emerald-500 to-emerald-700' },
+            ].map(({ label, value, sub, icon: Icon, color }) => (
+              <div key={label} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                  <Icon size={20} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 font-medium">{label}</p>
+                  <p className="text-3xl font-black text-gray-800">{value}</p>
+                  <p className="text-[10px] text-gray-400">{sub}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* ===== COMPLAINTS TABLE ===== */}
-          <div className="bg-white rounded-lg shadow mb-6">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">COMPLAINTS TABLE</h2>
-              <div className="flex items-center gap-3">
-                <Search size={18} className="text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search Complaints by ID"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
-                />
-                {/* Filter Dropdown */}
+          {/* Complaints Table Card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+            {/* Toolbar */}
+            <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3 flex-wrap">
+              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Complaints Table</h2>
+
+              <div className="ml-auto flex items-center gap-2">
+                {/* Search */}
+                <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 w-56 border border-transparent focus-within:border-teal-300/50">
+                  <Search size={14} className="text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by ID or name…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1 outline-none text-xs bg-transparent text-gray-700 placeholder-gray-400"
+                  />
+                </div>
+
+                {/* Filter */}
                 <div className="relative">
-                  <button 
-                    onClick={() => {
-                      setShowFilterMenu(!showFilterMenu)
-                      setShowDownloadMenu(false)
-                    }}
-                    className={`flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition ${statusFilter !== 'All' ? 'bg-teal-50 text-teal-700 border-teal-500' : ''}`}
+                  <button
+                    onClick={() => { setShowFilterMenu(!showFilterMenu); setShowDownloadMenu(false) }}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors ${
+                      statusFilter !== 'All' ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                    }`}
                   >
-                    <Filter size={16} />
-                    <span>Filter {statusFilter !== 'All' ? `(${statusFilter})` : ''}</span>
+                    <Filter size={13} />
+                    {statusFilter !== 'All' ? statusFilter : 'Filter'}
                   </button>
-                  
                   {showFilterMenu && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-xl z-20">
-                      {['All', 'Received', 'In Progress', 'Resolved'].map((status) => (
-                        <button
-                          key={status}
-                          onClick={() => {
-                            setStatusFilter(status)
-                            setShowFilterMenu(false)
-                          }}
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${statusFilter === status ? 'bg-teal-50 text-teal-600 font-bold' : 'text-gray-700'}`}
-                        >
+                    <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-xl shadow-xl z-20 py-1 overflow-hidden">
+                      {['All', 'Received', 'In Progress', 'Resolved'].map(status => (
+                        <button key={status} onClick={() => { setStatusFilter(status); setShowFilterMenu(false) }}
+                          className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition-colors ${
+                            statusFilter === status ? 'bg-teal-50 text-teal-700' : 'text-gray-700 hover:bg-gray-50'
+                          }`}>
                           {status}
                         </button>
                       ))}
@@ -300,32 +304,22 @@ export default function ReportAndComplaintManagement() {
                   )}
                 </div>
 
-                {/* Download Dropdown */}
+                {/* Download */}
                 <div className="relative">
-                  <button 
-                    onClick={() => {
-                      setShowDownloadMenu(!showDownloadMenu)
-                      setShowFilterMenu(false)
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition"
+                  <button
+                    onClick={() => { setShowDownloadMenu(!showDownloadMenu); setShowFilterMenu(false) }}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white btn-lift"
+                    style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}
                   >
-                    <Download size={16} />
-                    <span>Download</span>
+                    <Download size={13} /> Export
                   </button>
-
                   {showDownloadMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-xl z-20">
-                      <button
-                        onClick={handleDownloadCSV}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <Table size={16} /> Download CSV
+                    <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-xl shadow-xl z-20 py-1 overflow-hidden">
+                      <button onClick={handleDownloadCSV} className="w-full text-left px-4 py-2.5 text-xs text-gray-700 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2">
+                        <Table size={12} /> Download CSV
                       </button>
-                      <button
-                        onClick={handleDownloadPDF}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <FileText size={16} /> Download PDF
+                      <button onClick={handleDownloadPDF} className="w-full text-left px-4 py-2.5 text-xs text-gray-700 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-2">
+                        <FileText size={12} /> Download PDF
                       </button>
                     </div>
                   )}
@@ -333,189 +327,101 @@ export default function ReportAndComplaintManagement() {
               </div>
             </div>
 
+            {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-teal-500 text-white">
-                    <th className="px-4 py-3 text-left text-xs font-bold">Complaint ID</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold">Category</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold">Ward</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold">Photo</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold">Assigned</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold">View</th>
+                  <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                    {['Complaint ID', 'Date', 'Name', 'Category', 'Ward', 'Photo', 'Status', 'Assigned', 'View'].map(h => (
+                      <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody>
-                  {filteredComplaints.map((complaint, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-4 text-sm font-semibold text-gray-800">{complaint.id}</td>
-                      <td className="px-4 py-4 text-sm text-gray-700">{complaint.dateSubmitted}</td>
-                      <td className="px-4 py-4 text-sm text-gray-700">{complaint.name}</td>
-                      <td className="px-4 py-4 text-sm text-gray-700">{complaint.category}</td>
-                      <td className="px-4 py-4 text-sm text-gray-700">{complaint.ward}</td>
-                      <td className="px-4 py-4 text-center">
-                        {complaint.photo ? (
-                          <div className="flex justify-center gap-1">
-                            <ImageIcon size={16} className="text-gray-500" />
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(complaint.status)}`}>
-                          {complaint.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-sm">
-                        {complaint.assignedEmployee ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center text-xs text-white font-bold">
-                              {complaint.assignedEmployee.name?.charAt(0)}
+                <tbody className="divide-y divide-gray-50">
+                  {loading ? (
+                    <tr><td colSpan="9" className="px-4 py-12 text-center text-gray-400 text-sm">Loading complaints…</td></tr>
+                  ) : filteredComplaints.length === 0 ? (
+                    <tr><td colSpan="9" className="px-4 py-12 text-center text-gray-400 text-sm">No complaints found.</td></tr>
+                  ) : (
+                    filteredComplaints.map((complaint, idx) => (
+                      <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-teal-50/30`}>
+                        <td className="px-4 py-3.5">
+                          <span className="text-xs font-mono font-bold text-teal-600">{complaint.id}</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs text-gray-500">{complaint.dateSubmitted}</td>
+                        <td className="px-4 py-3.5 text-xs font-semibold text-gray-800">{complaint.name}</td>
+                        <td className="px-4 py-3.5 text-xs text-gray-600">{complaint.category}</td>
+                        <td className="px-4 py-3.5">
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">{complaint.ward}</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-center">
+                          {complaint.photo
+                            ? <ImageIcon size={14} className="text-teal-500 mx-auto" />
+                            : <span className="text-gray-300">—</span>
+                          }
+                        </td>
+                        <td className="px-4 py-3.5">
+                          {(() => {
+                            const cfg = statusConfig[complaint.status] || {}
+                            return (
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${cfg.badge}`}>
+                                {complaint.status}
+                              </span>
+                            )
+                          })()}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          {complaint.assignedEmployee ? (
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-5 h-5 rounded-full text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0"
+                                style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}>
+                                {complaint.assignedEmployee.name?.charAt(0)}
+                              </div>
+                              <span className="text-xs text-gray-700 font-medium truncate max-w-20">{complaint.assignedEmployee.name}</span>
                             </div>
-                            <span className="text-gray-700">{complaint.assignedEmployee.name}</span>
-                          </div>
-                        ) : (
-                          <span className="text-red-600 font-medium text-xs">Unassigned</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4">
-                        <button
-                          onClick={() => handleViewComplaint(complaint)}
-                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition"
-                        >
-                          <Eye size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredComplaints.length === 0 && (
-                    <tr>
-                      <td colSpan="9" className="text-center py-4 text-gray-500">No complaints found.</td>
-                    </tr>
+                          ) : (
+                            <span className="text-[10px] font-bold text-red-400">Unassigned</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <button onClick={() => handleViewComplaint(complaint)}
+                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                            <Eye size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* ===== UPDATE STATUS (KANBAN WORKFLOW) ===== */}
+          {/* Kanban Board */}
           <div>
-            <h2 className="text-lg font-bold text-gray-800 mb-4">UPDATE STATUS</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              {/* RECEIVED COLUMN */}
-              <div className="space-y-4">
-                <h3 className="text-md font-bold text-gray-700">Received</h3>
-                {receivedComplaints.length > 0 ? (
-                  receivedComplaints.map((complaint) => (
-                    <div key={complaint.id} className={`${getKanbanCardBorder(complaint.status)} rounded-lg p-4 space-y-3 shadow-sm hover:shadow-md transition`}>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600">ID: {complaint.id}</p>
-                        <p className="text-sm font-medium text-gray-800">Category: {complaint.category}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600">Ward: {complaint.ward}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600 mb-2">Assigned To:</p>
-                        <select
-                          onChange={(e) => handleAssignEmployee(complaint.originalId, e.target.value)}
-                          value={complaint.assignedEmployee ? complaint.assignedEmployee._id : ""}
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
-                        >
-                          <option value="">+ select employee</option>
-                          {employees.map(emp => (
-                            <option key={emp._id} value={emp._id}>{emp.name} - {emp.role}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        onClick={() => handleViewComplaint(complaint)}
-                        className="text-red-600 text-xs font-semibold hover:underline cursor-pointer"
-                      >
-                        View more details
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500 bg-white rounded-lg border border-dashed">
-                    <p className="text-sm">No received complaints</p>
-                  </div>
-                )}
-              </div>
-
-              {/* IN-PROGRESS COLUMN */}
-              <div className="space-y-4">
-                <h3 className="text-md font-bold text-gray-700">In-Progress</h3>
-                {inProgressComplaints.length > 0 ? (
-                  inProgressComplaints.map((complaint) => (
-                    <div key={complaint.id} className={`${getKanbanCardBorder(complaint.status)} rounded-lg p-4 space-y-3 shadow-sm hover:shadow-md transition`}>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600">ID: {complaint.id.substring(0, 8)}...</p>
-                        <p className="text-sm font-medium text-gray-800">Category: {complaint.category}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600">Assigned:</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center text-xs text-white font-bold">
-                            {complaint.assignedEmployee?.name?.charAt(0)}
-                          </div>
-                          <span className="text-sm text-gray-800 font-medium">{complaint.assignedEmployee?.name || 'Unknown'}</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleViewComplaint(complaint)}
-                        className="text-yellow-600 text-xs font-semibold hover:underline cursor-pointer"
-                      >
-                        View more details
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500 bg-white rounded-lg border border-dashed">
-                    <p className="text-sm">No in-progress complaints</p>
-                  </div>
-                )}
-              </div>
-
-              {/* RESOLVED COLUMN */}
-              <div className="space-y-4">
-                <h3 className="text-md font-bold text-gray-700">Resolved</h3>
-                {resolvedComplaints.length > 0 ? (
-                  resolvedComplaints.map((complaint) => (
-                    <div key={complaint.id} className={`${getKanbanCardBorder(complaint.status)} rounded-lg p-4 space-y-3 shadow-sm hover:shadow-md transition`}>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600">ID: {complaint.id}</p>
-                        <p className="text-sm font-medium text-gray-800">Category: {complaint.category}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600">Assigned:</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="w-6 h-6 bg-teal-400 rounded-full flex items-center justify-center text-xs text-white font-bold">
-                            {complaint.assignedEmployee?.name?.charAt(0)}
-                          </div>
-                          <span className="text-sm text-gray-800 font-medium">{complaint.assignedEmployee?.name || 'Unknown'}</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleViewComplaint(complaint)}
-                        className="text-teal-600 text-xs font-semibold hover:underline cursor-pointer"
-                      >
-                        View more details
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500 bg-white rounded-lg border border-dashed">
-                    <p className="text-sm">No resolved complaints</p>
-                  </div>
-                )}
-              </div>
+            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Update Status — Kanban Board</h2>
+            <div className="grid grid-cols-3 gap-5">
+              <KanbanColumn
+                title="Received"
+                icon={AlertCircle}
+                complaints={receivedComplaints}
+                status="Received"
+                accentClass="bg-gradient-to-r from-red-500 to-rose-600"
+              />
+              <KanbanColumn
+                title="In Progress"
+                icon={Clock}
+                complaints={inProgressComplaints}
+                status="In Progress"
+                accentClass="bg-gradient-to-r from-amber-500 to-orange-500"
+              />
+              <KanbanColumn
+                title="Resolved"
+                icon={CheckCircle2}
+                complaints={resolvedComplaints}
+                status="Resolved"
+                accentClass="bg-gradient-to-r from-emerald-500 to-teal-600"
+              />
             </div>
           </div>
         </div>
