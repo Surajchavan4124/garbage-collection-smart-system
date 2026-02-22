@@ -5,6 +5,7 @@ import {
   getEmployeeById,
   updateEmployee,
   deactivateEmployee,
+  activateEmployee,
 } from "../controllers/employee.controller.js";
 import { employeeUpload } from "../middleware/employeeUpload.js";
 import { protect } from "../middleware/auth.middleware.js";
@@ -44,5 +45,8 @@ router.put(
 
 /* ⛔ DEACTIVATE */
 router.put("/:id/deactivate", deactivateEmployee);
+
+/* ✅ ACTIVATE */
+router.put("/:id/activate", activateEmployee);
 
 export default router;

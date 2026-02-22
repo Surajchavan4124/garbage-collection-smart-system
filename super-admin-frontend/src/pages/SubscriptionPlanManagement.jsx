@@ -5,68 +5,16 @@ import SubscriptionTable from "../components/SubscriptionTable";
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 
-export default function SubscriptionPlanManagement({ onPageChange }) {
-  const plans = [
-    {
-      id: 1,
-      name: "Basic",
-      price: "₹1,499",
-      period: "/year",
-      popular: false,
-      features: [
-        "Max 100 HH",
-        "Max 10 Labourers",
-        "Basic analytics dashboard",
-        "Household registration",
-        "Waste tracking",
-        "Email support",
-      ],
-    },
-    {
-      id: 2,
-      name: "Standard",
-      price: "₹2,699",
-      period: "/year",
-      popular: true,
-      badge: "Most Popular",
-      features: [
-        "Max 300 HH",
-        "Max 30 Labourers",
-        "Advanced analytics & insights",
-        "Labour attendance tracking",
-        "Complaint & support ticket system",
-        "Monthly performance reports",
-      ],
-    },
-    {
-      id: 3,
-      name: "Premium",
-      price: "₹5,999",
-      period: "/year",
-      popular: false,
-      features: [
-        "Max 500 HH",
-        "Max 50 Labourers",
-        "AI-based waste trend prediction",
-        "Route optimization for garbage",
-        "Priority support team",
-        "Dedicated account manager",
-      ],
-    },
-  ];
+const plans = [
+  { id: 1, name: "Basic",    price: "₹1,499", period: "/year", popular: false, features: ["Max 100 HH","Max 10 Labourers","Basic analytics dashboard","Household registration","Waste tracking","Email support"] },
+  { id: 2, name: "Standard", price: "₹2,699", period: "/year", popular: true,  badge: "Most Popular", features: ["Max 300 HH","Max 30 Labourers","Advanced analytics & insights","Labour attendance tracking","Complaint & ticket system","Monthly performance reports"] },
+  { id: 3, name: "Premium",  price: "₹5,999", period: "/year", popular: false, features: ["Max 500 HH","Max 50 Labourers","AI-based waste trend prediction","Route optimization","Priority support team","Dedicated account manager"] },
+];
 
+export default function SubscriptionPlanManagement() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    api
-      .get("/subscriptions") // backend listAllSubscriptions
-      .then((res) => setSubscriptions(res.data))
-      .catch((err) => {
-        console.error("Failed to fetch subscriptions", err);
-      })
-      .finally(() => setLoading(false));
-  }, []);
   const fetchSubscriptions = async () => {
     try {
       const res = await api.get("/subscriptions");
@@ -78,52 +26,39 @@ export default function SubscriptionPlanManagement({ onPageChange }) {
     }
   };
 
-  useEffect(() => {
-    fetchSubscriptions();
-  }, []);
+  useEffect(() => { fetchSubscriptions(); }, []);
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar onPageChange={onPageChange} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <div style={{ display: "flex", height: "100vh", background: "#f8fafc", fontFamily: "Inter, sans-serif" }}>
+      <Sidebar />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <TopHeader />
+        <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px 40px" }}>
 
-        {/* Breadcrumbs */}
-        <div className="px-6 pt-4 pb-2 bg-gray-100 text-sm text-gray-600 border-t border-gray-200">
-          Main &gt; Subscription Plan Management
-        </div>
-
-        <div className="flex-1 overflow-auto p-6">
-          {/* Available Plans Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              Available Plans
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {plans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} />
-              ))}
+          {/* Plans */}
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Available Plans</div>
+              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>Choose the right tier for each panchayat</div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
+              {plans.map(p => <PlanCard key={p.id} plan={p} />)}
             </div>
           </div>
 
-          {/* Panchayat Subscriptions Section */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              Panchayat Subscriptions
-            </h2>
-
-            {loading ? (
-              <p>Loading...</p>
-            ) : (
-              <SubscriptionTable
-                subscriptions={subscriptions}
-                plans={plans}
-                onSubscriptionUpdated={fetchSubscriptions}
-
-              />
-            )}
+          {/* Subscriptions table */}
+          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Panchayat Subscriptions</div>
+              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>Active & past subscriptions across all panchayats</div>
+            </div>
+            <div style={{ padding: "0 24px 24px" }}>
+              {loading ? (
+                <div style={{ padding: "40px 0", textAlign: "center", color: "#94a3b8" }}>Loading subscriptions…</div>
+              ) : (
+                <SubscriptionTable subscriptions={subscriptions} plans={plans} onSubscriptionUpdated={fetchSubscriptions} />
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -1,94 +1,132 @@
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Image as ImageIcon, Mic } from 'lucide-react-native';
+import { ArrowLeft, Send } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  KeyboardAvoidingView, Platform, ScrollView,
+  Text, TextInput, TouchableOpacity, View, ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { request } from '../utils/api';
+import CustomAlert from '../components/CustomAlert';
+import { useTheme } from '../context/ThemeContext';
+
+const PRIMARY = '#6B5BFF';
+const CATEGORIES = ['QR Code Damaged', 'Bin Location Wrong', 'App Issue', 'Supervisor Concern', 'Other'];
 
 export default function RaiseQueryScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  // Design Colors
-  const PRIMARY_COLOR = "#6B5BFF";
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertCfg, setAlertCfg] = useState({ title: '', message: '', type: 'info' as any, onClose: undefined as (() => void) | undefined });
 
-  const handleSubmit = () => {
-    if (!query.trim()) {
-      Alert.alert("Missing Information", "Please describe your issue before submitting.");
-      return;
-    }
-    Alert.alert("Success", "Your query has been submitted to the supervisor.", [
-      { text: "OK", onPress: () => router.back() }
-    ]);
+  const showAlert = (title: string, message: string, type: any, onClose?: () => void) => {
+    setAlertCfg({ title, message, type, onClose });
+    setAlertVisible(true);
   };
 
-  const handleImageUpload = () => {
-    Alert.alert("Upload", "Opening image picker...");
+  const handleClose = () => {
+    setAlertVisible(false);
+    alertCfg.onClose?.();
+  };
+
+  const handleSubmit = async () => {
+    if (!category) { showAlert('Select Category', 'Please select an issue category.', 'warning'); return; }
+    if (!query.trim()) { showAlert('Missing Info', 'Please describe your issue.', 'warning'); return; }
+    setSubmitting(true);
+    try {
+      const res = await request('/employee/query', {
+        method: 'POST',
+        body: JSON.stringify({ description: `[${category}] ${query}` }),
+      });
+      const data = await res.json();
+      if (res.ok) showAlert('Submitted ✓', 'Your query has been sent to the supervisor.', 'success', () => router.back());
+      else showAlert('Error', data.message || 'Failed to submit.', 'error');
+    } catch { showAlert('Error', 'Could not connect to server.', 'error'); }
+    finally { setSubmitting(false); }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-6">
-      
-      {/* 1. Header */}
-      <View className="flex-row items-center mt-4 mb-8">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <ArrowLeft size={24} color="#334155" />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold text-slate-800 uppercase tracking-widest flex-1 text-center mr-8">
-          Raise Query/Issue
-        </Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        
-        {/* 2. Description Input Box */}
-        <View className="border border-slate-300 rounded-lg h-64 p-4 mb-6 relative bg-white">
-          <TextInput
-            className="flex-1 text-base text-slate-800 text-start"
-            placeholder="Describe Query/Issue"
-            placeholderTextColor="#94A3B8"
-            multiline={true}
-            textAlignVertical="top" // Ensures text starts at the top
-            value={query}
-            onChangeText={setQuery}
-          />
-          {/* Mic Icon positioned top-right inside the box */}
-          <TouchableOpacity className="absolute top-4 right-4">
-            <Mic size={22} color="#64748B" />
-          </TouchableOpacity>
+        {/* Header */}
+        <View style={{ backgroundColor: PRIMARY, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 14, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 8 }}>
+              <ArrowLeft size={20} color="white" />
+            </TouchableOpacity>
+            <Text style={{ color: 'white', fontSize: 18, fontWeight: '800' }}>Raise Query / Issue</Text>
+          </View>
+          <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13 }}>Your supervisor will be notified immediately</Text>
         </View>
 
-        {/* 3. Image Upload Row */}
-        <TouchableOpacity 
-          className="flex-row items-center mb-8 border border-slate-200 rounded-lg overflow-hidden"
-          activeOpacity={0.8}
-          onPress={handleImageUpload}
-        >
-          {/* Icon Box */}
-          <View className="bg-slate-200 w-14 h-14 items-center justify-center">
-            <ImageIcon size={24} color="#64748B" />
-          </View>
-          
-          {/* Text Area */}
-          <View className="flex-1 px-4 bg-white h-14 justify-center">
-             <Text className="text-slate-400 text-base font-medium">
-               Upload Image if any
-             </Text>
-          </View>
-        </TouchableOpacity>
+        <ScrollView style={{ flex: 1, padding: 20 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
 
-        {/* 4. Submit Button */}
-        <TouchableOpacity
-          className="w-full h-14 rounded-lg justify-center items-center shadow-md"
-          style={{ backgroundColor: PRIMARY_COLOR }}
-          activeOpacity={0.8}
-          onPress={handleSubmit}
-        >
-          <Text className="text-white font-bold text-lg uppercase tracking-wide">
-            Submit
-          </Text>
-        </TouchableOpacity>
+          {/* Category */}
+          <Text style={{ fontSize: 13, fontWeight: '700', color: theme.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Issue Category</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+            {CATEGORIES.map(cat => (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => setCategory(cat)}
+                style={{
+                  paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+                  backgroundColor: category === cat ? PRIMARY : theme.card,
+                  borderWidth: 1.5, borderColor: category === cat ? PRIMARY : theme.border,
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '600', color: category === cat ? 'white' : theme.chipText }}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      </ScrollView>
+          {/* Description */}
+          <Text style={{ fontSize: 13, fontWeight: '700', color: theme.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Description</Text>
+          <View style={{
+            backgroundColor: theme.card, borderRadius: 16, borderWidth: 1.5,
+            borderColor: query.length > 0 ? PRIMARY : theme.border, padding: 16, marginBottom: 8,
+            shadowColor: theme.shadow, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2, minHeight: 160,
+          }}>
+            <TextInput
+              style={{ fontSize: 15, color: theme.text, textAlignVertical: 'top', minHeight: 130 }}
+              placeholder="Describe your issue in detail…"
+              placeholderTextColor={theme.muted}
+              multiline value={query} onChangeText={setQuery}
+            />
+          </View>
+          <Text style={{ textAlign: 'right', color: theme.muted, fontSize: 12, marginBottom: 28 }}>{query.length} characters</Text>
+
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={submitting}
+            activeOpacity={0.9}
+            style={{
+              height: 56, borderRadius: 16, backgroundColor: submitting ? '#a5b4fc' : PRIMARY,
+              flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+              shadowColor: PRIMARY, shadowOpacity: 0.35, shadowRadius: 12, elevation: 6,
+            }}
+          >
+            {submitting ? <ActivityIndicator color="white" /> : (
+              <>
+                <Send size={18} color="white" style={{ marginRight: 10 }} />
+                <Text style={{ color: 'white', fontWeight: '800', fontSize: 16 }}>Submit Query</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <CustomAlert
+        visible={alertVisible}
+        title={alertCfg.title}
+        message={alertCfg.message}
+        type={alertCfg.type}
+        onClose={handleClose}
+      />
     </SafeAreaView>
   );
 }

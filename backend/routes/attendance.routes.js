@@ -7,6 +7,7 @@ import {
   getDashboardStats,
   updateAvailability,
   getAllScans,
+  getMyBinsStatus,
 } from "../controllers/attendance.controller.js";
 import {protect} from "../middleware/auth.middleware.js";
 
@@ -19,5 +20,6 @@ router.put("/update-action", protect, updateScanAction);
 router.get("/dashboard", protect, getDashboardStats);
 router.put("/availability", protect, updateAvailability);
 router.get("/all-scans", protect, getAllScans);
+router.get("/my-bins", protect, getMyBinsStatus);
 
 export default router;

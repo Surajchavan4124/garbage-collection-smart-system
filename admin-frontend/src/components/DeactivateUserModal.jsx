@@ -45,7 +45,7 @@ export default function DeactivateUserModal({ isOpen, onClose, user, onDeactivat
             </div>
             <div className="text-center text-xs text-gray-800 space-y-1">
               <p><span className="font-semibold">Name: </span>{user?.name}</p>
-              <p><span className="font-semibold">User ID: </span>{user?.userId || 'U02'}</p>
+              <p><span className="font-semibold">User ID: </span>{user?._id?.slice(-6).toUpperCase()}</p>
               <p><span className="font-semibold">Role: </span>{user?.role}</p>
             </div>
           </div>

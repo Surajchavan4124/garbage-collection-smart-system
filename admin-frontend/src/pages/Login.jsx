@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Key } from "lucide-react";
+import { User, Key, X } from "lucide-react";
 import api from "../api/axios";
 import { toast } from "react-toastify";
 
@@ -12,6 +12,8 @@ export default function Login() {
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpToShow, setOtpToShow] = useState("");
 
   // SEND / RESEND OTP
   const handleSendOtp = async (e) => {
@@ -27,7 +29,8 @@ export default function Login() {
       const res = await api.post("/auth/send-otp", { mobile });
 
       if (res.data.otp) {
-        toast.info(`Your OTP is: ${res.data.otp}`, { autoClose: 5000 });
+        setOtpToShow(res.data.otp);
+        setShowOtpModal(true);
       } else {
         toast.success("OTP sent successfully");
       }
@@ -181,6 +184,40 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* OTP Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-[#1f9e9a] p-6 flex justify-between items-center">
+              <h2 className="text-white text-xl font-bold">Verification Code</h2>
+              <button
+                onClick={() => setShowOtpModal(false)}
+                className="text-white/80 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-8 text-center">
+              <p className="text-gray-600 mb-6 text-lg">
+                Your OTP for login is:
+              </p>
+              <div className="bg-gray-100 rounded-xl p-6 mb-6">
+                <span className="text-4xl font-black tracking-[0.5em] text-[#333333] ml-[0.5em]">
+                  {otpToShow}
+                </span>
+              </div>
+              <button
+                onClick={() => setShowOtpModal(false)}
+                className="w-full bg-[#1f9e9a] text-white font-bold py-4 rounded-xl hover:bg-[#1a8a86] transition-colors text-lg"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

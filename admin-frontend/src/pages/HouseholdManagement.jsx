@@ -10,7 +10,7 @@ import ViewHouseholdModal from '../components/ViewHouseholdModal'
 import EditHouseholdModal from '../components/EditHouseholdModal'
 import DeleteHouseholdModal from '../components/DeleteHouseholdModal'
 import api from '../api/axios'
-import { wardOptions } from '../data/householdMockData'
+// Removed mock import
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -40,10 +40,25 @@ export default function HouseholdManagement() {
   const [showFilterMenu, setShowFilterMenu] = useState(false)
   const [showDownloadMenu, setShowDownloadMenu] = useState(false)
 
+  const [wards, setWards] = useState([])
+
   useEffect(() => {
     fetchHouseholds()
     fetchComplaints()
+    fetchWards()
   }, [])
+
+  const fetchWards = async () => {
+    try {
+      const res = await api.get('/wards')
+      setWards(res.data)
+      if (res.data.length > 0) {
+        setFormData(prev => ({ ...prev, wardAssigned: res.data[0].name }))
+      }
+    } catch (error) {
+      console.error('Failed to fetch wards', error)
+    }
+  }
 
   const fetchHouseholds = async () => {
     try {
@@ -359,8 +374,8 @@ export default function HouseholdManagement() {
                                     className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
                                 >
                                     <option value="All">All Wards</option>
-                                    {wardOptions.map(ward => (
-                                        <option key={ward.id} value={ward.name}>{ward.name}</option>
+                                    {wards.map(ward => (
+                                        <option key={ward._id} value={ward.name}>{ward.name}</option>
                                     ))}
                                 </select>
                             </div>
@@ -650,18 +665,18 @@ export default function HouseholdManagement() {
                     <label className="block text-xs font-semibold text-gray-700 mb-2">
                       Ward Assigned
                     </label>
-                    <select
-                      name="wardAssigned"
-                      value={formData.wardAssigned}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
-                    >
-                      {wardOptions.map(ward => (
-                        <option key={ward.id} value={ward.name}>
-                          {ward.name}
-                        </option>
-                      ))}
-                    </select>
+                      <select
+                        name="wardAssigned"
+                        value={formData.wardAssigned}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
+                      >
+                        {wards.map(ward => (
+                          <option key={ward._id} value={ward.name}>
+                            {ward.name}
+                          </option>
+                        ))}
+                      </select>
                   </div>
 
                   {/* Name of the Head */}

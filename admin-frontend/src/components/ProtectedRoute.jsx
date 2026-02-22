@@ -1,17 +1,56 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import api from "../api/axios";
+import SubscriptionExpiredOverlay from "./SubscriptionExpiredOverlay";
+import { toast } from "react-toastify";
+
+const GRACE_DAYS = 7; // days after expiry before blocking
+
+function isExpiredPastGrace(endDate) {
+  if (!endDate) return false;
+  const expiry = new Date(endDate);
+  const graceCutoff = new Date(expiry.getTime() + GRACE_DAYS * 24 * 60 * 60 * 1000);
+  return new Date() > graceCutoff;
+}
 
 export default function ProtectedRoute({ children }) {
-  const [status, setStatus] = useState("checking"); 
-  // checking | authorized | unauthorized
+  const [status, setStatus] = useState("checking");
+  // "checking" | "authorized" | "unauthorized" | "expired"
+  const [subInfo, setSubInfo] = useState({ planName: null, expiredOn: null });
 
   useEffect(() => {
     let alive = true;
 
     const checkAuth = async () => {
       try {
-        await api.get("/auth/me");
+        const { data: meData } = await api.get("/auth/me");
+
+        // Prevent Super Admin from entering Panchayat Admin panel
+        if (meData?.user?.role === "COMPANY_ADMIN") {
+          toast.error("Super Admins must use the Super Admin panel.");
+          if (alive) setStatus("unauthorized");
+          return;
+        }
+
+        // Check subscription status
+        try {
+          const { data } = await api.get("/auth/profile");
+          const sub = data?.subscription;
+
+          if (
+            sub &&
+            isExpiredPastGrace(sub.endDate)
+          ) {
+            if (alive) {
+              setSubInfo({ planName: sub.plan, expiredOn: sub.endDate });
+              setStatus("expired");
+            }
+            return;
+          }
+        } catch {
+          // If subscription fetch fails, don't block — let them through
+        }
+
         if (alive) setStatus("authorized");
       } catch {
         if (alive) setStatus("unauthorized");
@@ -22,11 +61,25 @@ export default function ProtectedRoute({ children }) {
     return () => (alive = false);
   }, []);
 
-  // 🚫 DO NOT redirect while checking
   if (status === "checking") return null;
 
   if (status === "unauthorized") {
     return <Navigate to="/" replace />;
+  }
+
+  if (status === "expired") {
+    return (
+      <>
+        {/* Render page blurred behind the overlay so it's visible but unusable */}
+        <div style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none", overflow: "hidden", height: "100vh" }}>
+          {children}
+        </div>
+        <SubscriptionExpiredOverlay
+          planName={subInfo.planName}
+          expiredOn={subInfo.expiredOn}
+        />
+      </>
+    );
   }
 
   return children;

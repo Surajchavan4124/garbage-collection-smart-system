@@ -24,22 +24,35 @@ export default function AttendanceManagement() {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
   // ================= FETCH =================
-  const fetchTodayAttendance = async (showToast = false) => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // ================= FETCH =================
+  const fetchTodayAttendance = async (silent = false) => {
+    if (!silent) setLoading(true);
+    setIsRefreshing(true);
     try {
-      const res = await api.get("/attendance/today");
+      const res = await api.get(`/attendance/today?t=${Date.now()}`);
       setAttendance(res.data);
       setError(null);
-      if (showToast) toast.success("Attendance refreshed");
+      if (silent === "manual") toast.success("Attendance refreshed");
     } catch {
       setError("Failed to load attendance");
-      toast.error("Failed to load attendance");
+      if (silent === "manual") toast.error("Failed to load attendance");
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     fetchTodayAttendance();
+
+    // Auto-refresh every 5 seconds for real-time updates
+    const interval = setInterval(() => {
+      fetchTodayAttendance(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // ================= FILTER =================
@@ -177,7 +190,12 @@ export default function AttendanceManagement() {
           {/* TABLE */}
           <div className="bg-white rounded-lg border shadow-sm">
             <div className="px-8 py-6 border-b flex items-center gap-4">
-              <h2 className="font-bold uppercase">Daily Attendance</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold uppercase">Daily Attendance</h2>
+                {isRefreshing && (
+                  <div className="w-4 h-4 border-2 border-[#1f9e9a] border-t-transparent rounded-full animate-spin"></div>
+                )}
+              </div>
 
               <div className="ml-auto flex gap-3 relative">
                 <input
@@ -188,7 +206,7 @@ export default function AttendanceManagement() {
                 />
 
                 <button
-                  onClick={() => fetchTodayAttendance(true)}
+                  onClick={() => fetchTodayAttendance("manual")}
                   disabled={loading}
                   className="px-4 py-2 bg-[#1f9e9a] text-white rounded"
                 >

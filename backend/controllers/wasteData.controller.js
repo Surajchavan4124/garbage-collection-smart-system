@@ -122,12 +122,54 @@ export const getWasteStats = async (req, res) => {
       { $group: { _id: null, total: { $sum: "$total" } } }
     ])
 
+    // Weekly Data for Chart (Mon-Sun daily totals)
+    const weeklyData = await WasteData.aggregate([
+      { $match: { date: { $gte: startOfWeek } } },
+      {
+        $group: {
+          _id: { $dayOfWeek: "$date" },
+          total: { $sum: "$total" },
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ])
+
+    // Mapping day numbers to labels
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const formattedWeeklyData = dayNames.map((name, index) => {
+      const match = weeklyData.find(d => d._id === (index + 1));
+      return { day: name, total: match ? match.total : 0 };
+    });
+
+    // Monthly Type Breakdown for Pie Chart
+    const typeBreakdown = await WasteData.aggregate([
+      { $match: { date: { $gte: startOfMonth } } },
+      {
+        $group: {
+          _id: null,
+          organic: { $sum: "$biodegradable" },
+          recyclable: { $sum: "$recyclable" },
+          general: { $sum: "$nonBiodegradable" },
+          mixed: { $sum: "$mixed" },
+        }
+      }
+    ])
+
+    const formattedTypeBreakdown = [
+      { name: "Organic", value: typeBreakdown[0]?.organic || 0 },
+      { name: "Recyclable", value: typeBreakdown[0]?.recyclable || 0 },
+      { name: "General", value: typeBreakdown[0]?.general || 0 },
+      { name: "Mixed", value: typeBreakdown[0]?.mixed || 0 },
+    ].filter(item => item.value > 0);
+
     const recentCollections = await WasteData.find().sort({ date: -1 }).limit(10)
 
     res.status(200).json({
       weeklyTotal: weeklyTotal[0]?.total || 0,
       monthlyTotal: monthlyTotal[0]?.total || 0,
       lastMonthTotal: lastMonthTotal[0]?.total || 0,
+      weeklyData: formattedWeeklyData,
+      typeBreakdown: formattedTypeBreakdown,
       recentCollections
     })
   } catch (error) {

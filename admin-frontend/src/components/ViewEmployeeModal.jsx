@@ -14,6 +14,7 @@ export default function ViewEmployeeModal({
   employee,
   onEdit,
   onDeactivate,
+  onActivate,
 }) {
   if (!isOpen || !employee) return null;
 
@@ -122,12 +123,21 @@ export default function ViewEmployeeModal({
             >
               Edit
             </button>
- <button
-  onClick={onDeactivate}
-  className="px-6 py-3 bg-red-500 text-white rounded font-bold"
->
-  Deactivate
-</button>
+            {employee?.status === "active" ? (
+              <button
+                onClick={onDeactivate}
+                className="px-6 py-3 bg-red-500 text-white rounded font-bold"
+              >
+                Deactivate
+              </button>
+            ) : (
+              <button
+                onClick={onActivate}
+                className="px-6 py-3 bg-green-500 text-white rounded font-bold"
+              >
+                Activate
+              </button>
+            )}
 
           </div>
         </div>

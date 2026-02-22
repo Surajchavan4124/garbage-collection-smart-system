@@ -137,3 +137,23 @@ export const deactivateEmployee = async (req, res) => {
     res.status(500).json({ message: "Deactivation failed" });
   }
 };
+
+/* ================= ACTIVATE ================= */
+export const activateEmployee = async (req, res) => {
+  try {
+    const employee = await Employee.findOne({
+      _id: req.params.id,
+      panchayat: req.user.panchayatId,
+    });
+
+    if (!employee)
+      return res.status(404).json({ message: "Employee not found" });
+
+    employee.status = "active";
+    await employee.save();
+
+    res.json({ message: "Employee activated" });
+  } catch (err) {
+    res.status(500).json({ message: "Activation failed" });
+  }
+};

@@ -1,65 +1,25 @@
+import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+
+const ICON_MAP = {
+  open:     { icon: AlertCircle,  color: "#ef4444", bg: "rgba(239,68,68,0.1)"  },
+  progress: { icon: Loader2,      color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+  solved:   { icon: CheckCircle2, color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+};
+
 export default function TicketOverviewCard({ stat }) {
-  const renderIcon = (iconType) => {
-    switch (iconType) {
-      case 'open':
-        return (
-          <svg
-            className={`w-12 h-12 ${stat.color}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
-      case 'progress':
-        return (
-          <svg
-            className={`w-12 h-12 ${stat.color}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
-      case 'solved':
-        return (
-          <svg
-            className={`w-12 h-12 ${stat.color}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
+  const cfg = ICON_MAP[stat.icon] || ICON_MAP.open;
+  const Icon = cfg.icon;
 
   return (
-    <div className={`${stat.bgColor} border border-gray-200 rounded-lg p-6`}>
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-gray-600 text-sm font-medium mb-2">
-            {stat.title}
-          </p>
-          <p className="text-4xl font-bold text-gray-900">{stat.count}</p>
-        </div>
-        <div>{renderIcon(stat.icon)}</div>
+    <div style={{ background: "white", borderRadius: 16, padding: "22px 24px", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9" }}>
+      <div style={{ width: 52, height: 52, borderRadius: 14, background: cfg.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Icon size={24} color={cfg.color} />
       </div>
-      <p className="text-gray-600 text-xs">{stat.description}</p>
+      <div>
+        <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{stat.title}</div>
+        <div style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>{stat.count}</div>
+        {stat.description && <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>{stat.description}</div>}
+      </div>
     </div>
   );
 }

@@ -22,9 +22,14 @@ const attendanceSchema = new mongoose.Schema(
       index: true,
     },
 
+    onDuty: {
+      type: Boolean,
+      default: false,
+    },
+
     present: {
       type: Boolean,
-      default: true,
+      default: false,
     },
 
     markedAt: {
@@ -35,7 +40,6 @@ const attendanceSchema = new mongoose.Schema(
     source: {
       type: String,
       enum: ["QR", "ADMIN", "APP_TOGGLE"],
-      required: true,
     },
 
     geo: {

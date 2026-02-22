@@ -17,6 +17,20 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     joiningDate: "", // DOB
   });
 
+  const [wards, setWards] = useState([]);
+
+  useEffect(() => {
+    const fetchWards = async () => {
+      try {
+        const res = await api.get("/wards");
+        setWards(res.data);
+      } catch (err) {
+        console.error("Failed to fetch wards", err);
+      }
+    };
+    fetchWards();
+  }, []);
+
   const [files, setFiles] = useState({
     photo: null,
     idProof: null,
@@ -140,12 +154,17 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
           </Field>
 
           <Field label="Ward">
-            <input
+            <select
               name="ward"
               value={form.ward}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            />
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+            >
+              <option value="">Select Ward</option>
+              {wards.map(w => (
+                <option key={w._id} value={w.name}>{w.name}</option>
+              ))}
+            </select>
           </Field>
 
           <Field label="Role" full>

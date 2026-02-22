@@ -9,6 +9,7 @@ import AddEmployeeModal from "../components/AddEmployeeModal";
 import ViewEmployeeModal from "../components/ViewEmployeeModal";
 import EditEmployeeModal from "../components/EditEmployeeModal";
 import DeactivateEmployeeModal from "../components/DeactivateEmployeeModal";
+import ActivateEmployeeModal from "../components/ActivateEmployeeModal";
 
 export default function EmployeeManagement() {
   const [employees, setEmployees] = useState([]);
@@ -21,6 +22,7 @@ export default function EmployeeManagement() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showActivate, setShowActivate] = useState(false);
 
   /* ================= LOAD EMPLOYEES ================= */
   const loadEmployees = async () => {
@@ -94,6 +96,23 @@ export default function EmployeeManagement() {
       toast.error("Failed to deactivate employee");
     }
   };
+
+  const handleActivateEmployee = async (employee) => {
+    setSelectedEmployee(employee);
+    setShowActivate(true);
+  };
+
+  const handleConfirmActivate = async (employeeId) => {
+    try {
+      await api.put(`/employees/${employeeId}/activate`);
+      toast.success("Employee activated");
+      setShowActivate(false);
+      loadEmployees();
+    } catch {
+      toast.error("Failed to activate employee");
+    }
+  };
+
   const handleDeactivateFromView = () => {
     setIsViewModalOpen(false);
     setShowDeactivate(true);
@@ -197,12 +216,21 @@ export default function EmployeeManagement() {
                           >
                             edit
                           </button>
-                          <button
-                            onClick={() => openDeactivateModal(emp._id)}
-                            className="px-3 py-1 border border-red-500 text-red-500 rounded text-xs"
-                          >
-                            deactivate
-                          </button>
+                          {emp.status === "active" ? (
+                            <button
+                              onClick={() => openDeactivateModal(emp._id)}
+                              className="px-3 py-1 border border-red-500 text-red-500 rounded text-xs"
+                            >
+                              deactivate
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleActivateEmployee(emp)}
+                              className="px-3 py-1 border border-green-500 text-green-500 rounded text-xs"
+                            >
+                              activate
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -227,6 +255,7 @@ export default function EmployeeManagement() {
         employee={selectedEmployee}
         onEdit={handleEditEmployee}
         onDeactivate={handleDeactivateFromView}
+        onActivate={() => handleActivateEmployee(selectedEmployee)}
       />
 
       <EditEmployeeModal
@@ -241,6 +270,13 @@ export default function EmployeeManagement() {
         onClose={() => setShowDeactivate(false)}
         employee={selectedEmployee}
         onConfirm={handleConfirmDeactivate}
+      />
+
+      <ActivateEmployeeModal
+        isOpen={showActivate}
+        onClose={() => setShowActivate(false)}
+        employee={selectedEmployee}
+        onConfirm={handleConfirmActivate}
       />
     </div>
   );

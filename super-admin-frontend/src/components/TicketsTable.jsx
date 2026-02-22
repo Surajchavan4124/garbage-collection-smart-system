@@ -1,136 +1,77 @@
 import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Eye } from 'lucide-react';
 
-export default function TicketsTable({
-  ticketData,
-  selectedFilter,
-  onFilterChange,
-}) {
-  const [searchValue, setSearchValue] = useState('');
+const statusConfig = {
+  Open:        { bg:"#fef2f2", color:"#dc2626", border:"#fecaca" },
+  'In Progress':{ bg:"#fffbeb", color:"#d97706", border:"#fde68a" },
+  Resolved:    { bg:"#f0fdf4", color:"#16a34a", border:"#bbf7d0" },
+};
 
-  const filterOptions = ['All', 'Open', 'In Progress', 'Resolved'];
+const TH = ({ children }) => (
+  <th style={{ padding:"12px 16px", textAlign:"left", fontSize:11, fontWeight:700, color:"#64748b", textTransform:"uppercase", letterSpacing:"0.6px", background:"#f8fafc", whiteSpace:"nowrap" }}>
+    {children}
+  </th>
+);
 
-  const filteredData = ticketData.filter((row) => {
-    const matchesSearch =
-      row.ticketId.toLowerCase().includes(searchValue.toLowerCase()) ||
-      row.panchayatName.toLowerCase().includes(searchValue.toLowerCase());
+const FILTERS = ['All', 'Open', 'In Progress', 'Resolved'];
 
-    const matchesFilter =
-      selectedFilter === 'All' || row.status === selectedFilter;
+export default function TicketsTable({ ticketData, selectedFilter, onFilterChange }) {
+  const [search, setSearch] = useState('');
 
-    return matchesSearch && matchesFilter;
-  });
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Open':
-        return { bg: '#ffebee', text: '#d32f2f', border: '#ffcdd2' };
-      case 'In Progress':
-        return { bg: '#fff3e0', text: '#f57c00', border: '#ffe0b2' };
-      case 'Resolved':
-        return { bg: '#e0f2f1', text: '#00796b', border: '#b2dfdb' };
-      default:
-        return { bg: '#f5f5f5', text: '#666', border: '#ddd' };
-    }
-  };
+  const filtered = ticketData.filter(r =>
+    (r.ticketId.toLowerCase().includes(search.toLowerCase()) || r.panchayatName.toLowerCase().includes(search.toLowerCase())) &&
+    (selectedFilter === 'All' || r.status === selectedFilter)
+  );
 
   return (
     <div>
-      {/* Search Input */}
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search
-            size={18}
-            className="absolute left-3 top-3 text-gray-400"
-          />
-          <input
-            type="text"
-            placeholder="Search Panchayat"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+      {/* Toolbar */}
+      <div style={{ display:"flex", gap:10, paddingTop:16, paddingBottom:12 }}>
+        <div style={{ flex:1, position:"relative" }}>
+          <Search size={15} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#94a3b8" }} />
+          <input type="text" placeholder="Search ticket ID or panchayat…" value={search} onChange={e => setSearch(e.target.value)}
+            style={{ width:"100%", paddingLeft:36, paddingRight:14, paddingTop:9, paddingBottom:9, border:"1.5px solid #e2e8f0", borderRadius:10, fontSize:13, color:"#334155", outline:"none", fontFamily:"inherit", background:"#f8fafc" }}
+            onFocus={e => e.target.style.borderColor="#6366f1"} onBlur={e => e.target.style.borderColor="#e2e8f0"}
           />
         </div>
+        {FILTERS.map(f => {
+          const isActive = selectedFilter === f;
+          const s = statusConfig[f] || {};
+          return (
+            <button key={f} onClick={() => onFilterChange(f)}
+              style={{ padding:"9px 14px", borderRadius:10, border:"1.5px solid", borderColor: isActive ? (s.border || "#6366f1") : "#e2e8f0", background: isActive ? (s.bg || "rgba(99,102,241,0.08)") : "white", color: isActive ? (s.color || "#6366f1") : "#374151", fontSize:13, fontWeight: isActive ? 700 : 500, cursor:"pointer", fontFamily:"inherit" }}>
+              {f}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Filter Buttons */}
-      <div className="flex gap-3 mb-6">
-        {filterOptions.map((filter) => (
-          <button
-            key={filter}
-            onClick={() => onFilterChange(filter)}
-            className={`px-4 py-2 rounded font-semibold text-sm transition ${
-              selectedFilter === filter
-                ? 'bg-teal-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {filter}
-          </button>
-        ))}
-      </div>
-
-      {/* Table */}
-      <div className="overflow-x-auto border border-gray-200 rounded-lg">
-        <table className="w-full">
+      <div style={{ overflowX:"auto" }}>
+        <table style={{ width:"100%", borderCollapse:"collapse" }}>
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Ticket ID
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Panchayat Name
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Issue Type
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Created Date
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Status
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Action
-              </th>
+            <tr style={{ borderBottom:"1px solid #f1f5f9" }}>
+              <TH>Ticket ID</TH><TH>Panchayat</TH><TH>Issue Type</TH><TH>Created</TH><TH>Status</TH><TH>Action</TH>
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row) => {
-              const statusColor = getStatusColor(row.status);
-
+            {filtered.length === 0 ? (
+              <tr><td colSpan="6" style={{ padding:"40px 16px", textAlign:"center", color:"#94a3b8", fontSize:14 }}>No tickets found</td></tr>
+            ) : filtered.map(row => {
+              const st = statusConfig[row.status] || statusConfig.Open;
               return (
-                <tr
-                  key={row.id}
-                  className="border-b border-gray-200 hover:bg-gray-50 transition"
-                >
-                  <td className="px-6 py-4 text-gray-800 font-medium text-sm">
-                    {row.ticketId}
+                <tr key={row.id} style={{ borderBottom:"1px solid #f8fafc", transition:"background 0.1s" }}
+                  onMouseEnter={e => e.currentTarget.style.background="#f8fafc"}
+                  onMouseLeave={e => e.currentTarget.style.background="white"}>
+                  <td style={{ padding:"14px 16px", fontSize:13, fontWeight:700, color:"#6366f1", fontFamily:"monospace" }}>{row.ticketId}</td>
+                  <td style={{ padding:"14px 16px", fontSize:14, fontWeight:600, color:"#0f172a" }}>{row.panchayatName}</td>
+                  <td style={{ padding:"14px 16px", fontSize:13, color:"#64748b" }}>{row.issueType}</td>
+                  <td style={{ padding:"14px 16px", fontSize:13, color:"#64748b" }}>{row.createdDate}</td>
+                  <td style={{ padding:"14px 16px" }}>
+                    <span style={{ background:st.bg, color:st.color, border:`1px solid ${st.border}`, fontSize:12, fontWeight:600, padding:"3px 10px", borderRadius:20 }}>{row.status}</span>
                   </td>
-                  <td className="px-6 py-4 text-gray-800 text-sm">
-                    {row.panchayatName}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">
-                    {row.issueType}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">
-                    {row.createdDate}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold border inline-block"
-                      style={{
-                        backgroundColor: statusColor.bg,
-                        color: statusColor.text,
-                        borderColor: statusColor.border,
-                      }}
-                    >
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded text-xs font-semibold transition">
-                      Details
+                  <td style={{ padding:"14px 16px" }}>
+                    <button style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:8, color:"#64748b", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                      <Eye size={13} /> View
                     </button>
                   </td>
                 </tr>
@@ -139,12 +80,6 @@ export default function TicketsTable({
           </tbody>
         </table>
       </div>
-
-      {filteredData.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No tickets found matching your search or filter.
-        </div>
-      )}
     </div>
   );
 }

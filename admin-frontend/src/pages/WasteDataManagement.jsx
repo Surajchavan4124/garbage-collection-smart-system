@@ -3,15 +3,15 @@ import { Search, Filter, Download, BarChart3, Edit, Trash2 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Sidebar from '../components/Sidebar'
 import TopHeader from '../components/TopHeader'
-import { wardOptions } from '../data/wasteDataMockData'
 import api from '../api/axios'
+// Removed mock import
 import DeleteWasteEntryModal from '../components/DeleteWasteEntryModal'
 
 export default function WasteDataManagement() {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     collectionType: 'Daily',
-    ward: 'Ward 1',
+    ward: '',
     biodegradable: '',
     recyclable: '',
     nonBiodegradable: '',
@@ -21,7 +21,8 @@ export default function WasteDataManagement() {
   const [wasteRecords, setWasteRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedWard, setSelectedWard] = useState('Ward 1')
+  const [selectedWard, setSelectedWard] = useState('')
+  const [wards, setWards] = useState([])
   const [editingId, setEditingId] = useState(null)
   
   // Delete Modal State
@@ -43,6 +44,20 @@ export default function WasteDataManagement() {
   const refreshData = () => {
     fetchWasteData()
     fetchAllScans()
+    fetchWards()
+  }
+
+  const fetchWards = async () => {
+    try {
+      const res = await api.get('/wards')
+      setWards(res.data)
+      if (res.data.length > 0) {
+        if (!selectedWard) setSelectedWard(res.data[0].name)
+        if (!formData.ward) setFormData(prev => ({ ...prev, ward: res.data[0].name }))
+      }
+    } catch (error) {
+      console.error("Failed to fetch wards", error)
+    }
   }
 
   const fetchAllScans = async () => {
@@ -137,7 +152,7 @@ export default function WasteDataManagement() {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       collectionType: 'Daily',
-      ward: 'Ward 1',
+      ward: wards.length > 0 ? wards[0].name : '',
       biodegradable: '',
       recyclable: '',
       nonBiodegradable: '',
@@ -243,14 +258,14 @@ export default function WasteDataManagement() {
                 {/* Ward */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-2">Ward:</label>
-                  <select
+                   <select
                     name="ward"
                     value={formData.ward}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   >
-                    {wardOptions.map(ward => (
-                      <option key={ward.id} value={ward.name}>{ward.name}</option>
+                    {wards.map(ward => (
+                      <option key={ward._id} value={ward.name}>{ward.name}</option>
                     ))}
                   </select>
                 </div>
@@ -366,13 +381,13 @@ export default function WasteDataManagement() {
               {/* Ward Selector */}
               <div className="mb-6">
                 <label className="block text-xs font-semibold text-gray-700 mb-2">Select Ward:</label>
-                <select
+                 <select
                   value={selectedWard}
                   onChange={(e) => setSelectedWard(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                 >
-                  {wardOptions.map(ward => (
-                    <option key={ward.id} value={ward.name}>{ward.name}</option>
+                  {wards.map(ward => (
+                    <option key={ward._id} value={ward.name}>{ward.name}</option>
                   ))}
                 </select>
               </div>

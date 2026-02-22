@@ -1,186 +1,84 @@
 import { useState } from 'react';
-import { Search, ChevronDown, Download } from 'lucide-react';
+import { Search, Download, Eye } from 'lucide-react';
+
+const planConfig = {
+  Basic:    { bg:"rgba(14,165,233,0.1)",  color:"#0ea5e9"  },
+  Standard: { bg:"rgba(99,102,241,0.1)",  color:"#6366f1"  },
+  Premium:  { bg:"rgba(245,158,11,0.1)",  color:"#f59e0b"  },
+};
+const statusConfig = {
+  Successful: { bg:"#f0fdf4", color:"#16a34a", border:"#bbf7d0" },
+  Pending:    { bg:"#fffbeb", color:"#d97706", border:"#fde68a" },
+  Failed:     { bg:"#fef2f2", color:"#dc2626", border:"#fecaca" },
+};
+
+const TH = ({ children }) => (
+  <th style={{ padding:"12px 16px", textAlign:"left", fontSize:11, fontWeight:700, color:"#64748b", textTransform:"uppercase", letterSpacing:"0.6px", background:"#f8fafc", whiteSpace:"nowrap" }}>
+    {children}
+  </th>
+);
 
 export default function PaymentTable({ paymentData }) {
-  const [searchValue, setSearchValue] = useState('');
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
-  const filteredData = paymentData.filter(
-    (row) =>
-      row.panchayatName.toLowerCase().includes(searchValue.toLowerCase()) ||
-      row.transactionId.toLowerCase().includes(searchValue.toLowerCase())
+  const filtered = paymentData.filter(r =>
+    (r.panchayatName.toLowerCase().includes(search.toLowerCase()) || r.transactionId.toLowerCase().includes(search.toLowerCase())) &&
+    (statusFilter === 'All' || r.status === statusFilter)
   );
-
-  const getPlanBadgeColor = (plan) => {
-    switch (plan) {
-      case 'Basic':
-        return { bg: '#e0f2f1', text: '#00796b', border: '#b2dfdb' };
-      case 'Standard':
-        return { bg: '#e3f2fd', text: '#1565c0', border: '#bbdefb' };
-      case 'Premium':
-        return { bg: '#fce4ec', text: '#c2185b', border: '#f8bbd0' };
-      default:
-        return { bg: '#f5f5f5', text: '#666', border: '#ddd' };
-    }
-  };
-
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'Successful':
-        return { bg: '#e8f5e9', text: '#2D6A4F', border: '#c8e6c9' };
-      case 'Failed':
-        return { bg: '#ffebee', text: '#d32f2f', border: '#ffcdd2' };
-      case 'Pending':
-        return { bg: '#fff3e0', text: '#e65100', border: '#ffe0b2' };
-      default:
-        return { bg: '#f5f5f5', text: '#666', border: '#ddd' };
-    }
-  };
-
-  const getActionButton = (status) => {
-    if (status === 'Failed') {
-      return {
-        text: 'Retry',
-        bgColor: 'bg-yellow-500 hover:bg-yellow-600',
-      };
-    }
-    return {
-      text: 'Details',
-      bgColor: 'bg-gray-400 hover:bg-gray-500',
-    };
-  };
 
   return (
     <div>
-      {/* Search and Filter */}
-      <div className="flex gap-4 mb-6">
-        {/* Search Input */}
-        <div className="flex-1 relative">
-          <Search
-            size={18}
-            className="absolute left-3 top-3 text-gray-400"
-          />
-          <input
-            type="text"
-            placeholder="Search Transaction ID"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+      {/* Toolbar */}
+      <div style={{ display:"flex", gap:10, paddingTop:16, paddingBottom:12 }}>
+        <div style={{ flex:1, position:"relative" }}>
+          <Search size={15} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#94a3b8" }} />
+          <input type="text" placeholder="Search panchayat or transaction ID…" value={search} onChange={e => setSearch(e.target.value)}
+            style={{ width:"100%", paddingLeft:36, paddingRight:14, paddingTop:9, paddingBottom:9, border:"1.5px solid #e2e8f0", borderRadius:10, fontSize:13, color:"#334155", outline:"none", fontFamily:"inherit", background:"#f8fafc" }}
+            onFocus={e => e.target.style.borderColor="#6366f1"} onBlur={e => e.target.style.borderColor="#e2e8f0"}
           />
         </div>
-
-        {/* Filter Dropdown */}
-        <div className="relative w-40">
-          <button
-            onClick={() => setFilterOpen(!filterOpen)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg flex items-center justify-between hover:bg-gray-50"
-          >
-            Filter
-            <ChevronDown size={16} />
+        {['All','Successful','Pending','Failed'].map(f => (
+          <button key={f} onClick={() => setStatusFilter(f)}
+            style={{ padding:"9px 14px", borderRadius:10, border:"1.5px solid", borderColor: statusFilter===f ? "#6366f1" : "#e2e8f0", background: statusFilter===f ? "rgba(99,102,241,0.08)" : "white", color: statusFilter===f ? "#6366f1" : "#374151", fontSize:13, fontWeight: statusFilter===f ? 700 : 500, cursor:"pointer", fontFamily:"inherit" }}>
+            {f}
           </button>
-
-          {filterOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
-                Successful
-              </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 border-t border-gray-200">
-                Failed
-              </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 border-t border-gray-200">
-                Pending
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Export Button */}
-        <button className="px-4 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition">
-          <Download size={16} />
-          Export
+        ))}
+        <button style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 14px", border:"1.5px solid #e2e8f0", borderRadius:10, background:"white", fontSize:13, color:"#374151", cursor:"pointer", fontFamily:"inherit", fontWeight:500 }}>
+          <Download size={14} color="#94a3b8" /> Export
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto border border-gray-200 rounded-lg">
-        <table className="w-full">
+      <div style={{ overflowX:"auto" }}>
+        <table style={{ width:"100%", borderCollapse:"collapse" }}>
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Panchayat Name
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Plan Name
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Amount
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Payment Date
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Transaction ID
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Status
-              </th>
-              <th className="text-left px-6 py-3 text-gray-700 font-semibold text-sm">
-                Action
-              </th>
+            <tr style={{ borderBottom:"1px solid #f1f5f9" }}>
+              <TH>Panchayat</TH><TH>Plan</TH><TH>Amount</TH><TH>Date</TH><TH>Transaction ID</TH><TH>Status</TH><TH>Action</TH>
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row) => {
-              const planColor = getPlanBadgeColor(row.planName);
-              const statusColor = getStatusBadgeColor(row.status);
-              const actionButton = getActionButton(row.status);
-
+            {filtered.length === 0 ? (
+              <tr><td colSpan="7" style={{ padding:"40px 16px", textAlign:"center", color:"#94a3b8", fontSize:14 }}>No payments found</td></tr>
+            ) : filtered.map(row => {
+              const plan = planConfig[row.planName] || planConfig.Basic;
+              const st = statusConfig[row.status] || statusConfig.Pending;
               return (
-                <tr
-                  key={row.id}
-                  className="border-b border-gray-200 hover:bg-gray-50 transition"
-                >
-                  <td className="px-6 py-4 text-gray-800 font-medium text-sm">
-                    {row.panchayatName}
+                <tr key={row.id} style={{ borderBottom:"1px solid #f8fafc", transition:"background 0.1s" }}
+                  onMouseEnter={e => e.currentTarget.style.background="#f8fafc"}
+                  onMouseLeave={e => e.currentTarget.style.background="white"}>
+                  <td style={{ padding:"14px 16px", fontSize:14, fontWeight:600, color:"#0f172a" }}>{row.panchayatName}</td>
+                  <td style={{ padding:"14px 16px" }}>
+                    <span style={{ background:plan.bg, color:plan.color, fontSize:12, fontWeight:600, padding:"3px 10px", borderRadius:20 }}>{row.planName}</span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold border inline-block"
-                      style={{
-                        backgroundColor: planColor.bg,
-                        color: planColor.text,
-                        borderColor: planColor.border,
-                      }}
-                    >
-                      {row.planName}
-                    </span>
+                  <td style={{ padding:"14px 16px", fontSize:14, fontWeight:700, color:"#0f172a" }}>{row.amount}</td>
+                  <td style={{ padding:"14px 16px", fontSize:13, color:"#64748b" }}>{row.paymentDate}</td>
+                  <td style={{ padding:"14px 16px", fontSize:12, color:"#94a3b8", fontFamily:"monospace" }}>{row.transactionId}</td>
+                  <td style={{ padding:"14px 16px" }}>
+                    <span style={{ background:st.bg, color:st.color, border:`1px solid ${st.border}`, fontSize:12, fontWeight:600, padding:"3px 10px", borderRadius:20 }}>{row.status}</span>
                   </td>
-                  <td className="px-6 py-4 text-gray-800 font-medium text-sm">
-                    {row.amount}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">
-                    {row.paymentDate}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">
-                    {row.transactionId}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold border inline-block"
-                      style={{
-                        backgroundColor: statusColor.bg,
-                        color: statusColor.text,
-                        borderColor: statusColor.border,
-                      }}
-                    >
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      className={`px-4 py-2 rounded text-xs font-semibold text-white transition ${actionButton.bgColor}`}
-                    >
-                      {actionButton.text}
+                  <td style={{ padding:"14px 16px" }}>
+                    <button style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:8, color:"#64748b", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                      <Eye size={13} /> Details
                     </button>
                   </td>
                 </tr>
@@ -189,12 +87,6 @@ export default function PaymentTable({ paymentData }) {
           </tbody>
         </table>
       </div>
-
-      {filteredData.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No payments found matching your search.
-        </div>
-      )}
     </div>
   );
 }

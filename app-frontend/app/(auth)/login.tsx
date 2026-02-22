@@ -1,21 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-  Modal,
-  FlatList,
+  KeyboardAvoidingView, Platform, Text, TextInput,
+  TouchableOpacity, View, ActivityIndicator, Modal,
+  FlatList, Animated, StatusBar, ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Leaf, Check, X, ChevronDown } from "lucide-react-native";
+import { Leaf, Check, X, ChevronDown, Phone, KeyRound } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../../config';
 import CustomAlert from '../../components/CustomAlert';
+
+const PRIMARY = '#6B5BFF';
+const PRIMARY_DARK = '#4f46e5';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -23,322 +20,270 @@ export default function LoginScreen() {
   const [otp, setOtp] = useState("");
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Panchayat State
   const [panchayats, setPanchayats] = useState<any[]>([]);
   const [selectedPanchayatId, setSelectedPanchayatId] = useState("");
   const [showPanchayatModal, setShowPanchayatModal] = useState(false);
-
-  // OTP Timer State
   const [timer, setTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
-
-  // Custom Alert State
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({ title: "", message: "", type: "success" }); // type: success | error
+  const [alertConfig, setAlertConfig] = useState({ title: "", message: "", type: "success" as 'success' | 'error' });
 
-  // Design Constants
-  const PRIMARY_COLOR = "#6B5BFF"; // Vibrant Purple
-  const BORDER_COLOR = "#D1D1D1";  // Light Gray for inputs
-
-  // Fetch Panchayats on Load
+  // Fade-in animation
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    fetchPanchayats();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
   }, []);
 
-  // OTP Countdown Timer Logic
+  useEffect(() => { fetchPanchayats(); }, []);
+
   useEffect(() => {
     let interval: any;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else if (timer === 0 && showOtpInput) {
-      setCanResend(true);
-      clearInterval(interval);
-    }
+    if (timer > 0) interval = setInterval(() => setTimer(p => p - 1), 1000);
+    else if (timer === 0 && showOtpInput) setCanResend(true);
     return () => clearInterval(interval);
   }, [timer, showOtpInput]);
 
-  const startResendTimer = () => {
-    setTimer(30);
-    setCanResend(false);
-  };
+  const startResendTimer = () => { setTimer(30); setCanResend(false); };
 
   const fetchPanchayats = async () => {
     try {
-      const response = await fetch(`${API_URL}/panchayat`);
-      const data = await response.json();
-      if (response.ok) {
-        setPanchayats(data);
-      } else {
-        showAlert("Error", "Failed to load Panchayats", "error");
-      }
-    } catch (error) {
-      console.error("Failed to fetch panchayats", error);
-      showAlert("Connection Error", "Could not connect to server. Ensure you are on the same Wi-Fi.", "error");
+      const res = await fetch(`${API_URL}/panchayat`);
+      const data = await res.json();
+      if (res.ok) setPanchayats(data);
+      else showAlert("Error", "Failed to load Panchayats", "error");
+    } catch {
+      showAlert("Connection Error", "Could not connect to server.", "error");
     }
   };
 
-  const showAlert = (title: string, message: string, type: "success" | "error" = "success") => {
-    setAlertConfig({ title, message, type });
-    setAlertVisible(true);
+  const showAlert = (title: string, message: string, type: 'success' | 'error' = 'success') => {
+    setAlertConfig({ title, message, type }); setAlertVisible(true);
   };
 
   const handleSendOtp = async () => {
-    if (!selectedPanchayatId) {
-      showAlert("Required", "Please select your Panchayat", "error");
-      return;
-    }
-    if (mobile.length < 10) {
-      showAlert("Invalid Number", "Please enter a valid 10-digit mobile number", "error");
-      return;
-    }
-
+    if (!selectedPanchayatId) { showAlert("Required", "Please select your Panchayat", "error"); return; }
+    if (mobile.length < 10) { showAlert("Invalid", "Enter a valid 10-digit mobile number", "error"); return; }
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mobile,
-          type: 'employee',
-          panchayatId: selectedPanchayatId
-        })
+      const res = await fetch(`${API_URL}/auth/send-otp`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, type: 'employee', panchayatId: selectedPanchayatId }),
       });
-      const data = await response.json();
-
-      if (response.ok) {
-        setShowOtpInput(true);
-        startResendTimer(); // Start 30s timer
-        // Show OTP in the success alert for easy testing
-        const msg = data.otp ? `OTP Sent! Your code is: ${data.otp}` : (data.message || "OTP Sent!");
-        showAlert("Success", msg, "success");
-      } else {
-        showAlert("Error", data.message || "Failed to send OTP", "error");
-      }
-    } catch (error) {
-      console.error(error);
-      showAlert("Error", "Network request failed", "error");
-    } finally {
-      setLoading(false);
-    }
+      const data = await res.json();
+      if (res.ok) {
+        setShowOtpInput(true); startResendTimer();
+        showAlert("OTP Sent ✓", data.otp ? `Your code is: ${data.otp}` : (data.message || "OTP sent to your mobile"), "success");
+      } else showAlert("Error", data.message || "Failed to send OTP", "error");
+    } catch { showAlert("Error", "Network request failed", "error"); }
+    finally { setLoading(false); }
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length < 4) {
-      showAlert("Invalid OTP", "Please enter valid OTP", "error");
-      return;
-    }
-
+    if (otp.length < 4) { showAlert("Invalid OTP", "Please enter valid OTP", "error"); return; }
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mobile,
-          otp,
-          type: 'employee',
-          panchayatId: selectedPanchayatId
-        })
+      const res = await fetch(`${API_URL}/auth/verify-otp`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile, otp, type: 'employee', panchayatId: selectedPanchayatId }),
       });
-      const data = await response.json();
-
-      if (response.ok) {
+      const data = await res.json();
+      if (res.ok) {
         await AsyncStorage.setItem("token", data.token);
         await AsyncStorage.setItem("user", JSON.stringify(data.user));
-
-        showAlert("Success", "Login Successful", "success");
-        setTimeout(() => {
-          setAlertVisible(false);
-          router.replace("/(tabs)" as any);
-        }, 1000); // Wait for alert
-      } else {
-        showAlert("Error", data.message || "Invalid OTP", "error");
-      }
-    } catch (error) {
-      console.error(error);
-      showAlert("Error", "Network request failed", "error");
-    } finally {
-      setLoading(false);
-    }
+        showAlert("Welcome! ✓", "Login successful", "success");
+        setTimeout(() => { setAlertVisible(false); router.replace("/(tabs)" as any); }, 900);
+      } else showAlert("Error", data.message || "Invalid OTP", "error");
+    } catch { showAlert("Error", "Network request failed", "error"); }
+    finally { setLoading(false); }
   };
 
-  const selectedPanchayatName = panchayats.find((p: any) => p._id === selectedPanchayatId)?.name || "Select Panchayat";
+  const selectedName = panchayats.find(p => p._id === selectedPanchayatId)?.name || "Select your Panchayat";
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0f0a2e' }}>
+      <StatusBar barStyle="light-content" backgroundColor="#0f0a2e" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 justify-center px-8"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
 
-        {/* --- 1. Branding & Header --- */}
-        <View className="items-center mb-10 mt-10">
-          <View className="w-24 h-24 rounded-full border-2 border-slate-100 items-center justify-center bg-slate-50 mb-6">
-            <Leaf size={40} color="#1E293B" fill="#1E293B" />
+          {/* Top Hero Section */}
+          <View style={{ alignItems: 'center', paddingTop: 50, paddingBottom: 40 }}>
+            <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
+              <View style={{
+                width: 80, height: 80, borderRadius: 40,
+                backgroundColor: `${PRIMARY}30`, justifyContent: 'center', alignItems: 'center',
+                borderWidth: 2, borderColor: `${PRIMARY}50`, marginBottom: 20,
+              }}>
+                <Leaf size={38} color={PRIMARY} />
+              </View>
+              <Text style={{ color: 'white', fontSize: 28, fontWeight: '800', letterSpacing: 0.5 }}>EcoSyz Labour</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 6 }}>
+                {showOtpInput ? 'Enter your OTP to verify' : 'Sign in to your account'}
+              </Text>
+            </Animated.View>
           </View>
-          <Text className="text-4xl font-bold text-center text-[#1E293B]">
-            Login
-          </Text>
-        </View>
 
+          {/* Card */}
+          <Animated.View style={{
+            opacity: fadeAnim,
+            backgroundColor: 'white',
+            borderTopLeftRadius: 32, borderTopRightRadius: 32,
+            flex: 1, paddingHorizontal: 28, paddingTop: 32,
+            minHeight: 340,
+          }}>
 
-        {/* --- 2. Input Fields --- */}
+            {!showOtpInput ? (
+              <>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1e293b', marginBottom: 6 }}>Welcome back 👋</Text>
+                <Text style={{ color: '#94a3b8', fontSize: 14, marginBottom: 28 }}>Select panchayat & enter your mobile number</Text>
 
-        {/* Panchayat Custom Dropdown Trigger */}
-        {!showOtpInput && (
-          <TouchableOpacity
-            onPress={() => setShowPanchayatModal(true)}
-            className="mb-5 h-14 border rounded-lg px-4 bg-white flex-row items-center justify-between"
-            style={{ borderColor: BORDER_COLOR }}
-          >
-            <Text className={`text-base font-medium ${selectedPanchayatId ? 'text-slate-800' : 'text-slate-700'}`}>
-              {selectedPanchayatName}
-            </Text>
-            <ChevronDown size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        )}
-
-        {/* Username Row */}
-        <View className="flex-row items-center mb-5 gap-3">
-          <TextInput
-            className="flex-1 h-14 border rounded-lg px-4 text-base bg-white text-slate-800"
-            style={{ borderColor: BORDER_COLOR }}
-            placeholder="Mobile Number"
-            placeholderTextColor="#9CA3AF"
-            value={mobile}
-            onChangeText={setMobile}
-            keyboardType="phone-pad"
-            editable={!showOtpInput}
-          />
-
-          {/* Get OTP Button */}
-          {!showOtpInput && (
-            <TouchableOpacity
-              className="h-14 px-4 rounded-lg justify-center items-center shadow-sm"
-              style={{ backgroundColor: PRIMARY_COLOR, opacity: loading ? 0.7 : 1 }}
-              activeOpacity={0.8}
-              onPress={handleSendOtp}
-              disabled={loading}
-            >
-              {loading ? <ActivityIndicator color="white" /> : (
-                <Text className="text-white font-bold text-sm uppercase">
-                  Get OTP
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* OTP Field */}
-        {showOtpInput && (
-          <View>
-            <TextInput
-              className="w-full h-14 border rounded-lg px-4 mb-4 text-base bg-white text-slate-800"
-              style={{ borderColor: BORDER_COLOR }}
-              placeholder="Enter OTP"
-              placeholderTextColor="#9CA3AF"
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="number-pad"
-            />
-
-            <View className="flex-row justify-between items-center mb-6">
-              {canResend ? (
-                <TouchableOpacity onPress={handleSendOtp}>
-                  <Text className="text-[#6B5BFF] font-bold">Resend OTP?</Text>
+                {/* Panchayat Dropdown */}
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Panchayat</Text>
+                <TouchableOpacity
+                  onPress={() => setShowPanchayatModal(true)}
+                  style={{
+                    height: 54, borderRadius: 14, paddingHorizontal: 16,
+                    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+                    borderWidth: 1.5, borderColor: selectedPanchayatId ? PRIMARY : '#e2e8f0',
+                    backgroundColor: selectedPanchayatId ? '#eef2ff' : '#f8fafc', marginBottom: 20,
+                  }}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: selectedPanchayatId ? PRIMARY : '#94a3b8' }}>
+                    {selectedName}
+                  </Text>
+                  <ChevronDown size={20} color={selectedPanchayatId ? PRIMARY : '#94a3b8'} />
                 </TouchableOpacity>
-              ) : (
-                <Text className="text-slate-500 font-medium">Resend OTP in {timer}s</Text>
-              )}
 
-              <TouchableOpacity onPress={() => setShowOtpInput(false)}>
-                <Text className="text-slate-500 font-medium text-right">Change Number?</Text>
+                {/* Mobile Number */}
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Mobile Number</Text>
+                <View style={{ flexDirection: 'row', gap: 12, marginBottom: 32 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, height: 54, borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', backgroundColor: '#f8fafc', paddingHorizontal: 14 }}>
+                    <Phone size={18} color="#94a3b8" />
+                    <TextInput
+                      style={{ flex: 1, marginLeft: 10, fontSize: 16, color: '#1e293b', fontWeight: '600' }}
+                      placeholder="10-digit number"
+                      placeholderTextColor="#cbd5e1"
+                      value={mobile}
+                      onChangeText={setMobile}
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    onPress={handleSendOtp}
+                    disabled={loading}
+                    style={{
+                      height: 54, paddingHorizontal: 18, borderRadius: 14,
+                      backgroundColor: PRIMARY, justifyContent: 'center', alignItems: 'center',
+                      opacity: loading ? 0.7 : 1,
+                      shadowColor: PRIMARY, shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
+                    }}>
+                    {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: 'white', fontWeight: '800', fontSize: 14 }}>GET OTP</Text>}
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1e293b', marginBottom: 6 }}>Verify OTP</Text>
+                <Text style={{ color: '#94a3b8', fontSize: 14, marginBottom: 28 }}>
+                  Code sent to <Text style={{ color: PRIMARY, fontWeight: '700' }}>+91 {mobile}</Text>
+                </Text>
+
+                {/* OTP Input */}
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Enter OTP</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', height: 54, borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', backgroundColor: '#f8fafc', paddingHorizontal: 14, marginBottom: 16 }}>
+                  <KeyRound size={18} color="#94a3b8" />
+                  <TextInput
+                    style={{ flex: 1, marginLeft: 10, fontSize: 24, color: '#1e293b', fontWeight: '800', letterSpacing: 8 }}
+                    placeholder="• • • • • •"
+                    placeholderTextColor="#cbd5e1"
+                    value={otp}
+                    onChangeText={setOtp}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                  />
+                </View>
+
+                {/* Resend + Change */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 28 }}>
+                  {canResend ? (
+                    <TouchableOpacity onPress={handleSendOtp}>
+                      <Text style={{ color: PRIMARY, fontWeight: '700' }}>Resend OTP</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={{ color: '#94a3b8' }}>Resend in <Text style={{ fontWeight: '700' }}>{timer}s</Text></Text>
+                  )}
+                  <TouchableOpacity onPress={() => setShowOtpInput(false)}>
+                    <Text style={{ color: '#64748b', fontWeight: '600' }}>✏️ Change number</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Verify Button */}
+                <TouchableOpacity
+                  onPress={handleVerifyOtp}
+                  disabled={loading}
+                  style={{
+                    height: 56, borderRadius: 16, backgroundColor: PRIMARY,
+                    justifyContent: 'center', alignItems: 'center',
+                    opacity: loading ? 0.7 : 1,
+                    shadowColor: PRIMARY, shadowOpacity: 0.35, shadowRadius: 12, elevation: 8,
+                  }}>
+                  {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: 'white', fontWeight: '800', fontSize: 17, letterSpacing: 0.5 }}>Verify & Login →</Text>}
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* Footer */}
+            <View style={{ marginTop: 'auto', paddingBottom: 24, alignItems: 'center' }}>
+              <Text style={{ color: '#94a3b8', fontSize: 13 }}>Having trouble? <Text style={{ color: PRIMARY, fontWeight: '700' }}>Contact Support</Text></Text>
+            </View>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Panchayat Modal */}
+      <Modal animationType="slide" transparent visible={showPanchayatModal} onRequestClose={() => setShowPanchayatModal(false)}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View style={{ backgroundColor: 'white', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '55%' }}>
+            <View style={{ width: 40, height: 4, backgroundColor: '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#1e293b' }}>Select Panchayat</Text>
+              <TouchableOpacity onPress={() => setShowPanchayatModal(false)} style={{ padding: 8, backgroundColor: '#f1f5f9', borderRadius: 10 }}>
+                <X size={18} color="#64748b" />
               </TouchableOpacity>
             </View>
-
-            {/* Login Button */}
-            <TouchableOpacity
-              className="w-full h-14 rounded-lg justify-center items-center mb-4 shadow-sm"
-              style={{ backgroundColor: PRIMARY_COLOR, opacity: loading ? 0.7 : 1 }}
-              activeOpacity={0.9}
-              onPress={handleVerifyOtp}
-              disabled={loading}
-            >
-              {loading ? <ActivityIndicator color="white" /> : (
-                <Text className="text-white font-bold text-lg uppercase tracking-wide">
-                  Login
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
-
-        {/* --- Footer --- */}
-        <View className="mt-auto mb-6 items-center">
-          <TouchableOpacity>
-            <Text className="text-blue-600 underline font-medium text-base">
-              Facing any issue ? Contact Support
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* --- CUSTOM MODALS --- */}
-
-        {/* 1. Panchayat Selection Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showPanchayatModal}
-          onRequestClose={() => setShowPanchayatModal(false)}
-        >
-          <View className="flex-1 justify-end bg-black/50">
-            <View className="bg-white rounded-t-3xl p-6 h-[50%]">
-              <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-xl font-bold text-slate-800">Select Panchayat</Text>
-                <TouchableOpacity onPress={() => setShowPanchayatModal(false)} className="p-2 bg-slate-100 rounded-full">
-                  <X size={20} color="#64748B" />
+            <FlatList
+              data={panchayats}
+              keyExtractor={(item: any) => item._id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#94a3b8', marginTop: 20 }}>No Panchayats found</Text>}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => { setSelectedPanchayatId(item._id); setShowPanchayatModal(false); }}
+                  style={{
+                    padding: 16, marginBottom: 8, borderRadius: 14,
+                    borderWidth: 1.5, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+                    borderColor: selectedPanchayatId === item._id ? PRIMARY : '#e2e8f0',
+                    backgroundColor: selectedPanchayatId === item._id ? '#eef2ff' : '#f8fafc',
+                  }}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: selectedPanchayatId === item._id ? PRIMARY : '#1e293b' }}>{item.name}</Text>
+                  {selectedPanchayatId === item._id && <Check size={20} color={PRIMARY} />}
                 </TouchableOpacity>
-              </View>
-
-              <FlatList
-                data={panchayats}
-                keyExtractor={(item: any) => item._id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    className={`p-4 mb-3 rounded-xl border flex-row justify-between items-center ${selectedPanchayatId === item._id ? 'bg-purple-50 border-purple-200' : 'bg-white border-slate-100'}`}
-                    onPress={() => {
-                      setSelectedPanchayatId(item._id);
-                      setShowPanchayatModal(false);
-                    }}
-                  >
-                    <Text className={`text-base font-semibold ${selectedPanchayatId === item._id ? 'text-purple-700' : 'text-slate-700'}`}>
-                      {item.name}
-                    </Text>
-                    {selectedPanchayatId === item._id && <Check size={20} color={PRIMARY_COLOR} />}
-                  </TouchableOpacity>
-                )}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 20 }}
-                ListEmptyComponent={<Text className="text-center text-slate-400 mt-10">No Panchayats Found</Text>}
-              />
-            </View>
+              )}
+            />
           </View>
-        </Modal>
+        </View>
+      </Modal>
 
-        {/* 2. Custom Alert Modal */}
-        <CustomAlert
-          visible={alertVisible}
-          title={alertConfig.title}
-          message={alertConfig.message}
-          type={alertConfig.type as 'success' | 'error'}
-          onClose={() => setAlertVisible(false)}
-        />
-
-      </KeyboardAvoidingView>
+      <CustomAlert visible={alertVisible} title={alertConfig.title} message={alertConfig.message} type={alertConfig.type} onClose={() => setAlertVisible(false)} />
     </SafeAreaView>
   );
 }

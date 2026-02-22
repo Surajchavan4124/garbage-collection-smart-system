@@ -10,7 +10,7 @@ import api from '../api/axios'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
-import { wardOptions } from '../data/wasteDataMockData'
+// Removed mock import
 
 // Ensure autoTable is registered
 // (Usually importing it is enough, but sometimes explicit apply is needed if tree-shaking removes it)
@@ -38,10 +38,25 @@ export default function DustbinManagement() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedBin, setSelectedBin] = useState(null)
 
-  // Fetch Dustbins
+  const [wards, setWards] = useState([])
+
+  // Fetch Dustbins and Wards
   useEffect(() => {
     fetchDustbins()
+    fetchWards()
   }, [])
+
+  const fetchWards = async () => {
+    try {
+      const res = await api.get('/wards')
+      setWards(res.data)
+      if (res.data.length > 0) {
+        setFormData(prev => ({ ...prev, ward: res.data[0].name }))
+      }
+    } catch (error) {
+      console.error('Failed to fetch wards', error)
+    }
+  }
 
   const fetchDustbins = async () => {
     try {
@@ -598,16 +613,16 @@ export default function DustbinManagement() {
                   {/* Ward */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-2">Ward</label>
-                    <select
-                      name="ward"
-                      value={formData.ward}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
-                    >
-                      {wardOptions.map(ward => (
-                        <option key={ward.id} value={ward.name}>{ward.name}</option>
-                      ))}
-                    </select>
+                      <select
+                        name="ward"
+                        value={formData.ward}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
+                      >
+                        {wards.map(ward => (
+                          <option key={ward._id} value={ward.name}>{ward.name}</option>
+                        ))}
+                      </select>
                   </div>
 
                   {/* Type */}

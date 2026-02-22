@@ -1,4 +1,4 @@
-import Subscription from "../models/subscription.model.js";
+import Subscription from "../models/Subscription.model.js";
 
 export const checkSubscription = async (req, res, next) => {
   if (!req.user?.panchayatId) return next();

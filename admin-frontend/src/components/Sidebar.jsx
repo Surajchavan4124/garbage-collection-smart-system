@@ -1,14 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 
 export default function Sidebar() {
   const location = useLocation()
-  const [expandOperational, setExpandOperational] = useState(false)
+  const isOperationalActive = location.pathname.startsWith('/employee') || 
+                               location.pathname.startsWith('/attendance') || 
+                               location.pathname.startsWith('/dustbin') || 
+                               location.pathname.startsWith('/household') ||
+                               location.pathname.startsWith('/ward') ||
+                               location.pathname.startsWith('/route')
+
+  const [expandOperational, setExpandOperational] = useState(isOperationalActive)
   
+  // Auto-expand if active
+  useEffect(() => {
+    if (isOperationalActive) {
+      setExpandOperational(true)
+    }
+  }, [isOperationalActive])
+
   const isActive = (path) => location.pathname === path
-  const isOperationalActive = location.pathname.startsWith('/employee') || location.pathname.startsWith('/attendance') || location.pathname.startsWith('/dustbin') || location.pathname.startsWith('/household')
 
 
   return (
@@ -46,7 +59,11 @@ export default function Sidebar() {
             {/* Operational Management - Collapsible */}
             <div>
               <button
-                onClick={() => setExpandOperational(!expandOperational)}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setExpandOperational(!expandOperational);
+                }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                   isOperationalActive || expandOperational
                     ? 'bg-[#1f9e9a] text-white'
@@ -57,7 +74,7 @@ export default function Sidebar() {
                 <span className="font-medium flex-1 text-left">Operational Management</span>
                 <ChevronDown 
                   size={16} 
-                  className={`transition-transform ${expandOperational ? 'rotate-180' : ''}`}
+                  className={`transition-transform duration-200 ${expandOperational ? 'rotate-180' : ''}`}
                 />
               </button>
 
@@ -126,6 +143,18 @@ export default function Sidebar() {
                   >
                     <MapPin size={18} />
                     <span className="font-medium text-sm">Route Management</span>
+                  </Link>
+
+                  <Link
+                    to="/ward"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      isActive('/ward')
+                        ? 'bg-[#1f9e9a] text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <MapPin size={18} />
+                    <span className="font-medium text-sm">Ward Management</span>
                   </Link>
                 </div>
               )}

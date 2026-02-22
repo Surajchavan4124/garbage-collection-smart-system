@@ -1,251 +1,268 @@
-
-import { MapPin, User, CheckCircle, Clock } from 'lucide-react-native';
-import React, { useState, useCallback, useEffect } from 'react';
-import { ScrollView, Switch, Text, TouchableOpacity, View, ActivityIndicator, Alert } from 'react-native';
+import { MapPin, User, CheckCircle, Clock, Zap, TrendingUp } from 'lucide-react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  ScrollView, Switch, Text, TouchableOpacity, View,
+  ActivityIndicator, StatusBar, Animated,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Circle, G } from 'react-native-svg';
+import Svg, { Circle, G, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-import { API_URL } from '../../config';
 import CustomAlert from '../../components/CustomAlert';
+import { request } from '../../utils/api';
+import { useTheme } from '../../context/ThemeContext';
+
+const PRIMARY = '#6B5BFF';
+const PRIMARY_LIGHT = '#8B7DFF';
+const GREEN = '#22c55e';
+const ORANGE = '#F59E0B';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [isAvailable, setIsAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [employeeName, setEmployeeName] = useState("Employee");
-  const [displayLocation, setDisplayLocation] = useState("Loading...");
-
-  // Custom Alert State
+  const [employeeName, setEmployeeName] = useState('Employee');
+  const [employeeRole, setEmployeeRole] = useState('Garbage Collector');
+  const [displayLocation, setDisplayLocation] = useState('Loading...');
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({ title: "", message: "", type: "success" as 'success' | 'error' });
-
-  const [stats, setStats] = useState({
-    location: "Loading...",
-    ward: "Loading...",
-    total: 0,
-    completed: 0,
-    pending: 0
-  });
-
-  // Design Colors
-  const PRIMARY = "#6B5BFF";
-  const CARD_BG = "#F1F5F9";
+  const [alertConfig, setAlertConfig] = useState({ title: '', message: '', type: 'success' as 'success' | 'error' });
+  const [stats, setStats] = useState({ location: 'Loading...', ward: '', total: 0, completed: 0, pending: 0, onDuty: false });
 
   const handleToggleDuty = async (val: boolean) => {
     try {
       setIsAvailable(val);
-      const token = await AsyncStorage.getItem("token");
-      if (!token) return;
-
-      const response = await fetch(`${API_URL}/attendance/availability`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ available: val })
-      });
-
-      if (!response.ok) {
-        setIsAvailable(!val); // Revert on failure
-      }
-    } catch (error) {
-      console.error("Failed to toggle duty", error);
-      setIsAvailable(!val);
-    }
+      const res = await request('/attendance/availability', { method: 'PUT', body: JSON.stringify({ available: val }) });
+      if (!res.ok) setIsAvailable(!val);
+    } catch { setIsAvailable(!val); }
   };
 
   const fetchLocation = async () => {
     try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setDisplayLocation(stats.location || "Location Disabled");
-        return;
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const geo = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      if (geo?.length) {
+        const a = geo[0];
+        setDisplayLocation([a.name, a.district, a.city].filter(Boolean).join(', ') || stats.location);
       }
-
-      let location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      let reverseGeo = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude
-      });
-
-      if (reverseGeo && reverseGeo.length > 0) {
-        const addr = reverseGeo[0];
-        const place = [addr.name, addr.district, addr.city].filter(Boolean).join(", ");
-        setDisplayLocation(place || stats.location);
-      }
-    } catch (error) {
-      console.error("Location Error:", error);
-      setDisplayLocation(stats.location);
-    }
+    } catch { setDisplayLocation(stats.location); }
   };
 
   const fetchStats = async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
-      const userStr = await AsyncStorage.getItem("user");
+      const userStr = await AsyncStorage.getItem('user');
       if (userStr) {
-        const user = JSON.parse(userStr);
-        setEmployeeName(user.name || "Employee");
+        const u = JSON.parse(userStr);
+        setEmployeeName(u.name || 'Employee');
+        setEmployeeRole(u.role || 'Garbage Collector');
       }
-
-      if (!token) return;
-
-      const response = await fetch(`${API_URL}/attendance/dashboard`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-
-      if (response.ok) {
+      const res = await request('/attendance/dashboard');
+      const data = await res.json();
+      if (res.ok) {
         setStats(data);
-        if (data.present !== undefined) {
-          setIsAvailable(data.present);
-        }
-        // Fallback or combine with static location
-        if (displayLocation === "Loading...") {
-          setDisplayLocation(data.location || "Panchayat Area");
-        }
+        setIsAvailable(data.onDuty ?? false);
+        if (displayLocation === 'Loading...') setDisplayLocation(data.location || 'Panchayat Area');
       }
-    } catch (error) {
-      console.error("Failed to fetch stats", error);
-    } finally {
-      setLoading(false);
-    }
+    } catch { } finally { setLoading(false); }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchStats();
-      fetchLocation();
-    }, [])
-  );
+  useFocusEffect(useCallback(() => { fetchStats(); fetchLocation(); }, []));
 
-  // Donut Chart Component
-  const percentComplete = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
-  const strokeDasharray = 251; // 2 * PI * 40
-  const strokeDashoffset = strokeDasharray - (strokeDasharray * percentComplete) / 100;
+  const pct = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
+  const RADIUS = 42;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  const offset = CIRCUMFERENCE - (CIRCUMFERENCE * pct) / 100;
 
-  const DonutChart = () => (
-    <Svg height="100" width="100" viewBox="0 0 100 100">
-      <G rotation="-90" origin="50, 50">
-        <Circle cx="50" cy="50" r="40" stroke="#E2E8F0" strokeWidth="15" fill="none" />
-        <Circle cx="50" cy="50" r="40" stroke={PRIMARY} strokeWidth="15" fill="none"
-          strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} strokeLinecap="round" />
-      </G>
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ fontSize: 18, fontWeight: 'bold', color: PRIMARY }}>{Math.round(percentComplete)}%</Text>
-      </View>
-    </Svg>
-  );
+  const initials = employeeName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good Morning';
+    if (h < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={PRIMARY} />
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-5">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }} edges={['top']}>
+      <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} backgroundColor={theme.bg} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
-        {/* 1. Header & Profile */}
-        <View className="mt-6 mb-6">
-          <View className="flex-row items-center mb-6">
-            <MapPin size={20} color="#475569" strokeWidth={2.5} />
-            <Text className="text-slate-600 font-bold text-lg ml-2 flex-1" numberOfLines={1}>
+        {/* ── Hero Header ─────────────────────────────── */}
+        <View style={{
+          backgroundColor: PRIMARY, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36,
+          borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
+        }}>
+          {/* Location */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+            <MapPin size={16} color="rgba(255,255,255,0.8)" />
+            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginLeft: 6, flex: 1 }} numberOfLines={1}>
               {displayLocation}
             </Text>
           </View>
 
-          <View className="flex-row items-center">
-            <View className="w-16 h-16 rounded-full bg-purple-100 items-center justify-center mr-4">
-              <User size={32} color={PRIMARY} fill={PRIMARY} />
+          {/* Avatar + Name */}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{
+              width: 60, height: 60, borderRadius: 30,
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              justifyContent: 'center', alignItems: 'center',
+              borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)',
+              marginRight: 14,
+            }}>
+              <Text style={{ color: 'white', fontSize: 22, fontWeight: '800' }}>{initials}</Text>
             </View>
-            <View>
-              <Text className="text-xl font-bold text-slate-800">{employeeName}</Text>
-              <Text className="text-slate-500 font-medium">Garbage Collector</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: '500' }}>{greeting()},</Text>
+              <Text style={{ color: 'white', fontSize: 20, fontWeight: '800' }}>{employeeName}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>{employeeRole} · Ward {stats.ward || '—'}</Text>
+            </View>
+            {/* Duty badge */}
+            <View style={{
+              backgroundColor: isAvailable ? '#22c55e' : 'rgba(255,255,255,0.2)',
+              paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
+            }}>
+              <Text style={{ color: 'white', fontSize: 11, fontWeight: '700' }}>
+                {isAvailable ? '● ON DUTY' : '○ OFF'}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* 2. Controls */}
-        <View className="mb-8">
-          <View className="flex-row justify-between items-center mb-6">
+        {/* ── Duty Toggle Card ────────────────────────── */}
+        <View style={{ marginHorizontal: 20, marginTop: -18 }}>
+          <View style={{
+            backgroundColor: theme.card, borderRadius: 16, padding: 18,
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+            shadowColor: '#6B5BFF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 6,
+          }}>
             <View>
-              <Text className="text-base font-bold text-slate-800">Available On Duty</Text>
-              <Text className={`text-sm font-medium ${isAvailable ? 'text-green-600' : 'text-slate-400'}`}>
-                {isAvailable ? 'Active' : 'off'}
+              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.text }}>Available On Duty</Text>
+              <Text style={{ fontSize: 13, color: isAvailable ? GREEN : theme.muted, marginTop: 2, fontWeight: '500' }}>
+                {isAvailable ? '✓ Clocked in' : 'Toggle to start your shift'}
               </Text>
             </View>
             <Switch
               trackColor={{ false: '#E2E8F0', true: PRIMARY }}
-              thumbColor={'white'}
+              thumbColor="white"
               onValueChange={handleToggleDuty}
               value={isAvailable}
             />
           </View>
+        </View>
 
-          {/* Start Scanning Button */}
+        {/* ── Start Scanning CTA ──────────────────────── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <TouchableOpacity
             onPress={() => {
               if (!isAvailable) {
-                setAlertConfig({
-                  title: "Off Duty",
-                  message: "Please toggle 'Available On Duty' on your dashboard to start scanning.",
-                  type: "error"
-                });
+                setAlertConfig({ title: 'Off Duty', message: "Toggle 'Available On Duty' to start scanning bins.", type: 'error' });
                 setAlertVisible(true);
               } else {
-                router.push("/(tabs)/scan" as any);
+                router.push('/(tabs)/scan' as any);
               }
             }}
-            className="w-full h-14 rounded-xl flex-row items-center justify-center shadow-lg"
-            style={{ backgroundColor: PRIMARY }}
+            activeOpacity={0.9}
+            style={{
+              backgroundColor: isAvailable ? PRIMARY : '#94A3B8',
+              borderRadius: 16, height: 58,
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+              shadowColor: PRIMARY, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 8,
+            }}
           >
-            <Text className="text-white font-bold text-lg mr-2 uppercase tracking-wide">Start Scanning</Text>
+            <Zap size={22} color="white" fill="white" style={{ marginRight: 10 }} />
+            <Text style={{ color: 'white', fontSize: 17, fontWeight: '800', letterSpacing: 0.5 }}>
+              {isAvailable ? 'Start Scanning Bins' : 'Go On Duty to Scan'}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* 3. Performance Cards */}
-        <View>
-          <Text className="text-lg font-bold text-slate-900 mb-4">My Performance (Today)</Text>
+        {/* ── Performance Section ─────────────────────── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+            <TrendingUp size={18} color={PRIMARY} />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text, marginLeft: 8 }}>Today's Performance</Text>
+          </View>
 
-          {/* MAIN STATS ROW */}
-          <View className="flex-row gap-4 mb-4">
-            <View className="flex-1 rounded-xl p-4 bg-purple-50 border border-purple-100 items-center">
-              <Text className="text-slate-500 font-medium text-xs uppercase mb-1">Routes Collected</Text>
-              <Text className="text-3xl font-bold text-purple-700">{stats.completed}/{stats.total}</Text>
+          {/* Stat Cards Row */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 14 }}>
+            {/* Collected */}
+            <View style={{
+              flex: 1, backgroundColor: '#eef2ff', borderRadius: 16, padding: 16,
+              borderWidth: 1, borderColor: '#c7d2fe',
+            }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: '#6366f1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Collected</Text>
+              <Text style={{ fontSize: 32, fontWeight: '800', color: '#4338ca' }}>{stats.completed}</Text>
+              <Text style={{ fontSize: 12, color: '#818cf8', marginTop: 2 }}>of {stats.total} bins</Text>
             </View>
-            <View className="flex-1 rounded-xl p-4 bg-orange-50 border border-orange-100 items-center">
-              <Text className="text-slate-500 font-medium text-xs uppercase mb-1">Pending</Text>
-              <Text className="text-3xl font-bold text-orange-600">{stats.pending}</Text>
+
+            {/* Pending */}
+            <View style={{
+              flex: 1, backgroundColor: '#fffbeb', borderRadius: 16, padding: 16,
+              borderWidth: 1, borderColor: '#fde68a',
+            }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: '#d97706', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Pending</Text>
+              <Text style={{ fontSize: 32, fontWeight: '800', color: '#b45309' }}>{stats.pending}</Text>
+              <Text style={{ fontSize: 12, color: '#fbbf24', marginTop: 2 }}>bins remaining</Text>
             </View>
           </View>
 
-          {/* PROGRESS CARD */}
-          <View className="rounded-xl p-5 flex-row justify-between items-center" style={{ backgroundColor: CARD_BG }}>
-            <View className="space-y-2 flex-1 mr-4">
-              <Text className="font-bold text-slate-700 mb-2">Completion Status</Text>
-              <View className="flex-row items-center gap-2 mb-1">
-                <CheckCircle size={16} color={PRIMARY} />
-                <Text className="text-slate-600 font-medium">{stats.completed} Routes Collected</Text>
+          {/* Progress Card */}
+          <View style={{
+            backgroundColor: theme.card, borderRadius: 20, padding: 20,
+            flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+            shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
+            borderWidth: 1, borderColor: theme.border,
+          }}>
+            <View style={{ flex: 1, marginRight: 16 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.text, marginBottom: 12 }}>Completion Status</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                <CheckCircle size={18} color={GREEN} />
+                <Text style={{ fontSize: 14, color: theme.subtext, marginLeft: 10, fontWeight: '500' }}>
+                  {stats.completed} Bins Collected
+                </Text>
               </View>
-              <View className="flex-row items-center gap-2">
-                <Clock size={16} color="#F59E0B" />
-                <Text className="text-slate-600 font-medium">{stats.pending} Routes Pending</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Clock size={18} color={ORANGE} />
+                <Text style={{ fontSize: 14, color: theme.subtext, marginLeft: 10, fontWeight: '500' }}>
+                  {stats.pending} Bins Pending
+                </Text>
+              </View>
+              {/* Progress bar */}
+              <View style={{ marginTop: 14, height: 6, backgroundColor: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+                <View style={{ height: '100%', width: `${pct}%`, backgroundColor: PRIMARY, borderRadius: 3 }} />
               </View>
             </View>
-            <DonutChart />
+
+            {/* Donut */}
+            <View style={{ width: 100, height: 100, justifyContent: 'center', alignItems: 'center' }}>
+              <Svg width={100} height={100} viewBox="0 0 100 100">
+                <G rotation="-90" origin="50,50">
+                  <Circle cx="50" cy="50" r={RADIUS} stroke="#e2e8f0" strokeWidth="10" fill="none" />
+                  <Circle cx="50" cy="50" r={RADIUS} stroke={PRIMARY} strokeWidth="10" fill="none"
+                    strokeDasharray={CIRCUMFERENCE} strokeDashoffset={offset} strokeLinecap="round" />
+                </G>
+              </Svg>
+              <View style={{ position: 'absolute', justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: PRIMARY }}>{Math.round(pct)}%</Text>
+              </View>
+            </View>
           </View>
         </View>
+
       </ScrollView>
 
-      <CustomAlert
-        visible={alertVisible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        type={alertConfig.type}
-        onClose={() => setAlertVisible(false)}
-      />
+      <CustomAlert visible={alertVisible} title={alertConfig.title} message={alertConfig.message}
+        type={alertConfig.type} onClose={() => setAlertVisible(false)} />
     </SafeAreaView>
   );
 }

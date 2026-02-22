@@ -4,15 +4,25 @@ import TopHeader from "../components/TopHeader";
 import VerificationTable from "../components/VerificationTable";
 import AddPanchayatModal from "../components/AddPanchayatModal";
 import api from "../api/axios";
+import { Building2, CheckCircle2, Clock3, Plus } from "lucide-react";
+
+function StatCard({ icon: Icon, label, value, loading, color, bg }) {
+  return (
+    <div style={{ background: "white", borderRadius: 16, padding: "22px 24px", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9" }}>
+      <div style={{ width: 52, height: 52, borderRadius: 14, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Icon size={24} color={color} />
+      </div>
+      <div>
+        <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{label}</div>
+        <div style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>{loading ? "—" : value}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-    
-  const [stats, setStats] = useState({
-    totalPanchayats: 0,
-    activeSubscriptions: 0,
-    pendingRequests: 0,
-  });
+  const [stats, setStats] = useState({ totalPanchayats: 0, activeSubscriptions: 0, pendingRequests: 0 });
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -21,87 +31,52 @@ export default function Dashboard() {
       try {
         const res = await api.get("/company/dashboard");
         setStats(res.data);
-
-
       } catch (err) {
         console.error("Failed to load dashboard", err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchDashboard();
   }, [refreshKey]);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div style={{ display: "flex", height: "100vh", background: "#f8fafc", fontFamily: "Inter, sans-serif" }}>
       <Sidebar />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <TopHeader />
+        <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px 40px" }}>
 
-        <div className="px-6 pt-4 pb-2 bg-gray-100 text-sm text-gray-600 border-t border-gray-200">
-          Main &gt; Panchayat Verification &amp; Registration
-        </div>
-
-        <div className="flex-1 overflow-auto p-6">
-          {/* Overview */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 pb-2">Overview</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                <p className="text-sm text-gray-600 mb-2">
-                  Total Panchayats Registered
-                </p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {loading ? "—" : stats.totalPanchayats}
-                </p>
-              </div>
-
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                <p className="text-sm text-gray-600 mb-2">
-                  Active Subscription
-                </p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {loading ? "—" : stats.activeSubscriptions}
-                </p>
-              </div>
-
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                <p className="text-sm text-gray-600 mb-2">Pending Requests</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {loading ? "—" : stats.pendingRequests}
-                </p>
-              </div>
-            </div>
+          {/* Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 }}>
+            <StatCard icon={Building2}     label="Total Panchayats"    value={stats.totalPanchayats}    loading={loading} color="#6366f1" bg="rgba(99,102,241,0.1)"  />
+            <StatCard icon={CheckCircle2}  label="Active Subscriptions" value={stats.activeSubscriptions} loading={loading} color="#10b981" bg="rgba(16,185,129,0.1)"  />
+            <StatCard icon={Clock3}        label="Pending Requests"    value={stats.pendingRequests}    loading={loading} color="#f59e0b" bg="rgba(245,158,11,0.1)"  />
           </div>
 
-          {/* Verification Requests */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Verification Requests
-              </h2>
+          {/* Table card */}
+          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Verification Requests</div>
+                <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>Review and process panchayat registrations</div>
+              </div>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-md transition"
+                style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", boxShadow: "0 4px 12px rgba(99,102,241,0.3)", fontFamily: "inherit" }}
               >
-                + Add Panchayat
+                <Plus size={16} />
+                Add Panchayat
               </button>
             </div>
-
-            {/* refreshKey triggers re-fetch inside VerificationTable */}
-            <VerificationTable refreshKey={refreshKey} onChange={() => setRefreshKey((prev) => prev + 1)} />
+            <div style={{ padding: "0 24px 24px" }}>
+              <VerificationTable refreshKey={refreshKey} onChange={() => setRefreshKey((p) => p + 1)} />
+            </div>
           </div>
         </div>
       </div>
 
-      <AddPanchayatModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => setRefreshKey((prev) => prev + 1)}
-      />
+      <AddPanchayatModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => setRefreshKey((p) => p + 1)} />
     </div>
   );
 }

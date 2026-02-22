@@ -1,6 +1,7 @@
 import { X, Edit2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { wardOptions } from '../data/wasteDataMockData'
+import api from '../api/axios'
+// Removed mock import
 
 export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate }) {
   const [editData, setEditData] = useState({
@@ -9,6 +10,20 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
     type: 'General',
     status: 'Good',
   })
+
+  const [wards, setWards] = useState([])
+
+  useEffect(() => {
+    const fetchWards = async () => {
+      try {
+        const res = await api.get('/wards')
+        setWards(res.data)
+      } catch (error) {
+        console.error('Failed to fetch wards', error)
+      }
+    }
+    fetchWards()
+  }, [])
 
   useEffect(() => {
     if (dustbin) {
@@ -182,8 +197,9 @@ export default function EditDustbinModal({ isOpen, onClose, dustbin, onUpdate })
                     : 'bg-gray-50 border-gray-300 text-gray-700'
                 }`}
               >
-                {wardOptions.map(ward => (
-                  <option key={ward.id} value={ward.name}>{ward.name}</option>
+                <option value="">Select Ward</option>
+                {wards.map(ward => (
+                  <option key={ward._id} value={ward.name}>{ward.name}</option>
                 ))}
               </select>
             </div>

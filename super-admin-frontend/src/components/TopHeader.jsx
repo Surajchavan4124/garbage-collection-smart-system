@@ -1,129 +1,129 @@
-import { Search, Bell, User, LogOut, Settings } from 'lucide-react';
+import { Search, Bell, User, LogOut, Settings, Shield } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import ProfileSettingsModal from "../components/ProfileSettingsModal";
 import api from "../api/axios";
 import LogoutConfirmation from "./LogoutConfirmation";
+
+const PAGE_LABELS = {
+  '/dashboard':    { title: 'Panchayat Verification', sub: 'Review and manage registration requests' },
+  '/subscriptions':{ title: 'Subscription Plans',     sub: 'Manage plan tiers and active subscriptions' },
+  '/payments':     { title: 'Payment Monitoring',     sub: 'Track transactions and payment status' },
+  '/support':      { title: 'Support & Queries',      sub: 'Handle tickets and resolve panchayat issues' },
+};
 
 export default function TopHeader() {
   const [searchValue, setSearchValue] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  
   const dropdownRef = useRef(null);
-  const navigate = useNavigate();
+  const location = useLocation();
+
+  const page = PAGE_LABELS[location.pathname] || { title: 'EcoSyz Admin', sub: '' };
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsDropdownOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogoutConfirm = async () => {
-    // Call Logout API
-    try {
-      await api.post("/auth/logout");
-    } catch (err) {
-      console.error("Logout API failed", err);
-    }
-
-    // Clear all auth data
+    try { await api.post("/auth/logout"); } catch {}
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.clear();
-    
-    // Redirect to login
     window.location.href = '/login';
-  }
-
-  const handleStayLoggedIn = () => {
-    setShowLogoutConfirm(false);
-  }
-
-  // Trigger modal
-  const handleLogoutClick = () => {
-    setIsDropdownOpen(false);
-    setShowLogoutConfirm(true);
-  }
-
-  const handleProfileOpen = () => {
-    setIsDropdownOpen(false);
-    setOpenProfile(true);
   };
 
   return (
-    <div className="bg-white border-b border-gray-200">
-      <div className="px-8 py-4 flex items-center justify-between">
-        {/* Search Bar */}
-        <div className="flex-1 max-w-2xl relative">
-          <Search size={20} className="absolute left-3 top-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search complaints, households, bins...."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
-        </div>
+    <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "0 28px", display: "flex", alignItems: "center", height: 68, flexShrink: 0, gap: 20 }}>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-4 ml-6">
-          <div className="flex items-center gap-2 bg-gray-200 rounded-full px-4 py-2">
-            <Bell size={18} className="text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">3 Alerts</span>
-          </div>
-
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center hover:bg-teal-600 transition"
-            >
-              <User size={20} className="text-white" />
-            </button>
-
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                <button
-                  onClick={handleProfileOpen}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-200 transition"
-                >
-                  <Settings size={18} className="text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700">
-                    Profile Settings
-                  </span>
-                </button>
-
-                <button
-                  onClick={handleLogoutClick}
-                  className="w-full text-left px-4 py-3 hover:bg-red-50 flex items-center gap-3 transition"
-                >
-                  <LogOut size={18} className="text-red-600" />
-                  <span className="text-sm font-medium text-red-600">
-                    Logout
-                  </span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Page title */}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}>{page.title}</div>
+        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 1 }}>{page.sub}</div>
       </div>
 
-      {/* MODALS */}
-      <ProfileSettingsModal
-        open={openProfile}
-        onClose={() => setOpenProfile(false)}
-      />
-      
-      <LogoutConfirmation
-        isOpen={showLogoutConfirm}
-        onClose={handleStayLoggedIn}
-        onLogout={handleLogoutConfirm}
-      />
+      {/* Search */}
+      <div style={{ position: "relative", width: 280 }}>
+        <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+        <input
+          type="text"
+          placeholder="Search panchayats, tickets…"
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          style={{ width: "100%", paddingLeft: 36, paddingRight: 14, paddingTop: 8, paddingBottom: 8, border: "1.5px solid #e2e8f0", borderRadius: 10, fontSize: 13, color: "#334155", outline: "none", background: "#f8fafc", fontFamily: "inherit" }}
+          onFocus={e => e.target.style.borderColor = "#6366f1"}
+          onBlur={e => e.target.style.borderColor = "#e2e8f0"}
+        />
+      </div>
+
+      {/* Bell */}
+      <div style={{ position: "relative" }}>
+        <button style={{ width: 38, height: 38, borderRadius: 10, background: "#f8fafc", border: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          <Bell size={17} color="#64748b" />
+        </button>
+        <div style={{ position: "absolute", top: 6, right: 6, width: 8, height: 8, borderRadius: "50%", background: "#ef4444", border: "2px solid white" }} />
+      </div>
+
+      {/* Avatar dropdown */}
+      <div style={{ position: "relative" }} ref={dropdownRef}>
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 10px 6px 6px", borderRadius: 10, border: "1.5px solid #e2e8f0", background: isDropdownOpen ? "#f1f5f9" : "white", cursor: "pointer" }}
+        >
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, color: "white" }}>S</div>
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>Super Admin</div>
+            <div style={{ fontSize: 11, color: "#94a3b8" }}>ecosyz.in</div>
+          </div>
+        </button>
+
+        {isDropdownOpen && (
+          <div style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 220, background: "white", border: "1px solid #e2e8f0", borderRadius: 14, boxShadow: "0 10px 40px rgba(0,0,0,0.12)", overflow: "hidden", zIndex: 100 }}>
+            {/* User info */}
+            <div style={{ padding: "14px 16px", borderBottom: "1px solid #f1f5f9" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16, color: "white" }}>S</div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Super Admin</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                    <Shield size={10} color="#6366f1" />
+                    <span style={{ fontSize: 11, color: "#6366f1", fontWeight: 600 }}>Full Access</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: "6px" }}>
+              <button
+                onClick={() => { setIsDropdownOpen(false); setOpenProfile(true); }}
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, border: "none", background: "none", cursor: "pointer", fontSize: 13, fontWeight: 500, color: "#374151", fontFamily: "inherit" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
+                onMouseLeave={e => e.currentTarget.style.background = "none"}
+              >
+                <Settings size={16} color="#64748b" />
+                Profile Settings
+              </button>
+              <button
+                onClick={() => { setIsDropdownOpen(false); setShowLogoutConfirm(true); }}
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, border: "none", background: "none", cursor: "pointer", fontSize: 13, fontWeight: 500, color: "#ef4444", fontFamily: "inherit" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#fef2f2"}
+                onMouseLeave={e => e.currentTarget.style.background = "none"}
+              >
+                <LogOut size={16} color="#ef4444" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <ProfileSettingsModal open={openProfile} onClose={() => setOpenProfile(false)} />
+      <LogoutConfirmation isOpen={showLogoutConfirm} onClose={() => setShowLogoutConfirm(false)} onLogout={handleLogoutConfirm} />
     </div>
   );
 }

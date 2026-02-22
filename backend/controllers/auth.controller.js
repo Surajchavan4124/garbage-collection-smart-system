@@ -202,7 +202,7 @@ export const getProfile = async (req, res) => {
     subscription: sub
       ? {
           plan: sub.planName,
-          status: sub.status, // active | expired | cancelled
+          status: new Date() > new Date(sub.endDate) ? "EXPIRED" : sub.status, // active | expired | cancelled
           startDate: sub.startDate,
           endDate: sub.endDate,
         }

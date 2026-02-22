@@ -23,13 +23,13 @@ export const scanAttendance = async (req, res) => {
       return res.status(400).json({ message: "GPS required" });
     }
 
-    // 🔹 CHECK IF ON DUTY (Attendance must be marked for today)
+    // 🔹 CHECK IF ON DUTY 
     const date = today();
     const attendance = await Attendance.findOne({
       labour: labourId,
       date,
       panchayat: panchayatId,
-      present: true
+      onDuty: true
     });
 
     if (!attendance) {
@@ -105,7 +105,20 @@ export const scanAttendance = async (req, res) => {
       });
     }
 
-    // 1. Record Scan (Temporary state until action is confirmed)
+    // 4. LOCK ATTENDANCE immediately on scan
+    await Attendance.findOneAndUpdate(
+      { labour: labourId, date, panchayat: panchayatId },
+      { 
+        present: true, 
+        source: "QR",
+        geo: { lat, lng },
+        markedAt: new Date(),
+        onDuty: true // Ensure it's marked as onDuty if they scanned
+      },
+      { upsert: true, new: true }
+    );
+
+    // 1. Record Scan
     const scanRecord = await AttendanceScan.create({
       panchayat: panchayatId,
       labour: labourId,
@@ -188,22 +201,35 @@ export const updateAvailability = async (req, res) => {
     const { _id, panchayatId } = req.user;
     const date = today();
 
+    const existing = await Attendance.findOne({ labour: _id, date, panchayat: panchayatId });
+    const isLocked = !!(existing && (existing.source === "QR" || existing.source === "ADMIN" || existing.present));
+
     if (available) {
-      // Mark as present
+      // Mark as on duty
       await Attendance.findOneAndUpdate(
         { labour: _id, date, panchayat: panchayatId },
-        { present: true, source: "APP_TOGGLE", markedAt: new Date() },
+        { 
+          onDuty: true, 
+          markedAt: new Date(),
+          ...(isLocked ? {} : { source: "APP_TOGGLE" }) 
+        },
         { upsert: true, new: true }
       );
     } else {
-      // User says "off duty", but we usually don't delete attendance. 
-      // Maybe just mark present: false if we want to track absence.
-      // For now, let's just mark present: false.
-      await Attendance.findOneAndUpdate(
-        { labour: _id, date, panchayat: panchayatId },
-        { present: false, source: "APP_TOGGLE" },
-        { upsert: true, new: true }
-      );
+      // Off duty
+      if (isLocked) {
+        await Attendance.findOneAndUpdate(
+          { labour: _id, date, panchayat: panchayatId },
+          { onDuty: false },
+          { new: true }
+        );
+      } else {
+        await Attendance.findOneAndUpdate(
+          { labour: _id, date, panchayat: panchayatId },
+          { onDuty: false, $unset: { source: 1 } },
+          { upsert: true, new: true }
+        );
+      }
     }
 
     res.json({ success: true, message: "Availability updated" });
@@ -252,16 +278,22 @@ export const updateScanAction = async (req, res) => {
           panchayat: scan.panchayat
        });
 
-       if (!existingAtt) {
+       if (existingAtt && !existingAtt.present) {
+          existingAtt.present = true;
+          existingAtt.source = "QR";
+          existingAtt.geo = scan.geo;
+          await existingAtt.save();
+          console.log(`✅ Attendance marked as PRESENT for labour ${scan.labour} on first scan.`);
+       } else if (!existingAtt) {
           await Attendance.create({
              panchayat: scan.panchayat,
              labour: scan.labour,
              date,
+             onDuty: true,
              present: true,
              source: "QR",
              geo: scan.geo
           });
-          console.log(`✅ Attendance marked for labour ${scan.labour} on first scan.`);
        }
 
        // 🔄 🔹 WASTE DATA SYNC: Update Admin Dashboard Waste Records
@@ -329,13 +361,14 @@ export const updateScanAction = async (req, res) => {
 // 🔹 TODAY VIEW
 export const getTodayAttendance = async (req, res) => {
   try {
-    const date = new Date().toISOString().split("T")[0];
+    const panchayatId = req.user.panchayatId;
+    const date = today();
 
-    // 🔹 STEP 1: Fetch ALL employees (no filters first)
-    const employees = await Employee.find({}).lean();
+    // 🔹 STEP 1: Fetch employees for THIS panchayat only
+    const employees = await Employee.find({ panchayat: panchayatId }).lean();
 
-    // 🔹 STEP 2: Fetch today's attendance
-    const attendance = await Attendance.find({ date }).lean();
+    // 🔹 STEP 2: Fetch today's attendance for THIS panchayat only
+    const attendance = await Attendance.find({ date, panchayat: panchayatId }).lean();
 
     // 🔹 STEP 3: Map attendance by employee ID
     const attendanceMap = {};
@@ -355,7 +388,8 @@ export const getTodayAttendance = async (req, res) => {
           role: emp.role,
           ward: emp.ward,
         },
-        present: !!att,
+        onDuty: att ? att.onDuty : false,
+        present: att ? att.present : false,
         source: att ? att.source : null,
         markedAt: att ? att.markedAt : null,
       };
@@ -368,50 +402,56 @@ export const getTodayAttendance = async (req, res) => {
   }
 };
 
-// 🔹 DASHBOARD STATS (For Employee App)
 export const getDashboardStats = async (req, res) => {
   try {
-    const { panchayatId, _id, ward } = req.user; // Added _id (Employee ID)
+    const { panchayatId, _id, ward } = req.user;
+    const todayStr = today();
 
-    // 1. Base query for dustbins
+    // 1. Base query for dustbins (Filtered by employee ward if available)
     const dustbinQuery = { 
       panchayat: panchayatId, 
       isActive: true 
     };
-
-    // If employee has specific ward, fitler by it? 
-    // The user says "Navelim ward 1, bins collected 1/3".
-    // Assuming bins have a 'ward' field or locationText matches user's ward.
-    // Let's assume dustbins match Panchayat for now (Total Target).
+    if (ward) {
+      dustbinQuery.ward = ward;
+    }
     
-    const totalBins = await Dustbin.countDocuments(dustbinQuery);
+    const totalBinsInWard = await Dustbin.countDocuments(dustbinQuery);
 
-    // 2. Count collected today by THIS labour
-    const todayStr = today();
-    
-    // Count successful collections by THIS user
-    const collectedToday = await AttendanceScan.countDocuments({
+    // 2. Count bins collected by THIS Specific Employee today
+    const collectedTodayByMe = await AttendanceScan.countDocuments({
       labour: _id,
       date: todayStr,
-      action: "collected" // Only count confirmed collections? Or just scans?
-                          // Logic says "if bin collected successfully... his status will get updated"
-                          // So we count documents where action="collected".
+      action: "collected"
     });
 
-    const pending = Math.max(0, totalBins - collectedToday);
+    // 3. Count bins in this ward collected by ANYONE today
+    // We need to find bins in this ward first
+    const binsInWard = await Dustbin.find(dustbinQuery).select("_id");
+    const binIds = binsInWard.map(b => b._id);
 
-    // Get Panchayat Name
+    const overallCollectedInWard = await AttendanceScan.distinct("dustbin", {
+      dustbin: { $in: binIds },
+      date: todayStr,
+      action: "collected"
+    });
+
+    // Pending = Total bins in ward - Bins collected by ANYONE
+    const pendingInWard = Math.max(0, totalBinsInWard - overallCollectedInWard.length);
+
+    // Get Panchayat Name for display
     const panchayat = await Panchayat.findById(panchayatId).select("name");
 
-    // Check if present today
+    // Check if present/onDuty today
     const attendance = await Attendance.findOne({ labour: _id, date: todayStr });
 
     const stats = {
       location: panchayat ? panchayat.name : (ward || "General"),
       ward: ward || "General",
-      total: totalBins,
-      completed: collectedToday,
-      pending: pending,
+      total: collectedTodayByMe + pendingInWard, // denominator = my collections + what remains
+      completed: collectedTodayByMe,
+      pending: pendingInWard,
+      onDuty: attendance ? attendance.onDuty : false,
       present: attendance ? attendance.present : false
     };
 
@@ -433,6 +473,46 @@ export const getAllScans = async (req, res) => {
     res.json(scans);
   } catch (error) {
     console.error("Fetch All Scans Error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// 🔹 GET BINS WITH SCAN STATUS FOR LOGGED-IN EMPLOYEE (for Map screen)
+// @route  GET /api/attendance/my-bins
+// @access Private (Employee)
+export const getMyBinsStatus = async (req, res) => {
+  try {
+    const { panchayatId, _id: labourId, ward } = req.user;
+    const todayStr = today();
+
+    // Fetch all bins in employee's ward
+    const query = { panchayat: panchayatId, isActive: true };
+    if (ward) query.ward = ward;
+
+    const bins = await Dustbin.find(query).lean();
+
+    // Fetch today's scans by this employee
+    const scans = await AttendanceScan.find({
+      labour: labourId,
+      date: todayStr,
+      action: { $in: ["collected", "issue"] },
+    }).lean();
+
+    const scannedBinIds = new Set(scans.map((s) => s.dustbin.toString()));
+
+    const result = bins.map((bin) => ({
+      _id: bin._id,
+      binCode: bin.binCode,
+      locationText: bin.locationText,
+      ward: bin.ward,
+      type: bin.type,
+      geo: bin.geo,
+      scanned: scannedBinIds.has(bin._id.toString()),
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error("getMyBinsStatus Error:", err);
     res.status(500).json({ message: "Server Error" });
   }
 };

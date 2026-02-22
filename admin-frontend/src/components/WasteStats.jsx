@@ -1,28 +1,49 @@
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { ChevronDown } from 'lucide-react'
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from 'recharts'
 
 export default function WasteStats() {
   const [filterDay, setFilterDay] = useState('All')
-  const [filterWard, setFilterWard] = useState('Ward 1')
+  const [filterWard, setFilterWard] = useState('')
+  const [wards, setWards] = useState([])
   const [showDayDropdown, setShowDayDropdown] = useState(false)
   const [showWardDropdown, setShowWardDropdown] = useState(false)
 
   const days = ['All', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const wards = ['Ward 1', 'Ward 2', 'Ward 3', 'Ward 4', 'Ward 5']
 
   const [stats, setStats] = useState({
     weeklyTotal: 0,
     monthlyTotal: 0,
     lastMonthTotal: 0,
+    weeklyData: [],
+    typeBreakdown: [],
     recentCollections: []
   })
 
+  const COLORS = ['#1f9e9a', '#FBBF24', '#EF4444', '#8B5CF6']
+
   useEffect(() => {
     fetchStats()
+    fetchWards()
     const interval = setInterval(fetchStats, 10000) // Poll every 10s
     return () => clearInterval(interval)
   }, [])
+
+  const fetchWards = async () => {
+    try {
+      const res = await api.get('/wards')
+      setWards(res.data)
+      if (res.data.length > 0 && !filterWard) {
+        setFilterWard(res.data[0].name)
+      }
+    } catch (error) {
+      console.error("Failed to fetch wards", error)
+    }
+  }
 
   const fetchStats = async () => {
     try {
@@ -54,8 +75,24 @@ export default function WasteStats() {
         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Weekly collection</h3>
         <p className="text-4xl font-bold text-gray-900 mb-1">{stats.weeklyTotal}</p>
         <p className="text-xs text-gray-500 mb-6">kg collected this week</p>
-        <div className="h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-          <p className="text-xs text-gray-500 font-medium">Line/Bar chart 📊</p>
+        <div className="h-40 w-full mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={stats.weeklyData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="day" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
+              />
+              <YAxis hide />
+              <Tooltip 
+                cursor={{ fill: '#f3f4f6' }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Bar dataKey="total" fill="#1f9e9a" radius={[4, 4, 0, 0]} barSize={20} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -64,8 +101,29 @@ export default function WasteStats() {
         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Monthly collection</h3>
         <p className="text-4xl font-bold text-gray-900 mb-1">{stats.monthlyTotal}</p>
         <p className="text-xs text-gray-500 mb-6">kg collected this month<br />vs last month {stats.lastMonthTotal} kg</p>
-        <div className="h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-          <p className="text-xs text-gray-500 font-medium">Pie chart 📈</p>
+        <div className="h-40 w-full mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={stats.typeBreakdown}
+                innerRadius={35}
+                outerRadius={55}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {stats.typeBreakdown.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend 
+                verticalAlign="bottom" 
+                align="center"
+                iconSize={8}
+                formatter={(value) => <span className="text-[10px] text-gray-500 font-medium">{value}</span>}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -124,18 +182,18 @@ export default function WasteStats() {
                 <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-32">
                   {wards.map((ward) => (
                     <button
-                      key={ward}
+                      key={ward._id}
                       onClick={() => {
-                        setFilterWard(ward)
+                        setFilterWard(ward.name)
                         setShowWardDropdown(false)
                       }}
                       className={`w-full text-left px-4 py-2 text-xs font-medium transition ${
-                        filterWard === ward
+                        filterWard === ward.name
                           ? 'bg-[#1f9e9a] text-white'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      {ward}
+                      {ward.name}
                     </button>
                   ))}
                 </div>

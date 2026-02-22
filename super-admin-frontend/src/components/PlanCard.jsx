@@ -1,56 +1,57 @@
-export default function PlanCard({ plan }) {
-  const getPlanColor = (name) => {
-    switch (name) {
-      case 'Basic':
-        return { bg: 'bg-teal-50', border: 'border-teal-200', badge: 'bg-teal-100 text-teal-800' };
-      case 'Standard':
-        return { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-800' };
-      case 'Premium':
-        return { bg: 'bg-pink-50', border: 'border-pink-200', badge: 'bg-pink-100 text-pink-800' };
-      default:
-        return { bg: 'bg-gray-50', border: 'border-gray-200', badge: 'bg-gray-100 text-gray-800' };
-    }
-  };
+import { Check } from "lucide-react";
 
-  const colors = getPlanColor(plan.name);
+const planConfig = {
+  Basic:    { gradient: "linear-gradient(135deg,#0ea5e9,#38bdf8)", iconBg: "rgba(14,165,233,0.1)", textColor: "#0ea5e9", ring: false },
+  Standard: { gradient: "linear-gradient(135deg,#6366f1,#8b5cf6)", iconBg: "rgba(99,102,241,0.1)", textColor: "#6366f1", ring: true  },
+  Premium:  { gradient: "linear-gradient(135deg,#f59e0b,#fb923c)", iconBg: "rgba(245,158,11,0.1)", textColor: "#f59e0b", ring: false },
+};
+
+export default function PlanCard({ plan }) {
+  const cfg = planConfig[plan.name] || planConfig.Basic;
 
   return (
-    <div className={`${colors.bg} border-2 ${colors.border} rounded-lg p-6 relative`}>
-      {/* Popular Badge */}
+    <div style={{
+      background: "white",
+      borderRadius: 16,
+      padding: "24px",
+      border: cfg.ring ? "2px solid #6366f1" : "1.5px solid #f1f5f9",
+      boxShadow: cfg.ring ? "0 0 0 4px rgba(99,102,241,0.1), 0 4px 20px rgba(99,102,241,0.12)" : "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* Popular badge */}
       {plan.popular && (
-        <div className={`${colors.badge} absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full`}>
-          {plan.badge}
+        <div style={{ position: "absolute", top: 16, right: 16, background: cfg.gradient, color: "white", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>
+          Most Popular
         </div>
       )}
 
-      {/* Plan Name */}
-      <h3 className="text-2xl font-bold text-gray-800 mb-2">{plan.name}</h3>
-
-      {/* Price */}
-      <div className="mb-6">
-        <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-        <span className="text-gray-600 text-sm">{plan.period}</span>
+      {/* Header */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: cfg.textColor, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 6 }}>{plan.name}</div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 4 }}>
+          <span style={{ fontSize: 36, fontWeight: 800, color: "#0f172a", lineHeight: 1, letterSpacing: "-1px" }}>{plan.price}</span>
+          <span style={{ fontSize: 13, color: "#94a3b8", fontWeight: 500, marginBottom: 4 }}>{plan.period}</span>
+        </div>
       </div>
 
+      {/* Divider */}
+      <div style={{ height: 1, background: "#f1f5f9", marginBottom: 16 }} />
+
       {/* Features */}
-      <div className="space-y-3 mb-8">
-        {plan.features.map((feature, index) => (
-          <div key={index} className="flex items-start gap-3">
-            <svg
-              className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-gray-700 text-sm">{feature}</span>
+      <div style={{ marginBottom: 20 }}>
+        {plan.features.map((feature, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 20, height: 20, borderRadius: 6, background: cfg.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+              <Check size={12} color={cfg.textColor} strokeWidth={3} />
+            </div>
+            <span style={{ fontSize: 13, color: "#374151", lineHeight: 1.5 }}>{feature}</span>
           </div>
         ))}
       </div>
+
+      {/* CTA */}
+      <div style={{ height: 4, borderRadius: 4, background: cfg.gradient }} />
     </div>
   );
 }

@@ -65,12 +65,7 @@ export default function ViewProfileModal({ isOpen, onClose, user, onEdit, onDele
                   
                   <div>
                     <label className="text-xs font-semibold text-gray-600 mb-1 block">Contact:</label>
-                    <p className="text-gray-800 font-medium">{user?.contact || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs font-semibold text-gray-600 mb-1 block">Password:</label>
-                    <p className="text-gray-800 font-medium">••••••••</p>
+                    <p className="text-gray-800 font-medium">{user?.mobile || 'N/A'}</p>
                   </div>
                   
                   <div className="md:col-span-2">
@@ -81,9 +76,9 @@ export default function ViewProfileModal({ isOpen, onClose, user, onEdit, onDele
                   <div className="md:col-span-2">
                     <label className="text-xs font-semibold text-gray-600 mb-1 block">Status:</label>
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${user?.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'}`} />
+                      <div className={`w-3 h-3 rounded-full ${user?.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
                       <span className="text-sm font-medium text-gray-800">
-                        {user?.status || 'N/A'}
+                        {user?.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                   </div>
@@ -96,9 +91,9 @@ export default function ViewProfileModal({ isOpen, onClose, user, onEdit, onDele
                   Preference:
                 </label>
                 <div className="flex gap-3 flex-wrap">
-                  {['View', 'Edit', 'Delete'].map(pref => (
-                    <div key={pref} className="px-3 py-1 bg-teal-100 text-teal-800 text-xs font-medium rounded-full border border-teal-300">
-                      {pref}
+                  {user?.permissions?.map(perm => (
+                    <div key={perm} className="px-3 py-1 bg-teal-100 text-teal-800 text-xs font-medium rounded-full border border-teal-300">
+                      {perm}
                     </div>
                   ))}
                 </div>

@@ -22,6 +22,20 @@ export default function EditEmployeeModal({
     joiningDate: "",
   });
 
+  const [wards, setWards] = useState([]);
+
+  useEffect(() => {
+    const fetchWards = async () => {
+      try {
+        const res = await api.get("/wards");
+        setWards(res.data);
+      } catch (err) {
+        console.error("Failed to fetch wards", err);
+      }
+    };
+    fetchWards();
+  }, []);
+
   const [files, setFiles] = useState({
     photo: null,
     idProof: null,
@@ -134,11 +148,18 @@ return (
           </Field>
 
           <Field label="Ward">
-            <Input
+            <Select
               name="ward"
               value={formData.ward}
               onChange={handleChange}
-            />
+            >
+              <option value="">Select Ward</option>
+              {wards.map((w) => (
+                <option key={w._id} value={w.name}>
+                  {w.name}
+                </option>
+              ))}
+            </Select>
           </Field>
 
           <Field label="Role" full>

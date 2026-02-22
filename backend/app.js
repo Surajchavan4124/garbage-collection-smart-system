@@ -16,9 +16,13 @@ import routeRoutes from "./routes/route.routes.js";
 import contentRoutes from "./routes/content.routes.js";
 import wasteDataRoutes from "./routes/wasteData.routes.js";
 import reportRoutes from "./routes/report.routes.js";
+import wardRoutes from "./routes/ward.routes.js";
+import searchRoutes from "./routes/search.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import employeeAppRoutes from "./routes/employee.app.routes.js";
 
 const app = express();
-app.use(express.json());  
+app.use(express.json());
 app.use(
   "/uploads",
   express.static(path.join(process.cwd(), "uploads")));
@@ -31,7 +35,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.get("/", (req, res) => {
-  return res.status(200).json({ 
+  return res.status(200).json({
     message: "API is running...",
     success: true
   });
@@ -49,6 +53,9 @@ app.use("/api/complaints", complaintRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/waste-data", wasteDataRoutes);
 app.use("/api/reports", reportRoutes);
-
+app.use("/api/wards", wardRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/employee", employeeAppRoutes);
 
 export default app;

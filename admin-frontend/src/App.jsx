@@ -13,6 +13,7 @@ const AttendanceManagement = lazy(() => import('./pages/AttendanceManagement'))
 const DustbinManagement = lazy(() => import('./pages/DustbinManagement'))
 const HouseholdManagement = lazy(() => import('./pages/HouseholdManagement'))
 const RouteManagement = lazy(() => import('./pages/RouteManagement'))
+const WardManagement = lazy(() => import('./pages/WardManagement'))
 const ReportAndComplaintManagement = lazy(() => import('./pages/ReportAndComplaintManagement'))
 const WasteDataManagement = lazy(() => import('./pages/WasteDataManagement'))
 const EditAboutUs = lazy(() => import('./pages/EditAboutUs'))
@@ -71,6 +72,7 @@ function App() {
             <Route path="/household" element={<ProtectedRoute><HouseholdManagement /></ProtectedRoute>} />
             <Route path="/report-complaint" element={<ProtectedRoute><ReportAndComplaintManagement /></ProtectedRoute>} />
             <Route path="/route" element={<ProtectedRoute><RouteManagement /></ProtectedRoute>} />
+            <Route path="/ward" element={<ProtectedRoute><WardManagement /></ProtectedRoute>} />
             <Route path="/waste-data" element={<ProtectedRoute><WasteDataManagement /></ProtectedRoute>} />
             <Route path="/edit-about-us" element={<ProtectedRoute><EditAboutUs /></ProtectedRoute>} />
             <Route path="/edit-guide" element={<ProtectedRoute><EditSegregationGuide /></ProtectedRoute>} />

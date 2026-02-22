@@ -11,6 +11,20 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
     ward: household?.ward || '',       // Added ward
   })
 
+  const [wards, setWards] = useState([])
+
+  useEffect(() => {
+    const fetchWards = async () => {
+      try {
+        const res = await api.get('/wards')
+        setWards(res.data)
+      } catch (err) {
+        console.error('Failed to fetch wards', err)
+      }
+    }
+    fetchWards()
+  }, [])
+
   // Update state when household prop changes
   useEffect(() => {
     if (household) {
@@ -154,8 +168,7 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                   <Edit2 size={16} className="text-gray-600" />
                 </button>
               </div>
-              <input
-                type="text"
+              <select
                 name="ward"
                 value={editData.ward}
                 onChange={handleInputChange}
@@ -165,7 +178,12 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                     ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
                     : 'bg-gray-50 border-gray-300 text-gray-700'
                 }`}
-              />
+              >
+                <option value="">Select Ward</option>
+                {wards.map(w => (
+                  <option key={w._id} value={w.name}>{w.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Contact - Editable */}
