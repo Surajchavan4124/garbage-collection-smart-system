@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Users } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function AttendanceCard({ total = 0, present = 0, recent = [] }) {
+  const { isDark } = useTheme()
   const navigate = useNavigate()
   const percentage = total > 0 ? Math.round((present / total) * 100) : 0
   const absent = total - present
@@ -27,7 +29,7 @@ export default function AttendanceCard({ total = 0, present = 0, recent = [] }) 
       </div>
 
       {/* Progress bar */}
-      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-5">
+      <div className="w-full h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden mb-5">
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{
@@ -47,10 +49,10 @@ export default function AttendanceCard({ total = 0, present = 0, recent = [] }) 
               </div>
               <span className="text-sm font-medium text-gray-700 truncate max-w-28">{item.name}</span>
             </div>
-            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${
               item.status === 'Present'
-                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                : 'bg-red-50 text-red-500 border border-red-100'
+                ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'
+                : 'bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border border-red-100 dark:border-red-500/20'
             }`}>
               {item.status}
             </span>

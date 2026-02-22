@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { lazy, Suspense } from 'react'
 import LoadingSpinner from './components/LoadingSpinner'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 // Lazy load pages
 const Login = lazy(() => import('./pages/Login'))
@@ -25,6 +26,7 @@ const ProfileSettings = lazy(() => import('./pages/ProfileSettings'))
 const LegalTransparency = lazy(() => import('./pages/LegalTransparency'))
 
 import ProtectedRoute from './components/ProtectedRoute'
+import { ThemeWatcher } from './contexts/ThemeContext'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +39,7 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       {/* 🔔 Toasts available globally */}
       <ToastContainer
@@ -50,6 +53,7 @@ function App() {
       />
 
       <Router>
+        <ThemeWatcher />
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
 
@@ -86,6 +90,7 @@ function App() {
         </Suspense>
       </Router>
     </QueryClientProvider>
+    </ThemeProvider>
   )
 }
 

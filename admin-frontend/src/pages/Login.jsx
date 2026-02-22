@@ -55,15 +55,46 @@ export default function Login() {
       style={{ background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 40%, #f0fdf4 70%, #f8fafc 100%)' }}>
 
       {/* ── Animated background orbs ── */}
+      {/* ── Premium animations ── */}
       <style>{`
         @keyframes floatOrb1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,-60px) scale(1.08)} 66%{transform:translate(-30px,40px) scale(0.95)} }
         @keyframes floatOrb2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-50px,30px) scale(1.05)} 66%{transform:translate(35px,-50px) scale(0.92)} }
         @keyframes floatOrb3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(25px,35px) scale(1.1)} }
         @keyframes floatOrb4 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,-30px)} }
+        
+        @keyframes bubbleUp {
+          0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+          20% { opacity: 0.4; }
+          100% { transform: translateY(-20vh) scale(1.2); opacity: 0; }
+        }
+
+        @keyframes cardEntrance {
+          0% { opacity: 0; transform: translateY(30px) scale(0.98); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         .orb1 { animation: floatOrb1 14s ease-in-out infinite; }
         .orb2 { animation: floatOrb2 18s ease-in-out infinite; }
         .orb3 { animation: floatOrb3 11s ease-in-out infinite; }
         .orb4 { animation: floatOrb4 16s ease-in-out infinite; }
+
+        .bubble {
+          position: absolute;
+          border-radius: 50%;
+          background: linear-gradient(135deg, rgba(31,158,154,0.15), rgba(34,197,94,0.1));
+          pointer-events: none;
+          animation: bubbleUp linear infinite;
+        }
+
+        .login-card-entrance {
+          animation: cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .input-focus-teal:focus {
+          border-color: #1f9e9a !important;
+          box-shadow: 0 0 0 4px rgba(31,158,154,0.15) !important;
+          transform: translateY(-1px);
+        }
       `}</style>
 
       {/* Orbs */}
@@ -81,6 +112,17 @@ export default function Login() {
         backgroundImage: 'radial-gradient(circle, rgba(31,158,154,0.08) 1px, transparent 1px)',
         backgroundSize: '32px 32px'
       }} />
+
+      {/* Floating Bubbles */}
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="bubble" style={{
+          width: `${20 + Math.random() * 60}px`,
+          height: `${20 + Math.random() * 60}px`,
+          left: `${Math.random() * 100}%`,
+          animationDuration: `${15 + Math.random() * 15}s`,
+          animationDelay: `${Math.random() * 10}s`,
+        }} />
+      ))}
 
       {/* ── Left decorative panel ── */}
       <div className="hidden lg:flex w-1/2 flex-col justify-between p-16 relative z-10">
@@ -142,10 +184,10 @@ export default function Login() {
 
       {/* ── Right form panel ── */}
       <div className="flex-1 flex items-center justify-center p-8 relative z-10">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md login-card-entrance">
 
           {/* Card */}
-          <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl shadow-teal-100/50 p-10">
+          <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl shadow-teal-100/50 p-10 relative overflow-hidden">
 
             {/* Top teal accent line */}
             <div className="absolute inset-x-10 top-0 h-0.5 rounded-full"
@@ -188,17 +230,15 @@ export default function Login() {
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
                   disabled={otpSent}
-                  className="w-full h-13 rounded-xl pl-11 pr-12 text-sm text-gray-800 placeholder-gray-400 outline-none transition-all border"
+                  className="w-full h-13 rounded-xl pl-11 pr-12 text-sm text-gray-800 placeholder-gray-400 outline-none transition-all border input-focus-teal"
                   style={{
                     background: otpSent ? '#f8fafc' : '#ffffff',
                     border: '1.5px solid #e2e8f0',
                   }}
-                  onFocus={(e) => { e.target.style.borderColor = '#1f9e9a'; e.target.style.boxShadow = '0 0 0 3px rgba(31,158,154,0.12)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
                 />
                 {otpSent && (
                   <button type="button" onClick={editMobile}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-teal-500 text-xs font-bold hover:text-teal-600">
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-teal-500 text-xs font-bold hover:text-teal-600 transition-colors">
                     Edit
                   </button>
                 )}
@@ -206,7 +246,7 @@ export default function Login() {
 
               {/* OTP */}
               {otpSent && (
-                <div className="relative">
+                <div className="relative animate-fade-in-up">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
                     <Key size={18} className="text-gray-400" />
                   </div>
@@ -216,10 +256,8 @@ export default function Login() {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     maxLength={6}
-                    className="w-full h-13 rounded-xl pl-11 pr-4 text-sm text-gray-800 placeholder-gray-400 outline-none transition-all tracking-[0.4em]"
+                    className="w-full h-13 rounded-xl pl-11 pr-4 text-sm text-gray-800 placeholder-gray-400 outline-none transition-all tracking-[0.4em] input-focus-teal font-black"
                     style={{ background: '#ffffff', border: '1.5px solid #e2e8f0' }}
-                    onFocus={(e) => { e.target.style.borderColor = '#1f9e9a'; e.target.style.boxShadow = '0 0 0 3px rgba(31,158,154,0.12)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
               )}

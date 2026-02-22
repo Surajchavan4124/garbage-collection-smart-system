@@ -11,10 +11,37 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* ── CSS Variables (Light defaults) ── */
+:root {
+  --bg-page: #f0f4f8;
+  --bg-card: rgba(255,255,255,0.85);
+  --bg-surface: #ffffff;
+  --border-color: rgba(0,0,0,0.06);
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --input-bg: #f4f6fa;
+  --sidebar-bg: rgba(255,255,255,0.9);
+  --scrollbar-thumb: #d1d5db;
+}
+
+.dark {
+  --bg-page: #020617; /* Deeper navy for better depth */
+  --bg-card: rgba(30,41,59,0.7);
+  --bg-surface: #1e293b;
+  --border-color: rgba(255,255,255,0.12); /* Brighter border */
+  --text-primary: #f8fafc;   /* Slate 50 */
+  --text-secondary: #cbd5e1; /* Slate 300 - High contrast */
+  --text-muted: #94a3b8;     /* Slate 400 - Readable */
+  --input-bg: #0f172a;
+  --sidebar-bg: rgba(2,6,23,0.95);
+  --scrollbar-thumb: #334155;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #1f9e9a; }
 
 /* Smooth transitions globally */
@@ -26,15 +53,21 @@
 .bg-mesh {
   background: radial-gradient(ellipse at top left, rgba(31,158,154,0.12) 0%, transparent 50%),
               radial-gradient(ellipse at bottom right, rgba(34,197,94,0.08) 0%, transparent 50%),
-              #f0f4f8;
+              var(--bg-page);
+}
+
+/* Dark page background */
+.dark body, .dark #root {
+  background: var(--bg-page);
+  color: var(--text-primary);
 }
 
 /* Glass card */
 .card-glass {
-  background: rgba(255,255,255,0.85);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.6);
+  border: 1px solid var(--border-color);
 }
 
 /* Teal gradient text */
@@ -82,3 +115,28 @@
   background: #1f9e9a;
   animation: pulseRing 1.5s ease infinite;
 }
+
+/* Dark mode page layout */
+.dark .bg-white { background-color: var(--bg-surface) !important; }
+.dark .bg-gray-50 { background-color: #1e293b !important; }
+.dark .bg-gray-100 { background-color: #1e293b !important; }
+.dark .bg-gray-50\/50 { background-color: rgba(255,255,255,0.02) !important; }
+.dark .hover\:bg-teal-50\/30:hover { background-color: rgba(31,158,154,0.08) !important; }
+.dark .bg-emerald-50 { background-color: rgba(16,185,129,0.1) !important; }
+.dark .bg-red-50 { background-color: rgba(239,68,68,0.1) !important; }
+.dark .text-gray-900 { color: var(--text-primary) !important; }
+.dark .text-slate-900 { color: var(--text-primary) !important; }
+.dark .text-gray-800 { color: var(--text-primary) !important; }
+.dark .text-gray-700 { color: var(--text-primary) !important; }
+.dark .text-gray-600 { color: var(--text-secondary) !important; }
+.dark .text-gray-500 { color: var(--text-secondary) !important; }
+.dark .text-gray-400 { color: var(--text-muted) !important; }
+.dark .text-slate-500 { color: var(--text-secondary) !important; }
+.dark .text-slate-400 { color: var(--text-muted) !important; }
+.dark .border-gray-100 { border-color: rgba(255,255,255,0.08) !important; }
+.dark .border-gray-200 { border-color: rgba(255,255,255,0.15) !important; }
+.dark input, .dark select, .dark textarea { border-color: rgba(255,255,255,0.2) !important; }
+.dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important; }
+.dark .shadow-lg { box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; }
+.dark .shadow-xl { box-shadow: 0 16px 48px rgba(0,0,0,0.6) !important; }
+.dark .shadow-2xl { box-shadow: 0 24px 64px rgba(0,0,0,0.7) !important; }

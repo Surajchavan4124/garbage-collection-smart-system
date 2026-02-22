@@ -132,8 +132,8 @@ export const verifyOtpAndLogin = async (req, res) => {
   // 5️⃣ Set cookie
   res.cookie("token", token, {
     httpOnly: true,
-    secure: true, // Always true for cross-site
-    sameSite: "none", // Required for cross-site (localhost -> render)
+    secure: process.env.NODE_ENV === "production", // Secure only in production
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // none for cross-site prod, lax for localhost
     maxAge: 24 * 60 * 60 * 1000, // 1 day
   });
 
@@ -158,8 +158,8 @@ export const logout = (req, res) => {
   return res
     .clearCookie("token", {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     })
     .status(200)
     .json({

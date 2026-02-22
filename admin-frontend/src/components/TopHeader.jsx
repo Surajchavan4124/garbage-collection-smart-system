@@ -1,11 +1,13 @@
 // src/components/TopHeader.jsx - Enhanced UI
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Search, Bell, User, Settings, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
 import LogoutConfirmation from './LogoutConfirmation'
 import api from '../api/axios'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function TopHeader() {
+  const { isDark, toggleTheme } = useTheme()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -96,11 +98,11 @@ export default function TopHeader() {
     <>
       <div className="fixed top-0 right-0 left-64 h-16 flex items-center justify-between px-6 z-40"
         style={{
-          background: 'rgba(255,255,255,0.92)',
+          background: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(0,0,0,0.06)',
-          boxShadow: '0 1px 20px rgba(0,0,0,0.04)'
+          borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+          boxShadow: isDark ? '0 1px 20px rgba(0,0,0,0.3)' : '0 1px 20px rgba(0,0,0,0.04)'
         }}
       >
         {/* Search Bar */}
@@ -184,43 +186,72 @@ export default function TopHeader() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3 ml-6">
+          {/* Dark/Light Toggle */}
+          <button
+            onClick={toggleTheme}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200"
+            style={{
+              background: isDark ? 'rgba(31,158,154,0.15)' : '#f4f6fa',
+              color: isDark ? '#5eead4' : '#6b7280'
+            }}
+          >
+            {isDark ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
+
           {/* Notifications Bell */}
-          <button className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors">
+          <button
+            className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors"
+            style={{ color: isDark ? '#cbd5e1' : '#4b5563', background: 'transparent' }}
+          >
             <Bell size={18} />
             <span className="text-sm font-medium">3 Alerts</span>
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2"
+              style={{ ringColor: isDark ? '#020617' : 'white' }} />
           </button>
 
           {/* Avatar / Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl transition-colors"
+              style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'transparent' }}
             >
               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm"
                 style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
               >
                 A
               </div>
-              <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                style={{ color: isDark ? '#94a3b8' : '#9ca3af' }} />
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-100 rounded-xl shadow-xl py-1.5 z-50">
-                <div className="px-4 py-2.5 border-b border-gray-50">
-                  <p className="text-sm font-bold text-gray-800">Panchayat Admin</p>
-                  <p className="text-xs text-gray-400">ecosyz.in</p>
+              <div className="absolute right-0 mt-2 w-52 rounded-xl shadow-xl py-1.5 z-50 border"
+                style={{
+                  background: isDark ? '#1e293b' : 'white',
+                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#f3f4f6'
+                }}>
+                <div className="px-4 py-2.5 border-b"
+                  style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f9fafb' }}>
+                  <p className="text-sm font-bold" style={{ color: isDark ? '#f1f5f9' : '#1f2937' }}>Panchayat Admin</p>
+                  <p className="text-xs" style={{ color: isDark ? '#64748b' : '#9ca3af' }}>ecosyz.in</p>
                 </div>
                 <button
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors mt-1"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors mt-1"
+                  style={{ color: isDark ? '#cbd5e1' : '#374151' }}
+                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : '#f9fafb'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   onClick={handleProfileSettings}
                 >
-                  <Settings size={15} className="text-gray-400" />
+                  <Settings size={15} style={{ color: isDark ? '#64748b' : '#9ca3af' }} />
                   <span>Profile Settings</span>
                 </button>
-                <div className="h-px bg-gray-100 mx-3 my-1" />
+                <div className="h-px mx-3 my-1" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }} />
                 <button
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 transition-colors"
+                  onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   onClick={handleLogoutClick}
                 >
                   <LogOut size={15} />

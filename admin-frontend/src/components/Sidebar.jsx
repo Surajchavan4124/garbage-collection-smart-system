@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin, Leaf } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function Sidebar() {
+  const { isDark } = useTheme()
   const location = useLocation()
   const isOperationalActive = location.pathname.startsWith('/employee') || 
                                location.pathname.startsWith('/attendance') || 
@@ -27,31 +29,33 @@ export default function Sidebar() {
         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative ${
           active
             ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white shadow-md shadow-teal-500/25'
-            : 'text-slate-700 hover:text-slate-900 hover:bg-teal-50'
+            : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20'
         }`}
       >
         {active && (
           <span className="absolute left-0 inset-y-0 w-0.5 rounded-r bg-teal-300/60" />
         )}
-        <Icon size={small ? 16 : 18} className={active ? 'text-white' : 'text-slate-500 group-hover:text-teal-600 transition-colors'} />
+        <Icon size={small ? 16 : 18} className={active ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-teal-600 transition-colors'} />
         <span className={`${small ? 'text-xs' : 'text-sm'} font-medium leading-tight`}>{label}</span>
       </Link>
     )
   }
 
   const SectionLabel = ({ label }) => (
-    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[1.5px] px-4 mb-2 mt-1">{label}</p>
+    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[1.5px] px-4 mb-2 mt-1">{label}</p>
   )
 
   return (
-    <div className="w-64 h-screen overflow-y-auto fixed left-0 top-0 flex flex-col"
+    <div className="w-64 h-screen overflow-y-auto fixed left-0 top-0 flex flex-col transition-colors duration-300"
       style={{
-        background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-        borderRight: '1px solid #e2e8f0'
+        background: isDark 
+          ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)' 
+          : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+        borderRight: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0'
       }}
     >
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-gray-100 flex-shrink-0">
+      <div className="px-5 py-5 border-b border-gray-100 dark:border-white/5 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
             style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
@@ -59,8 +63,8 @@ export default function Sidebar() {
             <Leaf size={18} className="text-white" />
           </div>
           <div>
-            <p className="text-gray-800 font-bold text-sm leading-tight">EcoSyz Admin</p>
-            <p className="text-gray-400 text-[10px] font-medium">Panchayat Management</p>
+            <p className="text-gray-800 dark:text-gray-100 font-bold text-sm leading-tight">EcoSyz Admin</p>
+            <p className="text-gray-400 dark:text-gray-500 text-[10px] font-medium">Panchayat Management</p>
           </div>
         </div>
       </div>
@@ -86,14 +90,14 @@ export default function Sidebar() {
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group ${
                 isOperationalActive
                   ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white shadow-md shadow-teal-500/25'
-                  : 'text-slate-700 hover:text-slate-900 hover:bg-teal-50'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20'
               }`}
             >
-              <Settings size={18} className={isOperationalActive ? 'text-white' : 'text-slate-500 group-hover:text-teal-600 transition-colors'} />
+              <Settings size={18} className={isOperationalActive ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-teal-600 transition-colors'} />
               <span className="text-sm font-medium flex-1 text-left">Operational Mgmt</span>
               <ChevronDown
                 size={14}
-                className={`transition-transform duration-300 ${expandOperational ? 'rotate-180' : ''} ${isOperationalActive ? 'text-white' : 'text-slate-500'}`}
+                className={`transition-transform duration-300 ${expandOperational ? 'rotate-180' : ''} ${isOperationalActive ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`}
               />
             </button>
 
@@ -141,7 +145,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-gray-100 flex-shrink-0 bg-gray-50">
+      <div className="px-4 py-3 border-t border-gray-100 dark:border-white/5 flex-shrink-0 bg-gray-50 dark:bg-gray-900/50">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}
@@ -149,8 +153,8 @@ export default function Sidebar() {
             A
           </div>
           <div className="min-w-0">
-            <p className="text-gray-800 text-xs font-bold truncate">Panchayat Admin</p>
-            <p className="text-gray-500 text-[10px]">ecosyz.in</p>
+            <p className="text-gray-800 dark:text-gray-100 text-xs font-bold truncate">Panchayat Admin</p>
+            <p className="text-gray-500 dark:text-gray-500 text-[10px]">ecosyz.in</p>
           </div>
         </div>
       </div>

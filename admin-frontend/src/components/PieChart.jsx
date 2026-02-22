@@ -1,6 +1,8 @@
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function AttendanceChart({ present = 0, absent = 0 }) {
+  const { isDark } = useTheme()
   const data = [
     { name: 'Present', value: present },
     { name: 'Absent', value: absent },
@@ -38,7 +40,7 @@ export default function AttendanceChart({ present = 0, absent = 0 }) {
             align="right" 
             verticalAlign="middle"
             formatter={(value, entry) => (
-              <span className="text-sm font-medium text-gray-700">{value}</span>
+              <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>{value}</span>
             )}
           />
         </PieChart>

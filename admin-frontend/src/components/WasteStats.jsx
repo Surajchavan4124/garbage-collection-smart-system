@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { ChevronDown } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts'
 
 export default function WasteStats() {
+  const { isDark } = useTheme()
   const [filterDay, setFilterDay] = useState('All')
   const [filterWard, setFilterWard] = useState('')
   const [wards, setWards] = useState([])
@@ -78,7 +80,7 @@ export default function WasteStats() {
         <div className="h-40 w-full mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={stats.weeklyData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? '#334155' : '#f0f0f0'} />
               <XAxis 
                 dataKey="day" 
                 axisLine={false} 
@@ -87,8 +89,14 @@ export default function WasteStats() {
               />
               <YAxis hide />
               <Tooltip 
-                cursor={{ fill: '#f3f4f6' }}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : '#f3f4f6' }}
+                contentStyle={{ 
+                  borderRadius: '12px', 
+                  border: isDark ? '1px solid rgba(255,255,255,0.08)' : 'none', 
+                  boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                  background: isDark ? '#1e293b' : '#ffffff',
+                  color: isDark ? '#f1f5f9' : '#1f2937'
+                }}
               />
               <Bar dataKey="total" fill="url(#tealGradient)" radius={[4, 4, 0, 0]} barSize={20} />
             </BarChart>
@@ -138,7 +146,7 @@ export default function WasteStats() {
             <div className="relative">
               <button
                 onClick={() => setShowDayDropdown(!showDayDropdown)}
-                className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-200 transition flex items-center gap-1 border border-gray-200"
+                className="px-3 py-2 bg-gray-100 dark:bg-slate-700 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 transition flex items-center gap-1 border border-gray-200 dark:border-white/5"
               >
                 {filterDay}
                 <ChevronDown size={14} className={`transition-transform ${showDayDropdown ? 'rotate-180' : ''}`} />
@@ -146,7 +154,7 @@ export default function WasteStats() {
               
               {/* Day Dropdown Menu */}
               {showDayDropdown && (
-                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-32">
+                <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-lg shadow-lg z-10 min-w-32 py-1">
                   {days.map((day) => (
                     <button
                       key={day}
@@ -157,7 +165,7 @@ export default function WasteStats() {
                       className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors ${
                         filterDay === day
                           ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white'
-                          : 'text-gray-700 hover:bg-teal-50 hover:text-teal-700'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-700 dark:hover:text-teal-400'
                       }`}
                     >
                       {day}
@@ -171,7 +179,7 @@ export default function WasteStats() {
             <div className="relative">
               <button
                 onClick={() => setShowWardDropdown(!showWardDropdown)}
-                className="px-3 py-2 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-200 transition flex items-center gap-1 border border-gray-200"
+                className="px-3 py-2 bg-gray-100 dark:bg-slate-700 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 transition flex items-center gap-1 border border-gray-200 dark:border-white/5"
               >
                 {filterWard}
                 <ChevronDown size={14} className={`transition-transform ${showWardDropdown ? 'rotate-180' : ''}`} />
@@ -179,7 +187,7 @@ export default function WasteStats() {
 
               {/* Ward Dropdown Menu */}
               {showWardDropdown && (
-                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-32">
+                <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-lg shadow-lg z-10 min-w-32 py-1">
                   {wards.map((ward) => (
                     <button
                       key={ward._id}
@@ -190,7 +198,7 @@ export default function WasteStats() {
                       className={`w-full text-left px-4 py-2 text-xs font-semibold transition-colors ${
                         filterWard === ward.name
                           ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white'
-                          : 'text-gray-700 hover:bg-teal-50 hover:text-teal-700'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-700 dark:hover:text-teal-400'
                       }`}
                     >
                       {ward.name}

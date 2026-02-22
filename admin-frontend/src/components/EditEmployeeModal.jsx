@@ -1,51 +1,23 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, UserCog, Upload, Camera, FileText, Car } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../api/axios";
 
-
-export default function EditEmployeeModal({
-  isOpen,
-  onClose,
-  employee,
-  onSuccess,
-}) {
+export default function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
   const [loading, setLoading] = useState(false);
-
   const [formData, setFormData] = useState({
-    name: "",
-    employeeCode: "",
-    phone: "",
-    address: "",
-    role: "Collector",
-    wards: [],
-    joiningDate: "",
+    name: "", employeeCode: "", phone: "", address: "",
+    role: "Collector", wards: [], joiningDate: "",
   });
-
   const [wards, setWards] = useState([]);
+  const [files, setFiles] = useState({ photo: null, idProof: null, license: null });
 
   useEffect(() => {
-    const fetchWards = async () => {
-      try {
-        const res = await api.get("/wards");
-        setWards(res.data);
-      } catch (err) {
-        console.error("Failed to fetch wards", err);
-      }
-    };
-    fetchWards();
+    api.get("/wards").then(res => setWards(res.data)).catch(() => {});
   }, []);
 
-  const [files, setFiles] = useState({
-    photo: null,
-    idProof: null,
-    license: null,
-  });
-
-  /* ---------- PREFILL ---------- */
   useEffect(() => {
     if (!employee) return;
-
     setFormData({
       name: employee.name || "",
       employeeCode: employee.employeeCode || "",
@@ -53,252 +25,188 @@ export default function EditEmployeeModal({
       address: employee.address || "",
       role: employee.role || "Collector",
       wards: employee.wards || (employee.ward ? [employee.ward] : []),
-      joiningDate: employee.joiningDate
-        ? employee.joiningDate.split("T")[0]
-        : "",
+      joiningDate: employee.joiningDate ? employee.joiningDate.split("T")[0] : "",
     });
-
     setFiles({ photo: null, idProof: null, license: null });
   }, [employee]);
 
   if (!isOpen || !employee) return null;
 
-  /* ---------- HANDLERS ---------- */
-  const handleChange = (e) =>
-    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
-
+  const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setFiles((p) => ({ ...p, [e.target.name]: file }));
+    if (file) setFiles(p => ({ ...p, [e.target.name]: file }));
   };
+  const toggleWard = (name) => setFormData(p => ({
+    ...p, wards: p.wards.includes(name) ? p.wards.filter(w => w !== name) : [...p.wards, name]
+  }));
 
-  const validate = () => {
-    if (!formData.name.trim()) return "Name is required";
-    if (!formData.employeeCode.trim()) return "Employee code is required";
-    if (!formData.phone.trim()) return "Phone number is required";
-    if (!formData.address.trim()) return "Address is required";
-    if (formData.wards.length === 0) return "At least one ward is required";
-    if (!formData.joiningDate) return "Joining date is required";
-    return null;
-  };
-
-  /* ---------- UPDATE ---------- */
   const handleUpdate = async () => {
-    const error = validate();
-    if (error) return toast.error(error);
-
+    if (!formData.name.trim()) return toast.error("Name is required");
+    if (!formData.phone.trim()) return toast.error("Phone is required");
+    if (formData.wards.length === 0) return toast.error("At least one ward is required");
     try {
       setLoading(true);
-
       const fd = new FormData();
       Object.entries(formData).forEach(([k, v]) => {
-        if (k === 'wards' && Array.isArray(v)) {
-          v.forEach(w => fd.append("wards", w));
-        } else {
-          fd.append(k, v);
-        }
+        if (k === 'wards') v.forEach(w => fd.append("wards", w));
+        else fd.append(k, v);
       });
-
       if (files.photo) fd.append("photo", files.photo);
       if (files.idProof) fd.append("idProof", files.idProof);
       if (files.license) fd.append("license", files.license);
-
       await api.put(`/employees/${employee._id}`, fd);
-
       toast.success("Employee updated successfully");
-      onClose();
-      onSuccess?.();
+      onClose(); onSuccess?.();
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  /* ---------- UI ---------- */
-return (
-  <div className="fixed inset-0 z-50 bg-black/40 overflow-y-auto">
-    <div className="flex justify-center py-10 px-4">
-      <div className="bg-white w-full max-w-xl rounded-lg shadow-xl p-6 relative max-h-[90vh] overflow-y-auto">
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-        >
-          <X size={20} />
-        </button>
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[92vh] flex flex-col">
 
-        <h2 className="text-lg font-bold mb-6">Edit Employee</h2>
-
-        {/* FORM */}
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Employee Name">
-            <Input name="name" value={formData.name} onChange={handleChange} />
-          </Field>
-
-          <Field label="Employee Code">
-            <Input
-              name="employeeCode"
-              value={formData.employeeCode}
-              onChange={handleChange}
-            />
-          </Field>
-
-          <Field label="Phone Number">
-            <Input
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-            />
-          </Field>
-
-          <Field label="Wards (Select all that apply)" full>
-            <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded max-h-40 overflow-y-auto bg-gray-50">
-              {wards.map((w) => (
-                <label key={w._id} className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-200 cursor-pointer hover:border-[#1f9e9a] transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={formData.wards.includes(w.name)}
-                    onChange={(e) => {
-                      const { checked } = e.target;
-                      setFormData(p => ({
-                        ...p,
-                        wards: checked 
-                          ? [...p.wards, w.name]
-                          : p.wards.filter(name => name !== w.name)
-                      }));
-                    }}
-                    className="accent-[#1f9e9a]"
-                  />
-                  <span className="text-sm font-medium text-gray-700">{w.name}</span>
-                </label>
-              ))}
-              {wards.length === 0 && <span className="text-gray-400 text-xs py-1">No wards found...</span>}
+          {/* Header */}
+          <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black text-base text-white flex-shrink-0">
+                {employee?.name?.charAt(0)}
+              </div>
+              <div>
+                <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Edit Record</p>
+                <h2 className="text-white font-bold">{employee?.name}</h2>
+                <p className="text-white/70 text-xs">{employee?.employeeCode}</p>
+              </div>
             </div>
-          </Field>
+            <button onClick={onClose} className="p-1.5 rounded-lg bg-white/15 text-white hover:bg-white/25 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
 
-          <Field label="Role" full>
-            <Select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-            >
-              <option>Collector</option>
-              <option>Driver</option>
-              <option>Supervisor</option>
-              <option>Helper</option>
-            </Select>
-          </Field>
+          {/* Form */}
+          <div className="p-6 overflow-y-auto flex-1 space-y-6">
 
-          <Field label="Joining Date" full>
-            <Input
-              type="date"
-              name="joiningDate"
-              value={formData.joiningDate}
-              onChange={handleChange}
-            />
-          </Field>
+            {/* Basic Info */}
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <UserCog size={12} /> Basic Information
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Employee Name">
+                  <StyledInput name="name" value={formData.name} onChange={handleChange} placeholder="Full name" />
+                </FormField>
+                <FormField label="Employee Code">
+                  <StyledInput name="employeeCode" value={formData.employeeCode} onChange={handleChange} placeholder="EMP-001" />
+                </FormField>
+                <FormField label="Phone Number">
+                  <StyledInput name="phone" value={formData.phone} onChange={handleChange} placeholder="10-digit number" />
+                </FormField>
+                <FormField label="Joining Date">
+                  <StyledInput type="date" name="joiningDate" value={formData.joiningDate} onChange={handleChange} />
+                </FormField>
+                <FormField label="Role" full>
+                  <StyledSelect name="role" value={formData.role} onChange={handleChange}>
+                    <option>Collector</option>
+                    <option>Driver</option>
+                    <option>Supervisor</option>
+                    <option>Helper</option>
+                  </StyledSelect>
+                </FormField>
+                <FormField label="Address" full>
+                  <StyledTextarea name="address" rows={2} value={formData.address} onChange={handleChange} placeholder="Full address" />
+                </FormField>
+              </div>
+            </div>
 
-          <Field label="Address" full>
-            <Textarea
-              name="address"
-              rows={3}
-              value={formData.address}
-              onChange={handleChange}
-            />
-          </Field>
-        </div>
+            {/* Ward Selection */}
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Ward Assignment</p>
+              <div className="flex flex-wrap gap-2 p-3 bg-gray-50 border border-gray-100 rounded-xl min-h-[52px]">
+                {wards.map(w => {
+                  const checked = formData.wards.includes(w.name);
+                  return (
+                    <label key={w._id} onClick={() => toggleWard(w.name)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all text-sm font-medium select-none ${
+                        checked ? 'bg-teal-50 border-teal-400 text-teal-700' : 'bg-white border-gray-200 text-gray-700 hover:border-teal-200'
+                      }`}>
+                      <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center flex-shrink-0 ${checked ? 'bg-teal-500 border-teal-500' : 'border-gray-300'}`}>
+                        {checked && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </span>
+                      {w.name}
+                    </label>
+                  );
+                })}
+                {wards.length === 0 && <p className="text-gray-400 text-xs py-1">No wards found...</p>}
+              </div>
+            </div>
 
-        {/* DOCUMENTS */}
-        <div className="mt-6 border-t pt-4 space-y-4">
-          <Field label="Replace Photo (optional)" full>
-            <FileInput name="photo" onChange={handleFileChange} />
-          </Field>
+            {/* Documents */}
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <FileText size={12} /> Replace Documents (optional)
+              </p>
+              <div className="grid grid-cols-1 gap-3">
+                <UploadCard icon={<Camera size={14} />} label="Employee Photo" name="photo" file={files.photo} onChange={handleFileChange} />
+                <UploadCard icon={<FileText size={14} />} label="ID Proof" name="idProof" file={files.idProof} onChange={handleFileChange} />
+                {formData.role === "Driver" && (
+                  <UploadCard icon={<Car size={14} />} label="Driving License" name="license" file={files.license} onChange={handleFileChange} />
+                )}
+              </div>
+            </div>
+          </div>
 
-          <Field label="Replace ID Proof (optional)" full>
-            <FileInput name="idProof" onChange={handleFileChange} />
-          </Field>
-
-          {formData.role === "Driver" && (
-            <Field label="Replace License (optional)" full>
-              <FileInput name="license" onChange={handleFileChange} />
-            </Field>
-          )}
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={handleUpdate}
-            disabled={loading}
-            className={`px-4 py-2 rounded text-white ${
-              loading ? "bg-gray-400" : "bg-[#1f9e9a] hover:bg-[#198a87]"
-            }`}
-          >
-            {loading ? "Saving..." : "Update Employee"}
-          </button>
+          {/* Footer */}
+          <div className="px-6 pb-6 pt-4 border-t border-gray-50 flex gap-3 flex-shrink-0">
+            <button onClick={onClose}
+              className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
+              Cancel
+            </button>
+            <button onClick={handleUpdate} disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-60"
+              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+              {loading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving...</> : 'Update Employee'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-);
-
+    </>
+  );
 }
 
-/* ---------- REUSABLE UI ---------- */
-
-function Field({ label, children, full }) {
+/* ---- Shared sub-components ---- */
+function FormField({ label, children, full }) {
   return (
     <div className={full ? "col-span-2" : ""}>
-      <label className="block text-xs font-semibold text-gray-700 mb-1">
-        {label}
-      </label>
+      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{label}</label>
       {children}
     </div>
   );
 }
-
-function Input(props) {
-  return (
-    <input
-      {...props}
-      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f9e9a]"
-    />
-  );
+function StyledInput(props) {
+  return <input {...props} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 transition-all placeholder-gray-300" />;
 }
-
-function Textarea(props) {
-  return (
-    <textarea
-      {...props}
-      className="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1f9e9a]"
-    />
-  );
+function StyledTextarea(props) {
+  return <textarea {...props} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 transition-all placeholder-gray-300" />;
 }
-
-function Select(props) {
-  return (
-    <select
-      {...props}
-      className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1f9e9a]"
-    />
-  );
+function StyledSelect({ children, ...props }) {
+  return <select {...props} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-400 transition-all">{children}</select>;
 }
-
-function FileInput(props) {
+function UploadCard({ icon, label, name, file, onChange }) {
   return (
-    <input
-      type="file"
-      {...props}
-      className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
-    />
+    <label className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-xl cursor-pointer hover:border-teal-200 hover:bg-teal-50/30 transition-all group">
+      <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 text-teal-500 group-hover:border-teal-300 transition-colors">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold text-gray-700">{label}</p>
+        <p className="text-[10px] text-gray-400 truncate">{file ? file.name : 'Click to upload file'}</p>
+      </div>
+      <Upload size={14} className="text-gray-300 group-hover:text-teal-400 transition-colors flex-shrink-0" />
+      <input type="file" name={name} onChange={onChange} className="hidden" />
+    </label>
   );
 }
