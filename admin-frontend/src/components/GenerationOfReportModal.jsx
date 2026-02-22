@@ -146,144 +146,81 @@ export default function GenerationOfReportModal({ isOpen, onClose, reportType, o
 
           {/* Form Content */}
           <div className="p-6 space-y-6 overflow-y-auto flex-1">
-
-          {/* Date Range Section */}
-          <div className="space-y-4">
-            <label className="block text-sm font-bold text-gray-800">Date Range:</label>
-
-            <div className="grid grid-cols-2 gap-4">
-                {/* From Date */}
+            {/* Date Range Section */}
+            <div className="space-y-4">
+              <label className="block text-sm font-bold text-gray-800">Date Range:</label>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                <label className="block text-xs font-semibold text-gray-700">From</label>
-                <div className="relative">
-                    <input
-                    type="date"
-                    value={filters.fromDate}
-                    onChange={(e) => handleDateChange(e, 'fromDate')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    />
+                  <label className="block text-xs font-semibold text-gray-700">From</label>
+                  <input type="date" value={filters.fromDate} onChange={(e) => handleDateChange(e, 'fromDate')}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" />
                 </div>
-                </div>
-
-                {/* To Date */}
                 <div className="space-y-2">
-                <label className="block text-xs font-semibold text-gray-700">To</label>
-                <div className="relative">
-                    <input
-                    type="date"
-                    value={filters.toDate}
-                    onChange={(e) => handleDateChange(e, 'toDate')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    />
+                  <label className="block text-xs font-semibold text-gray-700">To</label>
+                  <input type="date" value={filters.toDate} onChange={(e) => handleDateChange(e, 'toDate')}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" />
                 </div>
-                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Filter Section */}
-          <div className="space-y-3">
-             {reportType === 'Year-on-Year comparison charts' ? (
-                <div className="space-y-3">
-                     <label className="block text-sm font-bold text-gray-800">Select Data to Compare:</label>
-                     <select
-                        value={filters.subType}
-                        onChange={(e) => setFilters(prev => ({ ...prev, subType: e.target.value }))}
-                        className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    >
-                        <option value="waste">Waste Collection (Total kg)</option>
-                        <option value="complaint">Complaint Resolutions</option>
-                        <option value="compliance">Segregation Compliance</option>
-                        <option value="attendance">Employee Attendance</option>
-                    </select>
-                </div>
-             ) : (
-                <>
-                    <label className="block text-sm font-bold text-gray-800">Filter by (Optional):</label>
-                    <div className="flex gap-2">
-                    <select
-                        value={filters.filterBy}
-                        onChange={handleFilterByChange}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                    >
-                        <option value="">Select Filter</option>
-                        {filterOptions.map(option => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                        ))}
-                    </select>
-                    <button
-                        onClick={handleAddFilter}
-                        className="p-2 bg-teal-500 text-white rounded hover:bg-teal-600 transition flex items-center justify-center"
-                        title="Add filter"
-                    >
-                        <Plus size={20} />
-                    </button>
-                    </div>
-                </>
-             )}
-          </div>
-
-          {/* Applied Filters Section */}
-          {filters.appliedFilters.length > 0 && (
+            {/* Filter Section */}
             <div className="space-y-3">
+              {reportType === 'Year-on-Year comparison charts' ? (
+                <div className="space-y-3">
+                  <label className="block text-sm font-bold text-gray-800">Select Data to Compare:</label>
+                  <select value={filters.subType} onChange={(e) => setFilters(prev => ({ ...prev, subType: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm">
+                    <option value="waste">Waste Collection (Total kg)</option>
+                    <option value="complaint">Complaint Resolutions</option>
+                    <option value="compliance">Segregation Compliance</option>
+                    <option value="attendance">Employee Attendance</option>
+                  </select>
+                </div>
+              ) : (
+                <>
+                  <label className="block text-sm font-bold text-gray-800">Filter by (Optional):</label>
+                  <div className="flex gap-2">
+                    <select value={filters.filterBy} onChange={handleFilterByChange}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm">
+                      <option value="">Select Filter</option>
+                      {filterOptions.map(option => (<option key={option} value={option}>{option}</option>))}
+                    </select>
+                    <button onClick={handleAddFilter}
+                      className="p-2 bg-teal-500 text-white rounded hover:bg-teal-600 transition flex items-center justify-center">
+                      <Plus size={20} />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Applied Filters */}
+            {filters.appliedFilters.length > 0 && (
+              <div className="space-y-3">
                 <label className="block text-sm font-bold text-gray-800">Applied Filter:</label>
                 <div className="flex flex-wrap gap-2">
-                {filters.appliedFilters.map((filter, idx) => (
-                    <div
-                    key={idx}
-                    className="flex items-center gap-2 px-3 py-1 bg-teal-100 border border-teal-500 rounded-full text-teal-700 text-sm font-medium"
-                    >
-                    {filter}
-                    <button
-                        onClick={() => handleRemoveFilter(filter)}
-                        className="hover:text-teal-900 transition font-bold ml-1"
-                    >
-                        ×
-                    </button>
+                  {filters.appliedFilters.map((filter, idx) => (
+                    <div key={idx} className="flex items-center gap-2 px-3 py-1 bg-teal-100 border border-teal-500 rounded-full text-teal-700 text-sm font-medium">
+                      {filter}
+                      <button onClick={() => handleRemoveFilter(filter)} className="hover:text-teal-900 font-bold ml-1">×</button>
                     </div>
-                ))}
+                  ))}
                 </div>
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Output Format Section */}
-          <div className="space-y-3 border-t border-gray-200 pt-6">
-            <label className="block text-sm font-bold text-gray-800">Output Format:</label>
-            <div className="flex gap-6">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="output"
-                  value="screen"
-                  checked={filters.outputFormat === 'screen'}
-                  onChange={handleOutputFormatChange}
-                  className="w-4 h-4 accent-teal-500"
-                />
-                <span className="text-sm text-gray-700">View On-Screen</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="output"
-                  value="pdf"
-                  checked={filters.outputFormat === 'pdf'}
-                  onChange={handleOutputFormatChange}
-                  className="w-4 h-4 accent-teal-500"
-                />
-                <span className="text-sm text-gray-700">Download PDF</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="output"
-                  value="excel"
-                  checked={filters.outputFormat === 'excel'}
-                  onChange={handleOutputFormatChange}
-                  className="w-4 h-4 accent-teal-500"
-                />
-                <span className="text-sm text-gray-700">Download Excel</span>
-              </label>
+            {/* Output Format */}
+            <div className="space-y-3 border-t border-gray-100 pt-5">
+              <label className="block text-sm font-bold text-gray-800">Output Format:</label>
+              <div className="flex gap-6">
+                {[{ val: 'screen', label: 'View On-Screen' }, { val: 'pdf', label: 'Download PDF' }, { val: 'excel', label: 'Download Excel' }].map(({ val, label }) => (
+                  <label key={val} className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="output" value={val} checked={filters.outputFormat === val}
+                      onChange={handleOutputFormatChange} className="w-4 h-4 accent-teal-500" />
+                    <span className="text-sm text-gray-700">{label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
