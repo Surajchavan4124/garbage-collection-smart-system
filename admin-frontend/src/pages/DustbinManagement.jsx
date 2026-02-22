@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, Download, Eye, Trash2, MapPin, FileSpreadsheet, FileText, QrCode } from 'lucide-react'
+import { Search, Filter, Download, Eye, Trash2, MapPin, FileSpreadsheet, FileText, QrCode, Plus } from 'lucide-react'
 import { toast } from 'react-toastify'
 import api from '../api/axios'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
-// Removed mock import
+import ViewDustbinModal from '../components/ViewDustbinModal'
+import EditDustbinModal from '../components/EditDustbinModal'
+import DeleteDustbinConfirmModal from '../components/DeleteDustbinConfirmModal'
 
 // Ensure autoTable is registered
 // (Usually importing it is enough, but sometimes explicit apply is needed if tree-shaking removes it)
@@ -314,7 +316,7 @@ export default function DustbinManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
+      <div>
         <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Operational Management › Dustbin Management</p>
         <h1 className="text-xl font-black text-gray-800">Dustbin Management</h1>
       </div>

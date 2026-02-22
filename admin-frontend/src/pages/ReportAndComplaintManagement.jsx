@@ -4,6 +4,7 @@ import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { toast } from 'react-toastify'
 import api from '../api/axios'
+import ViewComplaintModal from '../components/ViewComplaintModal'
 
 export default function ReportAndComplaintManagement() {
   const [complaints, setComplaints] = useState([])
@@ -226,9 +227,9 @@ export default function ReportAndComplaintManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Reports &amp; Complaints</p>
-        <h1 className="text-xl font-black text-gray-800">Report &amp; Complaint Management</h1>
+      <div>
+        <p className="text-xs text-gray-400 font-medium mb-0.5">Main › Reports & Complaints</p>
+        <h1 className="text-xl font-black text-gray-800">Report & Complaint Management</h1>
       </div>
 
           {/* KPI Stat Cards */}

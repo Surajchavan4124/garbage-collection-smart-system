@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Upload, User as UserIcon, Settings } from 'lucide-react'
+import { Search, Upload, User as UserIcon, Settings, Plus } from 'lucide-react'
 import api from '../api/axios'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
@@ -44,7 +44,7 @@ export default function UserManagementSettings() {
       case 'email':
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!value.trim()) error = "Email is required"
-        else if (!emailRegex.test(email)) error = "Invalid email format" // Fixed variable name error
+        else if (!emailRegex.test(value)) error = "Invalid email format"
         break
       case 'contact':
         const mobileRegex = /^\d{10}$/
