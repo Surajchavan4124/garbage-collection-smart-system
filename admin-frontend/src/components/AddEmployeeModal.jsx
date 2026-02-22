@@ -13,7 +13,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     phone: "",
     address: "",
     role: "Collector",
-    ward: "",
+    wards: [],
     joiningDate: "", // DOB
   });
 
@@ -82,7 +82,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     if (!form.employeeCode.trim()) return "Employee code is required";
     if (!form.phone.trim()) return "Phone number is required";
     if (!form.address.trim()) return "Address is required";
-    if (!form.ward.trim()) return "Ward is required";
+    if (form.wards.length === 0) return "At least one ward is required";
     if (!form.joiningDate) return "Date of birth is required";
     if (!files.photo) return "Photo is required";
     if (!files.idProof) return "ID proof is required";
@@ -98,7 +98,13 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     try {
       setLoading(true);
       const fd = new FormData();
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+      Object.entries(form).forEach(([k, v]) => {
+        if (k === 'wards') {
+          v.forEach(w => fd.append("wards", w));
+        } else {
+          fd.append(k, v);
+        }
+      });
       fd.append("photo", files.photo);
       fd.append("idProof", files.idProof);
       if (files.license) fd.append("license", files.license);
@@ -106,6 +112,20 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       await api.post("/employees", fd);
 
       toast.success("Employee added successfully");
+      
+      // Reset form state
+      setForm({
+        name: "",
+        employeeCode: "",
+        phone: "",
+        address: "",
+        role: "Collector",
+        wards: [],
+        joiningDate: "",
+      });
+      setFiles({ photo: null, idProof: null, license: null });
+      setPreview({ photo: null, idProof: null, license: null });
+
       onClose();
       onSuccess?.();
     } catch (err) {
@@ -153,18 +173,29 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             />
           </Field>
 
-          <Field label="Ward">
-            <select
-              name="ward"
-              value={form.ward}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white"
-            >
-              <option value="">Select Ward</option>
-              {wards.map(w => (
-                <option key={w._id} value={w.name}>{w.name}</option>
+          <Field label="Wards (Select all that apply)" full>
+            <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded max-h-40 overflow-y-auto bg-gray-50">
+              {wards.map((w) => (
+                <label key={w._id} className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-200 cursor-pointer hover:border-[#1f9e9a] transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={form.wards.includes(w.name)}
+                    onChange={(e) => {
+                      const { checked } = e.target;
+                      setForm(p => ({
+                        ...p,
+                        wards: checked 
+                          ? [...p.wards, w.name]
+                          : p.wards.filter(name => name !== w.name)
+                      }));
+                    }}
+                    className="accent-[#1f9e9a]"
+                  />
+                  <span className="text-sm font-medium text-gray-700">{w.name}</span>
+                </label>
               ))}
-            </select>
+              {wards.length === 0 && <span className="text-gray-400 text-xs py-1">No wards found...</span>}
+            </div>
           </Field>
 
           <Field label="Role" full>

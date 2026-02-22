@@ -1,1 +1,1 @@
-export const API_URL = 'https://ecosyz-backend.onrender.com/api';
+export const API_URL = 'http://192.168.20.2:10000/api';

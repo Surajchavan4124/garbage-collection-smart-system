@@ -25,6 +25,7 @@ export default function ViewEmployeeModal({
     address,
     role,
     ward,
+    wards = [],
     joiningDate,
     documents = {},
   } = employee;
@@ -65,7 +66,7 @@ export default function ViewEmployeeModal({
 
               <Section title="Roles & Responsibilities">
                 <Field label="Role" value={role} />
-                <Field label="Ward" value={ward} />
+                <Field label="Wards" value={wards.length > 0 ? wards.join(", ") : ward} />
               </Section>
             </div>
 

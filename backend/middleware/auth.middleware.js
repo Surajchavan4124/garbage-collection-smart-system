@@ -25,7 +25,7 @@ export const protect = async (req, res, next) => {
         role: "EMPLOYEE",
         panchayatId: decoded.panchayatId,
         panchayat: decoded.panchayatId, // Consistent naming
-        ward: decoded.ward
+        wards: decoded.wards || []
       };
     } else if (decoded.role === "ADMIN" || decoded.role === "PANCHAYAT_ADMIN") {
       req.user = {

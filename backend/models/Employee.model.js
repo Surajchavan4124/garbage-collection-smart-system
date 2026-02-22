@@ -27,7 +27,7 @@ const employeeSchema = new mongoose.Schema(
       required: true,
     },
 
-    ward: { type: String, required: true },
+    wards: [{ type: String, required: true }],
 
     // DOB
     dateOfBirth: {

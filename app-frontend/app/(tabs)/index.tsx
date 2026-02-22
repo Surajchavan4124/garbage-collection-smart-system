@@ -28,7 +28,7 @@ export default function HomeScreen() {
   const [displayLocation, setDisplayLocation] = useState('Loading...');
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({ title: '', message: '', type: 'success' as 'success' | 'error' });
-  const [stats, setStats] = useState({ location: 'Loading...', ward: '', total: 0, completed: 0, pending: 0, onDuty: false });
+  const [stats, setStats] = useState({ location: 'Loading...', ward: '', wards: [] as string[], total: 0, completed: 0, pending: 0, onDuty: false });
 
   const handleToggleDuty = async (val: boolean) => {
     try {
@@ -124,7 +124,9 @@ export default function HomeScreen() {
             <View style={{ flex: 1 }}>
               <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: '500' }}>{greeting()},</Text>
               <Text style={{ color: 'white', fontSize: 20, fontWeight: '800' }}>{employeeName}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>{employeeRole} · Ward {stats.ward || '—'}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
+                {employeeRole} · {stats.wards && stats.wards.length > 1 ? `Wards ${stats.wards.join(', ')}` : `Ward ${stats.wards?.[0] || stats.ward || '—'}`}
+              </Text>
             </View>
             {/* Duty badge */}
             <View style={{

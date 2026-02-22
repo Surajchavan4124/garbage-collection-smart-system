@@ -68,57 +68,57 @@ export const verifyOtpAndLogin = async (req, res) => {
 
   // 🔹 EMPLOYEE LOGIN
   if (type === "employee") {
-     if (!panchayatId) {
-        return res.status(400).json({ message: "Panchayat ID required" });
-     }
+    if (!panchayatId) {
+      return res.status(400).json({ message: "Panchayat ID required" });
+    }
 
-     const employee = await Employee.findOne({
-        phone: mobile,
-        panchayat: panchayatId,
-        status: "active"
-     });
+    const employee = await Employee.findOne({
+      phone: mobile,
+      panchayat: panchayatId,
+      status: "active"
+    });
 
-     if (!employee) {
-        return res.status(404).json({ message: "Employee not found or inactive" });
-     }
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found or inactive" });
+    }
 
-     user = {
-        _id: employee._id,
-        name: employee.name,
-        role: "EMPLOYEE", // Or employee.role if specific roles exist
-        panchayatId: employee.panchayat,
-        ward: employee.ward
-     };
-     role = "EMPLOYEE";
+    user = {
+      _id: employee._id,
+      name: employee.name,
+      role: "EMPLOYEE", // Or employee.role if specific roles exist
+      panchayatId: employee.panchayat,
+      wards: employee.wards || (employee.ward ? [employee.ward] : [])
+    };
+    role = "EMPLOYEE";
 
   } else {
-      // 2️⃣ Try Normal User login
-      user = await User.findOne({ mobile });
+    // 2️⃣ Try Normal User login
+    user = await User.findOne({ mobile });
 
-      // 3️⃣ Fallback → Panchayat ADMIN
-      if (!user) {
-        const panchayat = await Panchayat.findOne({
-          contactPhone: mobile,
-          status: "active",
-        });
+    // 3️⃣ Fallback → Panchayat ADMIN
+    if (!user) {
+      const panchayat = await Panchayat.findOne({
+        contactPhone: mobile,
+        status: "active",
+      });
 
-        if (panchayat) {
-           user = {
-            _id: panchayat._id,
-            name: panchayat.name,
-            role: "PANCHAYAT_ADMIN",
-            panchayatId: panchayat._id,
-          };
-          role = "PANCHAYAT_ADMIN";
-        }
+      if (panchayat) {
+        user = {
+          _id: panchayat._id,
+          name: panchayat.name,
+          role: "PANCHAYAT_ADMIN",
+          panchayatId: panchayat._id,
+        };
+        role = "PANCHAYAT_ADMIN";
       }
+    }
   }
 
   if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-        success: false,
-      });
+    return res.status(404).json({
+      message: "User not found",
+      success: false,
+    });
   }
 
   // 4️⃣ Generate JWT
@@ -126,7 +126,7 @@ export const verifyOtpAndLogin = async (req, res) => {
     userId: user._id,
     role: role,
     panchayatId: user.panchayatId,
-    ward: user.ward
+    wards: user.wards || []
   });
 
   // 5️⃣ Set cookie
@@ -201,11 +201,11 @@ export const getProfile = async (req, res) => {
     // 👇 subscription details
     subscription: sub
       ? {
-          plan: sub.planName,
-          status: new Date() > new Date(sub.endDate) ? "EXPIRED" : sub.status, // active | expired | cancelled
-          startDate: sub.startDate,
-          endDate: sub.endDate,
-        }
+        plan: sub.planName,
+        status: new Date() > new Date(sub.endDate) ? "EXPIRED" : sub.status, // active | expired | cancelled
+        startDate: sub.startDate,
+        endDate: sub.endDate,
+      }
       : "Contact your provider for subscription details",
   });
 };

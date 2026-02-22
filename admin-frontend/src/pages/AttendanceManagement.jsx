@@ -99,6 +99,8 @@ export default function AttendanceManagement() {
       );
       await fetchTodayAttendance();
       setShowManualModal(false);
+      setReason("");
+      setSelectedEmployee(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to mark attendance");
     } finally {

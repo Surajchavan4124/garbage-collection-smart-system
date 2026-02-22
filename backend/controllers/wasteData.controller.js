@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import WasteData from '../models/WasteData.model.js'
 
 // Create new waste data entry
@@ -16,11 +17,12 @@ export const createWasteData = async (req, res) => {
     const mix = parseFloat(mixed) || 0
     const total = biodeg + recycl + nonBiodeg + mix
 
-    // Generate Entry ID (W-01, W-02, etc.)
-    const count = await WasteData.countDocuments()
+    // Generate Entry ID (W-01, W-02, etc.) isolated by panchayat
+    const count = await WasteData.countDocuments({ panchayat: req.user.panchayatId })
     const entryId = `W-${String(count + 1).padStart(2, '0')}`
 
     const newEntry = new WasteData({
+      panchayat: req.user.panchayatId,
       entryId,
       date,
       collectionType,
@@ -42,7 +44,7 @@ export const createWasteData = async (req, res) => {
 // Get all waste data entries
 export const getAllWasteData = async (req, res) => {
   try {
-    const wasteData = await WasteData.find().sort({ createdAt: -1 })
+    const wasteData = await WasteData.find({ panchayat: req.user.panchayatId }).sort({ createdAt: -1 })
     res.status(200).json(wasteData)
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -53,10 +55,16 @@ export const getAllWasteData = async (req, res) => {
 export const deleteWasteData = async (req, res) => {
   try {
     const { id } = req.params
+    const entry = await WasteData.findById(id)
+    if (!entry) return res.status(404).json({ message: "Entry not found" })
+
+    if (entry.panchayat.toString() !== req.user.panchayatId.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this entry" })
+    }
+
     await WasteData.findByIdAndDelete(id)
     res.status(200).json({ message: "Entry deleted successfully" })
   } catch (error) {
-    res.status(500).json({ message: error.message })
     res.status(500).json({ message: error.message })
   }
 }
@@ -72,6 +80,13 @@ export const updateWasteData = async (req, res) => {
     const nonBiodeg = parseFloat(nonBiodegradable) || 0
     const mix = parseFloat(mixed) || 0
     const total = biodeg + recycl + nonBiodeg + mix
+
+    const entry = await WasteData.findById(id)
+    if (!entry) return res.status(404).json({ message: "Entry not found" })
+
+    if (entry.panchayat.toString() !== req.user.panchayatId.toString()) {
+      return res.status(403).json({ message: "Not authorized to update this entry" })
+    }
 
     const updatedEntry = await WasteData.findByIdAndUpdate(
       id,
@@ -107,24 +122,26 @@ export const getWasteStats = async (req, res) => {
     const startOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
     const endOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 0)
 
+    const panchayatId = new mongoose.Types.ObjectId(req.user.panchayatId)
+
     const weeklyTotal = await WasteData.aggregate([
-      { $match: { date: { $gte: startOfWeek } } },
+      { $match: { panchayat: panchayatId, date: { $gte: startOfWeek } } },
       { $group: { _id: null, total: { $sum: "$total" } } }
     ])
 
     const monthlyTotal = await WasteData.aggregate([
-      { $match: { date: { $gte: startOfMonth } } },
+      { $match: { panchayat: panchayatId, date: { $gte: startOfMonth } } },
       { $group: { _id: null, total: { $sum: "$total" } } }
     ])
 
     const lastMonthTotal = await WasteData.aggregate([
-      { $match: { date: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+      { $match: { panchayat: panchayatId, date: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
       { $group: { _id: null, total: { $sum: "$total" } } }
     ])
 
     // Weekly Data for Chart (Mon-Sun daily totals)
     const weeklyData = await WasteData.aggregate([
-      { $match: { date: { $gte: startOfWeek } } },
+      { $match: { panchayat: panchayatId, date: { $gte: startOfWeek } } },
       {
         $group: {
           _id: { $dayOfWeek: "$date" },
@@ -143,7 +160,7 @@ export const getWasteStats = async (req, res) => {
 
     // Monthly Type Breakdown for Pie Chart
     const typeBreakdown = await WasteData.aggregate([
-      { $match: { date: { $gte: startOfMonth } } },
+      { $match: { panchayat: panchayatId, date: { $gte: startOfMonth } } },
       {
         $group: {
           _id: null,
@@ -162,7 +179,7 @@ export const getWasteStats = async (req, res) => {
       { name: "Mixed", value: typeBreakdown[0]?.mixed || 0 },
     ].filter(item => item.value > 0);
 
-    const recentCollections = await WasteData.find().sort({ date: -1 }).limit(10)
+    const recentCollections = await WasteData.find({ panchayat: req.user.panchayatId }).sort({ date: -1 }).limit(10)
 
     res.status(200).json({
       weeklyTotal: weeklyTotal[0]?.total || 0,

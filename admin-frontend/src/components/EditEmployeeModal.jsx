@@ -18,7 +18,7 @@ export default function EditEmployeeModal({
     phone: "",
     address: "",
     role: "Collector",
-    ward: "",
+    wards: [],
     joiningDate: "",
   });
 
@@ -52,7 +52,7 @@ export default function EditEmployeeModal({
       phone: employee.phone || "",
       address: employee.address || "",
       role: employee.role || "Collector",
-      ward: employee.ward || "",
+      wards: employee.wards || (employee.ward ? [employee.ward] : []),
       joiningDate: employee.joiningDate
         ? employee.joiningDate.split("T")[0]
         : "",
@@ -78,7 +78,7 @@ export default function EditEmployeeModal({
     if (!formData.employeeCode.trim()) return "Employee code is required";
     if (!formData.phone.trim()) return "Phone number is required";
     if (!formData.address.trim()) return "Address is required";
-    if (!formData.ward.trim()) return "Ward is required";
+    if (formData.wards.length === 0) return "At least one ward is required";
     if (!formData.joiningDate) return "Joining date is required";
     return null;
   };
@@ -92,7 +92,13 @@ export default function EditEmployeeModal({
       setLoading(true);
 
       const fd = new FormData();
-      Object.entries(formData).forEach(([k, v]) => fd.append(k, v));
+      Object.entries(formData).forEach(([k, v]) => {
+        if (k === 'wards' && Array.isArray(v)) {
+          v.forEach(w => fd.append("wards", w));
+        } else {
+          fd.append(k, v);
+        }
+      });
 
       if (files.photo) fd.append("photo", files.photo);
       if (files.idProof) fd.append("idProof", files.idProof);
@@ -147,19 +153,29 @@ return (
             />
           </Field>
 
-          <Field label="Ward">
-            <Select
-              name="ward"
-              value={formData.ward}
-              onChange={handleChange}
-            >
-              <option value="">Select Ward</option>
+          <Field label="Wards (Select all that apply)" full>
+            <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded max-h-40 overflow-y-auto bg-gray-50">
               {wards.map((w) => (
-                <option key={w._id} value={w.name}>
-                  {w.name}
-                </option>
+                <label key={w._id} className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-200 cursor-pointer hover:border-[#1f9e9a] transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={formData.wards.includes(w.name)}
+                    onChange={(e) => {
+                      const { checked } = e.target;
+                      setFormData(p => ({
+                        ...p,
+                        wards: checked 
+                          ? [...p.wards, w.name]
+                          : p.wards.filter(name => name !== w.name)
+                      }));
+                    }}
+                    className="accent-[#1f9e9a]"
+                  />
+                  <span className="text-sm font-medium text-gray-700">{w.name}</span>
+                </label>
               ))}
-            </Select>
+              {wards.length === 0 && <span className="text-gray-400 text-xs py-1">No wards found...</span>}
+            </div>
           </Field>
 
           <Field label="Role" full>

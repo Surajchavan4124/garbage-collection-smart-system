@@ -8,7 +8,7 @@ export const createEmployee = async (req, res) => {
       phone,
       address,
       role,
-      ward,
+      wards,
       joiningDate,
     } = req.body;
 
@@ -38,7 +38,7 @@ export const createEmployee = async (req, res) => {
       phone,
       address,
       role,
-      ward,
+      wards: Array.isArray(wards) ? wards : [wards],
       dateOfBirth: joiningDate,
       status: "active",
       documents: {

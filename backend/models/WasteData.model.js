@@ -1,6 +1,12 @@
 import mongoose from 'mongoose'
 
 const wasteDataSchema = new mongoose.Schema({
+  panchayat: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Panchayat',
+    required: true,
+    index: true
+  },
   entryId: {
     type: String,
     required: true,

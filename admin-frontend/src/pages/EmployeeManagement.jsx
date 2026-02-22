@@ -189,7 +189,9 @@ export default function EmployeeManagement() {
                       <td className="px-6 py-4">{emp.employeeCode}</td>
                       <td className="px-6 py-4">{emp.name}</td>
                       <td className="px-6 py-4">{emp.role}</td>
-                      <td className="px-6 py-4">{emp.ward}</td>
+                      <td className="px-6 py-4">
+                        {emp.wards && emp.wards.length > 0 ? emp.wards.join(", ") : emp.ward}
+                      </td>
                       <td className="px-6 py-4">{emp.phone}</td>
                       <td className="px-6 py-4">
                         <span
