@@ -13,15 +13,20 @@ api.interceptors.response.use(
     if (error.response) {
       if (error.response.status === 401) {
         // Avoid infinite loops if already on login
-        if (!window.location.pathname.startsWith('/login')) {
-          toast.error("Session timeout please login again")
-          setTimeout(() => {
-            window.location.href = '/login'
-          }, 2000)
+        if (!window.location.pathname.toLowerCase().includes('/login')) {
+          if (!sessionStorage.getItem('reloaded-for-401')) {
+            sessionStorage.setItem('reloaded-for-401', 'true');
+            toast.error("Session timeout please login again");
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 2000);
+          }
+        } else {
+          sessionStorage.removeItem('reloaded-for-401');
         }
       } else if (error.response.status === 403 && error.response.data?.errorCode === 'SUBSCRIPTION_EXPIRED') {
         // Handle Subscription Expiry Lockout globally
-        if (!window.location.pathname.startsWith('/login') && !sessionStorage.getItem('subscription-expired-reloaded')) {
+        if (!window.location.pathname.toLowerCase().includes('/login') && !sessionStorage.getItem('subscription-expired-reloaded')) {
           sessionStorage.setItem('subscription-expired-reloaded', 'true');
           toast.error("Subscription expired. Contact company for renewal.")
           setTimeout(() => {
