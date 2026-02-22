@@ -44,12 +44,16 @@ function App() {
       {/* 🔔 Toasts available globally */}
       <ToastContainer
         position="top-right"
-        autoClose={3000}
+        autoClose={4000}
         hideProgressBar={false}
-        newestOnTop
+        newestOnTop={true}
         closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
         pauseOnHover
-        theme="light"
+        theme="colored"
+        limit={3}
       />
 
       <Router>

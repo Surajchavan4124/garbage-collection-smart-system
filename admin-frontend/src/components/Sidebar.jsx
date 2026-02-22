@@ -29,20 +29,20 @@ export default function Sidebar() {
         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative ${
           active
             ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white shadow-md shadow-teal-500/25'
-            : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20'
+            : `${!isDark ? '!text-black' : 'text-slate-300'} hover:text-black dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20`
         }`}
       >
         {active && (
           <span className="absolute left-0 inset-y-0 w-0.5 rounded-r bg-teal-300/60" />
         )}
-        <Icon size={small ? 16 : 18} className={active ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-teal-600 transition-colors'} />
+        <Icon size={small ? 16 : 18} className={active ? 'text-white' : `${!isDark ? '!text-slate-800' : 'text-slate-400'} group-hover:text-teal-600 transition-colors`} />
         <span className={`${small ? 'text-xs' : 'text-sm'} font-medium leading-tight`}>{label}</span>
       </Link>
     )
   }
 
   const SectionLabel = ({ label }) => (
-    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[1.5px] px-4 mb-2 mt-1">{label}</p>
+    <p className={`text-[10px] font-bold ${!isDark ? '!text-black' : 'text-slate-500'} uppercase tracking-[1.5px] px-4 mb-2 mt-1`}>{label}</p>
   )
 
   return (
@@ -63,8 +63,8 @@ export default function Sidebar() {
             <Leaf size={18} className="text-white" />
           </div>
           <div>
-            <p className="text-gray-800 dark:text-gray-100 font-bold text-sm leading-tight">EcoSyz Admin</p>
-            <p className="text-gray-400 dark:text-gray-500 text-[10px] font-medium">Panchayat Management</p>
+            <p className={`${!isDark ? '!text-black' : 'text-gray-100'} font-bold text-sm leading-tight`}>EcoSyz Admin</p>
+            <p className={`${!isDark ? '!text-slate-800' : 'text-gray-500'} text-[10px] font-medium`}>Panchayat Management</p>
           </div>
         </div>
       </div>
@@ -90,14 +90,14 @@ export default function Sidebar() {
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group ${
                 isOperationalActive
                   ? 'bg-gradient-to-r from-[#1f9e9a] to-[#16847f] text-white shadow-md shadow-teal-500/25'
-                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20'
+                  : `${!isDark ? '!text-black' : 'text-slate-300'} hover:text-black dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20`
               }`}
             >
-              <Settings size={18} className={isOperationalActive ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-teal-600 transition-colors'} />
+              <Settings size={18} className={isOperationalActive ? 'text-white' : `${!isDark ? '!text-slate-800' : 'text-slate-400'} group-hover:text-teal-600 transition-colors`} />
               <span className="text-sm font-medium flex-1 text-left">Operational Mgmt</span>
               <ChevronDown
                 size={14}
-                className={`transition-transform duration-300 ${expandOperational ? 'rotate-180' : ''} ${isOperationalActive ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`}
+                className={`transition-transform duration-300 ${expandOperational ? 'rotate-180' : ''} ${isOperationalActive ? 'text-white' : `${!isDark ? '!text-slate-800' : 'text-slate-400'}`}`}
               />
             </button>
 
@@ -153,8 +153,8 @@ export default function Sidebar() {
             A
           </div>
           <div className="min-w-0">
-            <p className="text-gray-800 dark:text-gray-100 text-xs font-bold truncate">Panchayat Admin</p>
-            <p className="text-gray-500 dark:text-gray-500 text-[10px]">ecosyz.in</p>
+            <p className={`${!isDark ? '!text-black' : 'text-gray-100'} text-xs font-bold truncate`}>Panchayat Admin</p>
+            <p className={`${!isDark ? '!text-slate-800' : 'text-gray-500'} text-[10px]`}>ecosyz.in</p>
           </div>
         </div>
       </div>

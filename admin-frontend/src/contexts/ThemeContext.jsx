@@ -24,7 +24,6 @@ export function ThemeProvider({ children }) {
 
 /**
  * Component to apply the 'dark' class to the root element based on theme state and current route.
- * This ensures the login page ('/') remains in light mode even if the global theme is dark.
  */
 export function ThemeWatcher() {
   const { isDark } = useTheme()

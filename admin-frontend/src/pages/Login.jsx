@@ -51,7 +51,7 @@ export default function Login() {
   const editMobile = () => { setOtpSent(false); setOtp(""); setTimer(0); };
 
   return (
-    <div className="flex w-full min-h-screen relative overflow-hidden"
+    <div className="flex w-full min-h-screen relative overflow-hidden forced-light"
       style={{ background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 40%, #f0fdf4 70%, #f8fafc 100%)' }}>
 
       {/* ── Animated background orbs ── */}
