@@ -69,7 +69,11 @@ const BaseLogin = ({ navigate, type }) => {
                             className="w-full"
                             onClick={(e) => {
                                 e.preventDefault();
-                                alert(`${type} login simulated!`);
+                                navigate(
+                                    type === 'Company'
+                                        ? 'company-dashboard'
+                                        : 'household-dashboard'
+                                );
                             }}
                         >
                             Login

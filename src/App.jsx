@@ -1,73 +1,154 @@
-// frontend/src/App.jsx
-
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import Navbar from './component/Navbar';
-import Footer from './component/shared/Footer';
-import HomePage from './component/Home';
-import AboutPage from './component/About';
-import ContactPage from './component/Contact';
+import Home from './component/Home';
+import About from './component/About';
+import Contact from './component/Contact';
 import RegistrationPage from './component/RegistrationPage';
-import LoginPage from './component/auth/LoginPage';
-import ForgotPasswordPage from './component/auth/ForgotPasswordPage';
+import ComplaintPage from './component/ComplaintPage';
 import QuickLinkPage from './component/shared/QuickLinkPage';
-import { quickLinks } from './config';
+
+// Auth Pages
+import LoginPage from './component/auth/LoginPage';
 import LoginHousehold from './component/auth/LoginHousehold';
 import LoginCompany from './component/auth/LoginCompany';
 import RegistrationHousehold from './component/auth/RegistrationHousehold';
 import RegistrationCompany from './component/auth/RegistrationCompany';
+import ForgotPasswordPage from './component/auth/ForgotPasswordPage';
 
-// Helper to map quick links from config data to the generic page component
-const quickLinkMap = quickLinks.reduce((acc, link) => {
-    // Dynamically create a component instance that passes the specific link name as a prop
-    acc[link.view] = ({ navigate }) => <QuickLinkPage navigate={navigate} title={link.name} />;
-    return acc;
-}, {});
+// Dashboard Pages
+import HouseholdDashboard from './component/dashboard/HouseholdDashboard';
+import CompanyDashboard from './component/dashboard/CompanyDashboard';
+import AdminDashboard from './component/dashboard/AdminDashboard';
 
-const App = () => {
-    // State for the current page, defaulting to 'home'
-    const [currentPage, setCurrentPage] = useState('home');
+// Feature Pages
+import ScheduleBooking from './component/ScheduleBooking';
+import UserProfile from './component/UserProfile';
+import PaymentHistory from './component/PaymentHistory';
 
-    // Memoized navigation function to update state and scroll to top
-    const navigate = useCallback((view) => {
-        setCurrentPage(view);
-        window.scrollTo(0, 0); 
-    }, []);
+// Management Pages
+import UsersManagement from './component/management/UsersManagement';
+import CompaniesManagement from './component/management/CompaniesManagement';
+import FleetManagement from './component/management/FleetManagement';
+import ComplaintsManagement from './component/management/ComplaintsManagement';
+import SystemSettings from './component/management/SystemSettings';
 
-    // Define all routes and their corresponding components
-   const routeComponents = {
-    home: HomePage,
-    about: AboutPage,
-    contact: ContactPage,
+function App() {
+    const [view, setView] = useState('home');
 
-    // LOGIN
-    login: LoginPage,
-    'login-household': LoginHousehold,
-    'login-company': LoginCompany,
+    const navigate = (newView) => {
+        setView(newView);
+    };
 
-    // REGISTRATION
-    registration: RegistrationHousehold,
-    'registration-household': RegistrationHousehold,
-    'registration-company': RegistrationCompany,
+    const renderView = () => {
+        switch (view) {
+            case 'home':
+                return <Home navigate={navigate} />;
 
-    forgotPassword: ForgotPasswordPage,
-    ...quickLinkMap
+            case 'about':
+                return <About navigate={navigate} />;
 
-};
-    // Determine the component to render based on currentPage state
-    const CurrentPage = routeComponents[currentPage] || HomePage;
+            case 'contact':
+                return <Contact navigate={navigate} />;
+
+            case 'register':
+                return <RegistrationPage navigate={navigate} />;
+
+            case 'complaint':
+                return <ComplaintPage navigate={navigate} />;
+
+            // Auth Pages - Login
+            case 'login':
+                return <LoginPage navigate={navigate} />;
+
+            case 'login-household':
+                return <LoginHousehold navigate={navigate} />;
+
+            case 'login-company':
+                return <LoginCompany navigate={navigate} />;
+
+            // Auth Pages - Registration
+            case 'registration-household':
+                return <RegistrationHousehold navigate={navigate} />;
+
+            case 'registration-company':
+                return <RegistrationCompany navigate={navigate} />;
+
+            case 'forgot-password':
+                return <ForgotPasswordPage navigate={navigate} />;
+
+            // Dashboard Pages
+            case 'household-dashboard':
+                return <HouseholdDashboard navigate={navigate} />;
+
+            case 'company-dashboard':
+                return <CompanyDashboard navigate={navigate} />;
+
+            case 'admin-dashboard':
+                return <AdminDashboard navigate={navigate} />;
+
+            // Feature Pages
+            case 'schedule-booking':
+                return <ScheduleBooking navigate={navigate} />;
+
+            case 'user-profile':
+                return <UserProfile navigate={navigate} />;
+
+            case 'payments':
+                return <PaymentHistory navigate={navigate} />;
+
+            // Management Pages
+            case 'users-management':
+                return <UsersManagement navigate={navigate} />;
+
+            case 'companies-management':
+                return <CompaniesManagement navigate={navigate} />;
+
+            case 'fleet-management':
+                return <FleetManagement navigate={navigate} />;
+
+            case 'complaints-management':
+                return <ComplaintsManagement navigate={navigate} />;
+
+            case 'system-settings':
+                return <SystemSettings navigate={navigate} />;
+
+            /* ----------- QUICK LINKS ----------- */
+
+            case 'howItWorks':
+                return <QuickLinkPage navigate={navigate} title="How it works" />;
+
+            case 'submitComplaint':
+                return <QuickLinkPage navigate={navigate} title="Submit Complaint" />;
+
+            case 'statisticsReports':
+                return <QuickLinkPage navigate={navigate} title="Statistics" />;
+
+            case 'viewSchedule':
+                return <QuickLinkPage navigate={navigate} title="View Schedule" />;
+
+            case 'guidesResources':
+                return <QuickLinkPage navigate={navigate} title="Guides / Resources" />;
+
+            case 'eventsWorkshops':
+                return <QuickLinkPage navigate={navigate} title="Events & Workshops" />;
+
+            case 'newsUpdates':
+                return <QuickLinkPage navigate={navigate} title="News & Updates" />;
+
+            case 'faqsFeedback':
+                return <QuickLinkPage navigate={navigate} title="FAQ’s & Feedback" />;
+
+            default:
+                return <Home navigate={navigate} />;
+        }
+    };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            <Navbar currentPage={currentPage} navigate={navigate} />
-
-            <main className="flex-grow">
-                {/* Render the selected page, passing the navigation function */}
-                <CurrentPage navigate={navigate} />
-            </main>
-
-            <Footer />
-        </div>
+        <>
+            <Navbar navigate={navigate} currentPage={view} />
+            {renderView()}
+        </>
     );
-};
+}
 
 export default App;
