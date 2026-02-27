@@ -118,7 +118,11 @@ const BaseRegistration = ({ navigate, type }) => {
                                 className="w-full max-w-sm"
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    alert(`${type} registration simulated`);
+                                    navigate(
+                                        type === 'Company'
+                                            ? 'company-dashboard'
+                                            : 'household-dashboard'
+                                    );
                                 }}
                             >
                                 Register

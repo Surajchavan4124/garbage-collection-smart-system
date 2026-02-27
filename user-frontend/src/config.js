@@ -1,4 +1,5 @@
 // frontend/src/config.js
+
 export const PRIMARY_COLOR = 'green';
 export const PRIMARY_DARK = 'green-800';
 export const PRIMARY_MEDIUM = 'green-700';
@@ -32,10 +33,60 @@ export const contactMembers = [
 
 export const eventsData = new Array(9).fill(0).map((_, i) => ({
     id: i,
-    title: i % 3 === 0 ? 'Plantation Drive' : i % 3 === 1 ? 'Community Clean-up' : 'Recycling Workshop',
-    description: "The Foundation organized a plantation drive at Mobor, this green initiative witnessed participation from over 50 volunteers.",
+    title: i % 3 === 0 
+        ? 'Plantation Drive' 
+        : i % 3 === 1 
+        ? 'Community Clean-up' 
+        : 'Recycling Workshop',
+    description:
+        "The Foundation organized a plantation drive at Mobor, this green initiative witnessed participation from over 50 volunteers.",
     date: '2025-09-13',
     time: '10:00 AM',
     location: 'Mobor Beach',
     participants: '30+',
 }));
+
+/* -----------------------------
+   NEW CONTENT DATA FOR QUICKLINK PAGES
+   (Only Added — Nothing Modified)
+------------------------------ */
+
+export const statisticsData = [
+    { title: 'Total Houses Covered', value: '2,500+' },
+    { title: 'Waste Collected (Monthly)', value: '35 Tons' },
+    { title: 'Active Workers', value: '48' },
+    { title: 'Complaints Resolved', value: '92%' },
+];
+
+export const scheduleData = [
+    {
+        ward: 'Ward 1',
+        days: 'Monday, Wednesday, Friday',
+        time: '7:00 AM – 10:00 AM',
+    },
+    {
+        ward: 'Ward 2',
+        days: 'Tuesday, Thursday, Saturday',
+        time: '8:00 AM – 11:00 AM',
+    },
+    {
+        ward: 'Ward 3',
+        days: 'Monday – Saturday',
+        time: '6:30 AM – 9:30 AM',
+    },
+];
+
+export const faqsData = [
+    {
+        question: 'How do I report a missed collection?',
+        answer: 'You can use the Submit Complaint form available in Quick Links.',
+    },
+    {
+        question: 'How is worker attendance verified?',
+        answer: 'Attendance is verified using QR code scanning and GPS validation.',
+    },
+    {
+        question: 'Can I track complaint status?',
+        answer: 'Yes, complaints are logged and monitored by the Panchayat Admin dashboard.',
+    },
+];
