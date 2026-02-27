@@ -14,7 +14,7 @@ export default function EditEmployeeModal({ isOpen, onClose, employee, onSuccess
   const [files, setFiles] = useState({ photo: null, idProof: null, license: null });
 
   useEffect(() => {
-    api.get("/wards").then(res => setWards(res.data)).catch(() => {});
+    api.get("/wards").then(res => setWards(res.data)).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -51,11 +51,11 @@ export default function EditEmployeeModal({ isOpen, onClose, employee, onSuccess
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.employeeCode.trim()) newErrors.employeeCode = "Code is required";
-    
+
     const phoneRegex = /^\d{10}$/;
     if (!formData.phone.trim()) newErrors.phone = "Phone is required";
     else if (!phoneRegex.test(formData.phone)) newErrors.phone = "Invalid 10-digit phone";
-    
+
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (formData.wards.length === 0) newErrors.wards = "Select at least one ward";
     if (!formData.joiningDate) newErrors.joiningDate = "Joining date is required";
@@ -90,7 +90,7 @@ export default function EditEmployeeModal({ isOpen, onClose, employee, onSuccess
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10">
         <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[92vh] flex flex-col">
 
           {/* Header */}
@@ -157,9 +157,8 @@ export default function EditEmployeeModal({ isOpen, onClose, employee, onSuccess
                   const checked = formData.wards.includes(w.name);
                   return (
                     <label key={w._id} onClick={() => toggleWard(w.name)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all text-sm font-medium select-none ${
-                        checked ? 'bg-teal-50 border-teal-400 text-teal-700' : 'bg-white border-gray-200 text-gray-700 hover:border-teal-200'
-                      }`}>
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all text-sm font-medium select-none ${checked ? 'bg-teal-50 border-teal-400 text-teal-700' : 'bg-white border-gray-200 text-gray-700 hover:border-teal-200'
+                        }`}>
                       <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center flex-shrink-0 ${checked ? 'bg-teal-500 border-teal-500' : 'border-gray-300'}`}>
                         {checked && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                       </span>

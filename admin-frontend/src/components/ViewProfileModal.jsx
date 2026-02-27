@@ -1,6 +1,13 @@
+import { useEffect } from 'react'
 import { X, User, Edit, ShieldCheck } from 'lucide-react'
 
 export default function ViewProfileModal({ isOpen, onClose, user, onEdit, onDelete }) {
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null
 
   const isActive = user?.isActive
@@ -8,7 +15,7 @@ export default function ViewProfileModal({ isOpen, onClose, user, onEdit, onDele
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
 
           {/* Header */}
@@ -63,10 +70,10 @@ export default function ViewProfileModal({ isOpen, onClose, user, onEdit, onDele
                 <div className="flex gap-2 flex-wrap">
                   {user?.permissions?.length > 0
                     ? user.permissions.map(perm => (
-                        <span key={perm} className="px-3 py-1 bg-teal-50 text-teal-700 text-xs font-semibold rounded-full border border-teal-100">
-                          {perm}
-                        </span>
-                      ))
+                      <span key={perm} className="px-3 py-1 bg-teal-50 text-teal-700 text-xs font-semibold rounded-full border border-teal-100">
+                        {perm}
+                      </span>
+                    ))
                     : <p className="text-sm text-gray-400">No permissions set</p>
                   }
                 </div>

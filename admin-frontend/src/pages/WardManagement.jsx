@@ -259,7 +259,7 @@ export default function WardManagement() {
 }
 
 // LOCAL MODAL COMPONENTS
-function AddWardModal({ isOpen, onClose, wardName, setWardName, handleAddWard }) {
+function AddWardModal({ isOpen, onClose, wardName, setWardName, handleAddWard, errors, setErrors }) {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -277,15 +277,14 @@ function AddWardModal({ isOpen, onClose, wardName, setWardName, handleAddWard })
             type="text"
             value={wardName}
             onChange={(e) => {
-               setWardName(e.target.value);
-               if (errors.wardName) setErrors(prev => ({ ...prev, wardName: "" }));
+              setWardName(e.target.value);
+              if (errors.wardName) setErrors(prev => ({ ...prev, wardName: "" }));
             }}
             placeholder="e.g. Aquem"
-            className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all ${
-               errors.wardName 
-               ? 'border-red-300 focus:ring-2 focus:ring-red-100' 
-               : 'border-gray-200 focus:border-teal-300 focus:ring-2 focus:ring-teal-100'
-            }`}
+            className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all ${errors.wardName
+              ? 'border-red-300 focus:ring-2 focus:ring-red-100'
+              : 'border-gray-200 focus:border-teal-300 focus:ring-2 focus:ring-teal-100'
+              }`}
             autoFocus
           />
           <button
@@ -301,7 +300,7 @@ function AddWardModal({ isOpen, onClose, wardName, setWardName, handleAddWard })
   );
 }
 
-function EditWardModal({ isOpen, onClose, wardName, setWardName, handleEditWard }) {
+function EditWardModal({ isOpen, onClose, wardName, setWardName, handleEditWard, errors, setErrors }) {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -319,15 +318,14 @@ function EditWardModal({ isOpen, onClose, wardName, setWardName, handleEditWard 
             type="text"
             value={wardName}
             onChange={(e) => {
-               setWardName(e.target.value);
-               if (errors.wardName) setErrors(prev => ({ ...prev, wardName: "" }));
+              setWardName(e.target.value);
+              if (errors.wardName) setErrors(prev => ({ ...prev, wardName: "" }));
             }}
             placeholder="e.g. Aquem"
-            className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all ${
-               errors.wardName 
-               ? 'border-red-300 focus:ring-2 focus:ring-red-100' 
-               : 'border-gray-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-100'
-            }`}
+            className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all ${errors.wardName
+              ? 'border-red-300 focus:ring-2 focus:ring-red-100'
+              : 'border-gray-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-100'
+              }`}
             autoFocus
           />
           <button

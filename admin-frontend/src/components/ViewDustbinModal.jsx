@@ -1,6 +1,13 @@
+import { useEffect } from 'react'
 import { X, Download, Trash2, Edit, Trash } from 'lucide-react'
 
 export default function ViewDustbinModal({ isOpen, onClose, dustbin, onEdit, onDelete }) {
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isOpen]);
+
   if (!isOpen || !dustbin) return null
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${dustbin.id}`
@@ -30,7 +37,7 @@ export default function ViewDustbinModal({ isOpen, onClose, dustbin, onEdit, onD
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
 
           {/* Header */}

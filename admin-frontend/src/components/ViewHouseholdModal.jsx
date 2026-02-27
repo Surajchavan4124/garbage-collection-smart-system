@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { X, Home, Edit, Trash2 } from 'lucide-react'
 
 const InfoRow = ({ label, value, wide }) => (
@@ -8,17 +9,23 @@ const InfoRow = ({ label, value, wide }) => (
 )
 
 export default function ViewHouseholdModal({ isOpen, onClose, household, onEdit, onDelete }) {
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isOpen]);
+
   if (!isOpen || !household) return null
 
   const statusColor = {
     Approved: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    Rejected:  'bg-red-50 text-red-500 border-red-100',
+    Rejected: 'bg-red-50 text-red-500 border-red-100',
   }[household.status] || 'bg-amber-50 text-amber-600 border-amber-100'
 
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden">
 
           {/* Header */}

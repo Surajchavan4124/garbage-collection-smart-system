@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { X, Download, Image as ImageIcon, Edit, UserX, CheckCircle } from "lucide-react"
 
 const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:10000/api"
@@ -12,6 +13,12 @@ const InfoField = ({ label, value, mono }) => (
 )
 
 export default function ViewEmployeeModal({ isOpen, onClose, employee, onEdit, onDeactivate, onActivate }) {
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isOpen]);
+
   if (!isOpen || !employee) return null
 
   const { name, employeeCode, phone, address, role, ward, wards = [], joiningDate, documents = {} } = employee
@@ -27,7 +34,7 @@ export default function ViewEmployeeModal({ isOpen, onClose, employee, onEdit, o
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[92vh] flex flex-col">
 
           {/* Header */}
