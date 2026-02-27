@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Breadcrumb from './shared/Breadcrumb';
+import { usePanchayat } from '../context/PanchayatContext';
+import api from '../api/axios';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -23,6 +25,7 @@ const wasteTypes = [
 const timeSlots = ['07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
 
 const ScheduleBooking = ({ navigate }) => {
+    const { selectedPanchayat } = usePanchayat();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({ date: '', time: '', address: '', phone: '', wasteType: '', note: '' });
     const [submitted, setSubmitted] = useState(false);
@@ -30,7 +33,7 @@ const ScheduleBooking = ({ navigate }) => {
 
     const set = (field) => (val) => setFormData(p => ({ ...p, [field]: val }));
 
-    // Get date 3 days from now as min (advance booking)
+    // Get date 1 day from now as min (advance booking)
     const minDate = new Date();
     minDate.setDate(minDate.getDate() + 1);
     const minDateStr = minDate.toISOString().split('T')[0];
@@ -39,14 +42,29 @@ const ScheduleBooking = ({ navigate }) => {
     const step2Valid = formData.date && formData.time;
     const step3Valid = formData.address;
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!step3Valid) { toast.error('Please enter your pickup address.'); return; }
+        if (!selectedPanchayat?._id) { toast.error('Please select a Panchayat from the header.'); return; }
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            await api.post('/schedule-bookings', {
+                panchayatId: selectedPanchayat._id,
+                wasteType: formData.wasteType,
+                date: formData.date,
+                time: formData.time,
+                address: formData.address,
+                phone: formData.phone || user?.mobile,
+                note: formData.note,
+                userName: user?.name,
+            });
             setSubmitted(true);
             toast.success('Pickup scheduled! You will receive an SMS confirmation.');
-        }, 1200);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to schedule. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const selectedWaste = wasteTypes.find(w => w.id === formData.wasteType);

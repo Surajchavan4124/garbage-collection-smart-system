@@ -51,7 +51,11 @@ const HomePage = ({ navigate }) => {
     }, []);
 
     useEffect(() => {
-        if (!selectedPanchayat?._id) return;
+        if (!selectedPanchayat?._id) {
+            setCommitteeMembers(defaultCommittee);
+            return;
+        }
+        // Fetch panchayat details
         api.get(`/panchayat/${selectedPanchayat._id}`).then((res) => {
             setPanchayatDetails(res.data);
             if (res.data.inchargeName) {
@@ -61,7 +65,23 @@ const HomePage = ({ navigate }) => {
                 ]);
             }
         }).catch(() => {});
+
+        // Fetch leadership content from CMS if published
+        api.get(`/content/public/${selectedPanchayat._id}?type=leadership`)
+            .then((res) => {
+                const members = res.data?.leadershipMembers;
+                if (members && members.length > 0) {
+                    setCommitteeMembers(members.map(m => ({
+                        name: m.name,
+                        designation: m.designation,
+                        contact: m.contact,
+                        phone: m.contact,
+                    })));
+                }
+            })
+            .catch(() => {}); // silently fall back
     }, [selectedPanchayat]);
+
 
     return (
         <div className="overflow-x-hidden">

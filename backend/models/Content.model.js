@@ -9,7 +9,18 @@ const contentSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["about-us", "segregation-guide", "contact-info", "announcement"],
+      enum: [
+        "about-us",
+        "segregation-guide",
+        "contact-info",
+        "announcement",
+        "gallery",
+        "events",
+        "news",
+        "schedule",
+        "legal",
+        "leadership",
+      ],
       required: true,
     },
     title: {
@@ -78,6 +89,81 @@ const contentSchema = new mongoose.Schema(
         iconColor: { type: String },
         tag: { type: String },
         steps: [{ type: String }],
+      }
+    ],
+
+
+    // Gallery photos (used in gallery page)
+    photos: [
+      {
+        url: { type: String },
+        caption: { type: String },
+        uploadedAt: { type: Date, default: Date.now },
+      }
+    ],
+
+    // Events list (used in events & workshops page)
+    events: [
+      {
+        emoji: { type: String },
+        title: { type: String },
+        description: { type: String },
+        date: { type: String },
+        time: { type: String },
+        location: { type: String },
+        participants: { type: String },
+        status: { type: String, enum: ["upcoming", "past"], default: "upcoming" },
+        color: { type: String },
+      }
+    ],
+
+    // News articles (used in news & updates page)
+    newsItems: [
+      {
+        category: { type: String },
+        title: { type: String },
+        summary: { type: String },
+        date: { type: String },
+        readTime: { type: String },
+        badge: { type: String },
+        image: { type: String },
+      }
+    ],
+
+    // Ward schedule entries (used in view schedule page)
+    scheduleEntries: [
+      {
+        ward: { type: String },
+        days: [{ type: String }],
+        time: { type: String },
+        area: { type: String },
+        vehicle: { type: String },
+        color: { type: String },
+        bg: { type: String },
+      }
+    ],
+
+    // Legal documents (used in legal & transparency page)
+    legalDocs: [
+      {
+        title: { type: String },
+        fileType: { type: String, default: "PDF" },
+        fileName: { type: String },
+        url: { type: String },
+        size: { type: String },
+        updatedAt: { type: String },
+      }
+    ],
+
+    // Leadership / committee members
+    leadershipMembers: [
+      {
+        name: { type: String },
+        designation: { type: String },
+        contact: { type: String },
+        email: { type: String },
+        bio: { type: String },
+        photoUrl: { type: String },
       }
     ],
 

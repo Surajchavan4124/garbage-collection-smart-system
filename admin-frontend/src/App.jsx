@@ -24,6 +24,12 @@ const ReportGenerationAnalytics = lazy(() => import('./pages/ReportGenerationAna
 const UserManagementSettings = lazy(() => import('./pages/UserManagementSettings'))
 const ProfileSettings = lazy(() => import('./pages/ProfileSettings'))
 const LegalTransparency = lazy(() => import('./pages/LegalTransparency'))
+const ManageEvents = lazy(() => import('./pages/ManageEvents'))
+const ManageNews = lazy(() => import('./pages/ManageNews'))
+const ManageSchedule = lazy(() => import('./pages/ManageSchedule'))
+const ManageLeadership = lazy(() => import('./pages/ManageLeadership'))
+const ContactQueries = lazy(() => import('./pages/ContactQueries'))
+const ScheduleBookings = lazy(() => import('./pages/ScheduleBookings'))
 
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
@@ -83,6 +89,12 @@ function App() {
               <Route path="/settings" element={<UserManagementSettings />} />
               <Route path="/profile-settings" element={<ProfileSettings />} />
               <Route path="/legal" element={<LegalTransparency />} />
+              <Route path="/manage-events" element={<ManageEvents />} />
+              <Route path="/manage-news" element={<ManageNews />} />
+              <Route path="/manage-schedule" element={<ManageSchedule />} />
+              <Route path="/manage-leadership" element={<ManageLeadership />} />
+              <Route path="/contact-queries" element={<ContactQueries />} />
+              <Route path="/schedule-bookings" element={<ScheduleBookings />} />
             </Route>
 
           </Routes>

@@ -26,7 +26,11 @@ export const getContent = async (req, res) => {
 // UPSERT CONTENT (SAVE DRAFT OR PUBLISH)
 export const saveContent = async (req, res) => {
   try {
-    const { type, title, body, status, media, cards, stats, accordionItems, principles, ctaHeading, ctaSubtext, guides } = req.body;
+    const {
+      type, title, body, status, media, cards, stats, accordionItems,
+      principles, ctaHeading, ctaSubtext, guides,
+      photos, events, newsItems, scheduleEntries, legalDocs, leadershipMembers,
+    } = req.body;
     const panchayatId = req.user.panchayatId;
 
     let content = await Content.findOne({ panchayat: panchayatId, type });
@@ -43,23 +47,20 @@ export const saveContent = async (req, res) => {
       if (ctaHeading !== undefined) content.ctaHeading = ctaHeading;
       if (ctaSubtext !== undefined) content.ctaSubtext = ctaSubtext;
       if (guides) content.guides = guides;
+      if (photos) content.photos = photos;
+      if (events) content.events = events;
+      if (newsItems) content.newsItems = newsItems;
+      if (scheduleEntries) content.scheduleEntries = scheduleEntries;
+      if (legalDocs) content.legalDocs = legalDocs;
+      if (leadershipMembers) content.leadershipMembers = leadershipMembers;
       content.lastEditedBy = req.user._id;
       await content.save();
     } else {
       content = await Content.create({
         panchayat: panchayatId,
-        type,
-        title,
-        body,
-        status,
-        media,
-        cards,
-        stats,
-        accordionItems,
-        principles,
-        ctaHeading,
-        ctaSubtext,
-        guides,
+        type, title, body, status, media, cards, stats, accordionItems,
+        principles, ctaHeading, ctaSubtext, guides,
+        photos, events, newsItems, scheduleEntries, legalDocs, leadershipMembers,
         lastEditedBy: req.user._id,
       });
     }
@@ -70,6 +71,7 @@ export const saveContent = async (req, res) => {
     res.status(500).json({ message: "Failed to save content", error: err.message });
   }
 };
+
 
 
 // GET PUBLIC CONTENT (For Public Website)

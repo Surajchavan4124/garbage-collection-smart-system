@@ -20,6 +20,9 @@ import wardRoutes from "./routes/ward.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import employeeAppRoutes from "./routes/employee.app.routes.js";
+import contactQueryRoutes from "./routes/contactQuery.routes.js";
+import scheduleBookingRoutes from "./routes/scheduleBooking.routes.js";
+
 
 const app = express();
 app.use(express.json());
@@ -57,5 +60,9 @@ app.use("/api/wards", wardRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/employee", employeeAppRoutes);
+app.use("/api/contact-queries", contactQueryRoutes);
+app.use("/api/schedule-bookings", scheduleBookingRoutes);
+
+
 
 export default app;

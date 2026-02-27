@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Phone, Mail, MapPin, Send, Clock } from 'lucide-react';
+import { Users, Phone, Mail, MapPin, Send, Clock, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Breadcrumb from './shared/Breadcrumb';
 import Footer from './shared/Footer';
-import { contactMembers } from '../config';
+import { contactMembers as defaultMembers } from '../config';
+import { usePanchayat } from '../context/PanchayatContext';
+import api from '../api/axios';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 24 },
@@ -19,23 +21,65 @@ const avatarColors = [
 ];
 
 const ContactPage = ({ navigate }) => {
+    const { selectedPanchayat } = usePanchayat();
     const [form, setForm] = useState({ name: '', email: '', message: '' });
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
+    const [contactMembers, setContactMembers] = useState(defaultMembers);
+    const [panchayatInfo, setPanchayatInfo] = useState(null);
 
-    const handleSubmit = (e) => {
+    /* ── Load panchayat info (address, hours, contact members) ── */
+    useEffect(() => {
+        if (!selectedPanchayat?._id) {
+            setContactMembers(defaultMembers);
+            return;
+        }
+        api.get(`/panchayat/${selectedPanchayat._id}`)
+            .then(res => {
+                const p = res.data;
+                setPanchayatInfo(p);
+                // Build contact members from panchayat incharge data
+                if (p.inchargeName) {
+                    setContactMembers([
+                        {
+                            name: p.inchargeName,
+                            designation: 'Panchayat Incharge',
+                            phone: p.contactPhone || defaultMembers[0].phone,
+                            email: p.contactEmail || defaultMembers[0].email,
+                        },
+                        ...defaultMembers.slice(1),
+                    ]);
+                }
+            })
+            .catch(() => setContactMembers(defaultMembers));
+    }, [selectedPanchayat]);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name || !form.email || !form.message) {
             toast.error('Please fill in all fields before sending.');
             return;
         }
+        if (!selectedPanchayat?._id) {
+            toast.error('Please select a Panchayat from the header first.');
+            return;
+        }
         setSending(true);
-        setTimeout(() => {
-            setSending(false);
+        try {
+            await api.post('/contact-queries', {
+                panchayatId: selectedPanchayat._id,
+                name: form.name,
+                email: form.email,
+                message: form.message,
+            });
             setSent(true);
             toast.success('Message sent! We will get back to you shortly.');
             setForm({ name: '', email: '', message: '' });
-        }, 1000);
+        } catch {
+            toast.error('Failed to send message. Please try again.');
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
@@ -52,7 +96,9 @@ const ContactPage = ({ navigate }) => {
                         Contact <span className="gradient-text">Us</span>
                     </h1>
                     <p className="text-gray-500 max-w-xl mx-auto">
-                        Connect with the committee responsible for cleanliness and waste management in your Panchayat.
+                        {selectedPanchayat
+                            ? `Connect with the committee responsible for ${selectedPanchayat.name}.`
+                            : 'Connect with the committee responsible for cleanliness and waste management in your Panchayat.'}
                     </p>
                 </motion.div>
 
@@ -112,7 +158,9 @@ const ContactPage = ({ navigate }) => {
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5">Address</p>
-                                    <p className="text-sm text-gray-700">123 Clean Street, Ward 5,<br />Pincode 415 501</p>
+                                    <p className="text-sm text-gray-700">
+                                        {panchayatInfo?.address || '123 Clean Street, Ward 5,\nPincode 415 501'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
@@ -126,7 +174,10 @@ const ContactPage = ({ navigate }) => {
                             </div>
                         </div>
                         <button
-                            onClick={() => window.open('https://maps.google.com', '_blank')}
+                            onClick={() => {
+                                const addr = panchayatInfo?.address || 'Panchayat Office';
+                                window.open(`https://maps.google.com?q=${encodeURIComponent(addr)}`, '_blank');
+                            }}
                             className="btn-outline w-full mt-5 py-2.5 text-sm flex items-center gap-2"
                         >
                             <MapPin className="w-4 h-4" /> View on Map
@@ -142,49 +193,65 @@ const ContactPage = ({ navigate }) => {
                         className="card p-7"
                     >
                         <h2 className="text-lg font-display font-bold text-gray-900 mb-5">Send a Message</h2>
-                        <form onSubmit={handleSubmit} className="space-y-3">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1">Your Name</label>
-                                <input
-                                    value={form.name}
-                                    onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
-                                    placeholder="Full Name"
-                                    className="input-field text-sm py-2.5"
-                                />
+                        {sent ? (
+                            <div className="text-center py-8">
+                                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <Send className="w-8 h-8 text-green-600" />
+                                </div>
+                                <p className="font-semibold text-gray-900 mb-1">Message sent!</p>
+                                <p className="text-sm text-gray-500">We'll get back to you soon.</p>
+                                <button
+                                    onClick={() => setSent(false)}
+                                    className="mt-4 btn-outline px-5 py-2 text-sm"
+                                >
+                                    Send another
+                                </button>
                             </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
-                                <input
-                                    type="email"
-                                    value={form.email}
-                                    onChange={(e) => setForm(p => ({ ...p, email: e.target.value }))}
-                                    placeholder="you@example.com"
-                                    className="input-field text-sm py-2.5"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1">Message</label>
-                                <textarea
-                                    value={form.message}
-                                    onChange={(e) => setForm(p => ({ ...p, message: e.target.value }))}
-                                    rows={3}
-                                    placeholder="How can we help you?"
-                                    className="input-field text-sm py-2.5 resize-none"
-                                />
-                            </div>
-                            <motion.button
-                                type="submit"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.97 }}
-                                disabled={sending}
-                                className="btn-primary w-full py-2.5 text-sm disabled:opacity-60"
-                            >
-                                {sending
-                                    ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Sending...</span>
-                                    : <span className="flex items-center gap-2"><Send className="w-4 h-4" />Send Message</span>
-                                }
-                            </motion.button>
-                        </form>
+                        ) : (
+                            <form onSubmit={handleSubmit} className="space-y-3">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Your Name</label>
+                                    <input
+                                        value={form.name}
+                                        onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
+                                        placeholder="Full Name"
+                                        className="input-field text-sm py-2.5"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        value={form.email}
+                                        onChange={(e) => setForm(p => ({ ...p, email: e.target.value }))}
+                                        placeholder="you@example.com"
+                                        className="input-field text-sm py-2.5"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Message</label>
+                                    <textarea
+                                        value={form.message}
+                                        onChange={(e) => setForm(p => ({ ...p, message: e.target.value }))}
+                                        rows={3}
+                                        placeholder="How can we help you?"
+                                        className="input-field text-sm py-2.5 resize-none"
+                                    />
+                                </div>
+                                <motion.button
+                                    type="submit"
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    disabled={sending}
+                                    className="btn-primary w-full py-2.5 text-sm disabled:opacity-60"
+                                >
+                                    {sending
+                                        ? <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Sending...</span>
+                                        : <span className="flex items-center gap-2"><Send className="w-4 h-4" />Send Message</span>
+                                    }
+                                </motion.button>
+                            </form>
+                        )}
                     </motion.div>
                 </div>
             </div>

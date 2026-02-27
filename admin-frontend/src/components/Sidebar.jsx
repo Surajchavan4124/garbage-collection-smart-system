@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
-import { X, Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin } from 'lucide-react'
+import { X, Home, Settings, BarChart3, FileText, BookOpen, Image, TrendingUp, Users, Scale, ChevronDown, Users2, Clock, Trash2, Home as HomeIcon, MapPin, CalendarDays, Newspaper, Calendar, MessageSquare, Mail } from 'lucide-react'
 import logo from '../assets/images/logo.png'
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -133,6 +133,8 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="space-y-1">
             <NavLink to="/report-complaint" icon={FileText} label="Report & Complaint Mgmt" />
             <NavLink to="/waste-data" icon={BarChart3} label="Waste Data Management" />
+            <NavLink to="/contact-queries" icon={Mail} label="Contact Queries" />
+            <NavLink to="/schedule-bookings" icon={Calendar} label="Schedule Bookings" />
           </div>
         </div>
 
@@ -143,6 +145,10 @@ export default function Sidebar({ isOpen, onClose }) {
             <NavLink to="/edit-about-us" icon={BookOpen} label="Edit About Us" />
             <NavLink to="/edit-guide" icon={BookOpen} label="Edit Segregation Guide" />
             <NavLink to="/gallery" icon={Image} label="Manage Photo Gallery" />
+            <NavLink to="/manage-events" icon={CalendarDays} label="Events & Workshops" />
+            <NavLink to="/manage-news" icon={Newspaper} label="News & Updates" />
+            <NavLink to="/manage-schedule" icon={Calendar} label="Ward Schedule" />
+            <NavLink to="/manage-leadership" icon={Users} label="Leadership" />
           </div>
         </div>
 

@@ -14,6 +14,8 @@ export const quickLinks = [
     { name: 'Guides / Resources', view: 'guidesResources' },
     { name: 'Events & Workshops', view: 'eventsWorkshops' },
     { name: 'News & Updates', view: 'newsUpdates' },
+    { name: 'Photo Gallery', view: 'gallery' },
+    { name: 'Legal & Transparency', view: 'legal' },
     { name: 'FAQ’s & Feedback', view: 'faqsFeedback' },
 ];
 

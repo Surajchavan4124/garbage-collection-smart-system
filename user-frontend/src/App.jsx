@@ -14,6 +14,8 @@ import GuidesResourcesPage from './component/GuidesResourcesPage';
 import ViewSchedulePage from './component/ViewSchedulePage';
 import StatisticsPage from './component/StatisticsPage';
 import HowItWorksPage from './component/HowItWorksPage';
+import GalleryPage from './component/GalleryPage';
+import LegalTransparencyPage from './component/LegalTransparencyPage';
 
 // Auth Pages
 import LoginPage from './component/auth/LoginPage';
@@ -138,6 +140,12 @@ function App() {
 
             case 'newsUpdates':
                 return <NewsUpdatesPage navigate={navigate} />;
+
+            case 'gallery':
+                return <GalleryPage navigate={navigate} />;
+
+            case 'legal':
+                return <LegalTransparencyPage navigate={navigate} />;
 
             case 'faqsFeedback':
                 return <FAQsPage navigate={navigate} />;
