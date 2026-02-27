@@ -338,55 +338,61 @@ export default function HouseholdManagement() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* LEFT COLUMN - TABLE & METRICS (2/3 width) */}
-            <div className="lg:col-span-2 space-y-6">
-              
-              {/* ===== HOUSEHOLD REGISTRY TABLE ===== */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                {/* Title & Search Toolbar */}
-                <div className="px-6 py-4 border-b border-gray-50">
-                  <h2 className="text-lg font-bold text-gray-800 mb-4">HOUSEHOLD REGISTRY</h2>
-                  
-                  <div className="flex items-center gap-3">
-                    <Search size={18} className="text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search household by ID"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
-                    />
-                    
-                    {/* Filter Dropdown */}
-                    <div className="relative">
-                      <button 
-                        onClick={() => {
-                          setShowFilterMenu(!showFilterMenu)
-                          setShowDownloadMenu(false)
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition ${wardFilter !== 'All' || statusFilter !== 'All' ? 'bg-teal-50 text-teal-700 border-teal-500' : ''}`}
-                      >
-                        <Filter size={16} />
-                        <span>Filter</span>
-                      </button>
-                      
-                      {showFilterMenu && (
-                        <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded shadow-xl z-20 p-4 space-y-4">
-                            {/* Ward Filter */}
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1">Ward</label>
-                                <select 
-                                    value={wardFilter}
-                                    onChange={(e) => setWardFilter(e.target.value)}
-                                    className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                >
-                                    <option value="All">All Wards</option>
-                                    {wards.map(ward => (
-                                        <option key={ward._id} value={ward.name}>{ward.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+
+        {/* LEFT COLUMN - TABLE & METRICS (2/3 width) */}
+        <div className="lg:col-span-2 space-y-6">
+
+          {/* ===== HOUSEHOLD REGISTRY TABLE ===== */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible relative">
+            {/* Title & Search Toolbar */}
+            <div className="px-6 py-4 border-b border-gray-50">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">HOUSEHOLD REGISTRY</h2>
+
+              <div className="flex items-center gap-3">
+                <Search size={18} className="text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search household by ID"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
+                />
+
+                {/* Filter Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowFilterMenu(!showFilterMenu)
+                      setShowDownloadMenu(false)
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition ${wardFilter !== 'All' || statusFilter !== 'All' ? 'bg-teal-50 text-teal-700 border-teal-500' : ''}`}
+                  >
+                    <Filter size={16} />
+                    <span>Filter</span>
+                  </button>
+
+                  {showFilterMenu && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded shadow-xl z-20 p-4 space-y-4">
+                      {/* Ward Filter */}
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Ward</label>
+                        <select
+                          value={wardFilter}
+                          onChange={(e) => {
+                            const newWard = e.target.value;
+                            setWardFilter(newWard);
+                            if (newWard !== 'All' && statusFilter !== 'All') {
+                              setShowFilterMenu(false);
+                            }
+                          }}
+                          className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        >
+                          <option value="All">All Wards</option>
+                          {wards.map(ward => (
+                            <option key={ward._id} value={ward.name}>{ward.name}</option>
+                          ))}
+                        </select>
+                      </div>
 
                       {/* Status Filter */}
                       <div>
@@ -394,12 +400,15 @@ export default function HouseholdManagement() {
                         <select
                           value={statusFilter}
                           onChange={(e) => {
-                            setStatusFilter(e.target.value)
-                            setShowFilterMenu(false)
+                            const newStatus = e.target.value;
+                            setStatusFilter(newStatus)
+                            if (newStatus !== 'All' && wardFilter !== 'All') {
+                              setShowFilterMenu(false);
+                            }
                           }}
                           className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
                         >
-                          <option value="All">All Statuses</option>
+                          <option value="All">All Status</option>
                           <option value="Pending">Pending</option>
                           <option value="Approved">Approved</option>
                           <option value="Rejected">Rejected</option>
@@ -485,8 +494,8 @@ export default function HouseholdManagement() {
                       <td className="px-5 py-3.5 text-xs text-gray-500">{household.contact}</td>
                       <td className="px-5 py-3.5">
                         <span className={`px-2.5 py-1 text-[10px] rounded-full font-bold border ${household.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                            household.status === 'Rejected' ? 'bg-red-50 text-red-500 border-red-100' :
-                              'bg-amber-50 text-amber-600 border-amber-100'
+                          household.status === 'Rejected' ? 'bg-red-50 text-red-500 border-red-100' :
+                            'bg-amber-50 text-amber-600 border-amber-100'
                           }`}>
                           {household.status || 'Pending'}
                         </span>

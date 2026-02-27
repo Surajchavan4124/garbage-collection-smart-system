@@ -27,6 +27,10 @@ export default function ManageLeadership() {
 
   useEffect(() => { fetchLeadership() }, [])
 
+  useEffect(() => {
+    if (showForm) window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [showForm])
+
   const saveLeadership = async (updated) => {
     setSaving(true)
     try {
@@ -104,15 +108,15 @@ export default function ManageLeadership() {
       {/* Form Modal */}
       <AnimatePresence>
         {showForm && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
+          <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-24 md:pt-28 overflow-y-auto">
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowForm(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}

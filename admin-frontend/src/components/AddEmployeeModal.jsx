@@ -15,7 +15,13 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
   const [preview, setPreview] = useState({ photo: null, idProof: null, license: null });
 
   useEffect(() => {
-    api.get("/wards").then(res => setWards(res.data)).catch(() => {});
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    api.get("/wards").then(res => setWards(res.data)).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -45,15 +51,15 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Name is required";
     if (!form.employeeCode.trim()) newErrors.employeeCode = "Code is required";
-    
+
     const phoneRegex = /^\d{10}$/;
     if (!form.phone.trim()) newErrors.phone = "Phone is required";
     else if (!phoneRegex.test(form.phone)) newErrors.phone = "Invalid 10-digit phone";
-    
+
     if (!form.address.trim()) newErrors.address = "Address is required";
     if (form.wards.length === 0) newErrors.wards = "Select at least one ward";
     if (!form.joiningDate) newErrors.joiningDate = "Joining date is required";
-    
+
     if (!files.photo) newErrors.photo = "Photo is required";
     if (!files.idProof) newErrors.idProof = "ID proof is required";
     if (form.role === "Driver" && !files.license) newErrors.license = "License is required";
@@ -93,7 +99,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10">
+      <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-24 md:pt-28">
         <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[92vh] flex flex-col">
 
           {/* Header */}
@@ -157,9 +163,8 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
                   const checked = form.wards.includes(w.name);
                   return (
                     <label key={w._id} onClick={() => toggleWard(w.name)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all text-sm font-medium select-none ${
-                        checked ? 'bg-teal-50 border-teal-400 text-teal-700' : 'bg-white border-gray-200 text-gray-700 hover:border-teal-200'
-                      }`}>
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all text-sm font-medium select-none ${checked ? 'bg-teal-50 border-teal-400 text-teal-700' : 'bg-white border-gray-200 text-gray-700 hover:border-teal-200'
+                        }`}>
                       <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center flex-shrink-0 ${checked ? 'bg-teal-500 border-teal-500' : 'border-gray-300'}`}>
                         {checked && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                       </span>

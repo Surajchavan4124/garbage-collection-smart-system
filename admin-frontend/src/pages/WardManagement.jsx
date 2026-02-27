@@ -262,7 +262,7 @@ export default function WardManagement() {
 function AddWardModal({ isOpen, onClose, wardName, setWardName, handleAddWard, errors, setErrors }) {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-up">
         <div className="p-5 border-b flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}>
           <h3 className="text-white font-bold text-sm">Add New Ward</h3>
@@ -303,7 +303,7 @@ function AddWardModal({ isOpen, onClose, wardName, setWardName, handleAddWard, e
 function EditWardModal({ isOpen, onClose, wardName, setWardName, handleEditWard, errors, setErrors }) {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-up">
         <div className="p-5 border-b flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
           <h3 className="text-white font-bold text-sm">Edit Ward</h3>
@@ -344,7 +344,7 @@ function EditWardModal({ isOpen, onClose, wardName, setWardName, handleEditWard,
 function DeleteWardModal({ isOpen, onClose, ward, onConfirm }) {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 text-center">
         <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <Trash2 size={30} />

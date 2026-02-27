@@ -103,8 +103,8 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={onClose} />
+      <div className="fixed inset-0 flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 overflow-y-auto">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex justify-between items-center px-6 py-5 flex-shrink-0"

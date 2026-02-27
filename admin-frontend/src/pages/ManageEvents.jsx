@@ -38,6 +38,10 @@ export default function ManageEvents() {
 
   useEffect(() => { fetchEvents() }, [])
 
+  useEffect(() => {
+    if (showForm) window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [showForm])
+
   const saveEvents = async (updatedEvents, status = 'published') => {
     setSaving(true)
     try {
@@ -121,15 +125,15 @@ export default function ManageEvents() {
       {/* Form Modal */}
       <AnimatePresence>
         {showForm && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
+          <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-24 md:pt-28 overflow-y-auto">
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowForm(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -153,11 +157,11 @@ export default function ManageEvents() {
                   <div key={field}>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">{label}</label>
                     {field === 'description' ? (
-                       <textarea value={form[field]} rows={3} onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
-                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-none" />
+                      <textarea value={form[field]} rows={3} onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-none" />
                     ) : (
                       <input value={form[field]} onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all" />
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all" />
                     )}
                   </div>
                 ))}

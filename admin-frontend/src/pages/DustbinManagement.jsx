@@ -375,12 +375,15 @@ export default function DustbinManagement() {
                         <select
                           value={statusFilter}
                           onChange={(e) => {
-                            setStatusFilter(e.target.value);
-                            setFilterDropdownOpen(false);
+                            const newStatus = e.target.value;
+                            setStatusFilter(newStatus);
+                            if (newStatus !== 'All' && typeFilter !== 'All') {
+                              setFilterDropdownOpen(false);
+                            }
                           }}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500"
                         >
-                          <option value="All">All Statuses</option>
+                          <option value="All">All Status</option>
                           <option value="Good">Good</option>
                           <option value="Damaged">Damaged</option>
                           <option value="Need Replacement">Need Replacement</option>
@@ -393,8 +396,11 @@ export default function DustbinManagement() {
                         <select
                           value={typeFilter}
                           onChange={(e) => {
-                            setTypeFilter(e.target.value);
-                            setFilterDropdownOpen(false);
+                            const newType = e.target.value;
+                            setTypeFilter(newType);
+                            if (newType !== 'All' && statusFilter !== 'All') {
+                              setFilterDropdownOpen(false);
+                            }
                           }}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500"
                         >

@@ -36,6 +36,10 @@ export default function ManageSchedule() {
 
   useEffect(() => { fetchSchedule() }, [])
 
+  useEffect(() => {
+    if (showForm) window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [showForm])
+
   const saveSchedule = async (updated) => {
     setSaving(true)
     try {
@@ -92,10 +96,10 @@ export default function ManageSchedule() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {entries.map((entry, idx) => (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }} 
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                key={idx} 
+                key={idx}
                 className={`group relative border rounded-2xl p-5 flex flex-col justify-between transition-all hover:shadow-md ${entry.bg || 'bg-gray-50 border-gray-200'}`}
               >
                 <div>
@@ -125,15 +129,15 @@ export default function ManageSchedule() {
       {/* Form Modal */}
       <AnimatePresence>
         {showForm && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
+          <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-24 md:pt-28 overflow-y-auto">
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowForm(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -143,7 +147,7 @@ export default function ManageSchedule() {
                 <h2 className="text-2xl font-black text-gray-800 tracking-tight">{editIdx !== null ? 'Edit Ward' : 'Add New Ward'}</h2>
                 <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400 hover:text-gray-600"><X size={24} /></button>
               </div>
-              
+
               <div className="space-y-5">
                 {[
                   ['ward', 'Ward Name / Number *', 'e.g. Ward 04'],
@@ -153,11 +157,11 @@ export default function ManageSchedule() {
                 ].map(([field, label, placeholder]) => (
                   <div key={field}>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{label}</label>
-                    <input 
-                      value={form[field]} 
+                    <input
+                      value={form[field]}
                       onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
                       placeholder={placeholder}
-                      className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-200 transition-all" 
+                      className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-200 transition-all"
                     />
                   </div>
                 ))}
@@ -166,15 +170,14 @@ export default function ManageSchedule() {
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Collection Days</label>
                   <div className="flex flex-wrap gap-2">
                     {WEEK_DAYS.map(day => (
-                      <button 
-                        key={day} 
-                        type="button" 
+                      <button
+                        key={day}
+                        type="button"
                         onClick={() => toggleDay(day)}
-                        className={`px-4 py-2 rounded-xl text-xs font-black border-2 transition-all ${
-                          (form.days || []).includes(day) 
-                            ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200' 
+                        className={`px-4 py-2 rounded-xl text-xs font-black border-2 transition-all ${(form.days || []).includes(day)
+                            ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200'
                             : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
-                        }`}
+                          }`}
                       >
                         {day}
                       </button>
@@ -186,15 +189,14 @@ export default function ManageSchedule() {
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Card Theme</label>
                   <div className="flex flex-wrap gap-3">
                     {COLOR_OPTIONS.map((c, i) => (
-                      <button 
-                        key={i} 
-                        type="button" 
+                      <button
+                        key={i}
+                        type="button"
                         onClick={() => setForm(f => ({ ...f, color: c.color, bg: c.bg }))}
-                        className={`w-10 h-10 rounded-full bg-gradient-to-br ${c.color} border-4 transition-all ${
-                          form.color === c.color 
-                            ? 'border-gray-900 scale-110 shadow-lg' 
+                        className={`w-10 h-10 rounded-full bg-gradient-to-br ${c.color} border-4 transition-all ${form.color === c.color
+                            ? 'border-gray-900 scale-110 shadow-lg'
                             : 'border-white shadow-sm hover:scale-105 hover:shadow-md'
-                        }`} 
+                          }`}
                       />
                     ))}
                   </div>

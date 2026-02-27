@@ -32,6 +32,10 @@ export default function ManagePhotoGallery() {
 
   useEffect(() => { fetchGallery() }, [])
 
+  useEffect(() => {
+    if (isUploadModalOpen) window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [isUploadModalOpen])
+
   /* ── Save entire photos array ── */
   const saveGallery = async (updatedPhotos, status = 'published') => {
     setSaving(true)
@@ -190,15 +194,15 @@ export default function ManagePhotoGallery() {
       {/* Upload Modal */}
       <AnimatePresence>
         {isUploadModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-20 md:pt-28 overflow-y-auto">
-            <motion.div 
+          <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-20 md:pt-28 overflow-y-auto">
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsUploadModalOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -208,7 +212,7 @@ export default function ManagePhotoGallery() {
                 <h2 className="text-2xl font-black text-gray-800 tracking-tight">Upload Photos</h2>
                 <button onClick={() => setIsUploadModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400 hover:text-gray-600"><X size={24} /></button>
               </div>
-              
+
               {uploading ? (
                 <div className="flex flex-col items-center gap-4 py-12">
                   <motion.div
@@ -222,7 +226,7 @@ export default function ManagePhotoGallery() {
               ) : (
                 <div className="space-y-6">
                   <div className="border-2 border-dashed border-gray-100 rounded-3xl p-10 text-center bg-gray-50 group hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer relative"
-                       onClick={() => fileRef.current?.click()}>
+                    onClick={() => fileRef.current?.click()}>
                     <input ref={fileRef} type="file" onChange={handleImageUpload} accept="image/*" multiple className="hidden" />
                     <div className="flex flex-col items-center gap-4">
                       <div className="p-4 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all group-hover:scale-110">
