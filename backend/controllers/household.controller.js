@@ -1,8 +1,47 @@
 import Household from "../models/Household.model.js";
 
-// @desc    Register a new household (Public/Admin)
+// @desc    Register a new household (Public Self-Registration)
+// @route   POST /api/households/register (public)
+// @access  Public
+export const publicRegisterHousehold = async (req, res) => {
+  try {
+    const { ownerName, mobile, houseNumber, address, ward, panchayatId, email } = req.body;
+
+    if (!panchayatId || !ownerName || !mobile || !houseNumber || !address || !ward) {
+      return res.status(400).json({ message: "All fields are required.", success: false });
+    }
+
+    // Prevent duplicate registration for same mobile + panchayat
+    const existing = await Household.findOne({ mobile, panchayat: panchayatId });
+    if (existing) {
+      return res.status(409).json({ message: "A household with this mobile number is already registered in this Panchayat.", success: false });
+    }
+
+    const identityDoc = req.files?.identity?.[0]?.filename || null;
+    const premisesDoc = req.files?.premises?.[0]?.filename || null;
+
+    const household = await Household.create({
+      panchayat: panchayatId,
+      ownerName,
+      mobile,
+      houseNumber,
+      address,
+      ward,
+      email: email || undefined,
+      identityDoc,
+      premisesDoc,
+      status: "Pending", // Will appear in admin panel for approval
+    });
+
+    res.status(201).json({ message: "Registration request submitted successfully! Your application is under review.", success: true, household });
+  } catch (error) {
+    res.status(500).json({ message: error.message, success: false });
+  }
+};
+
+// @desc    Register a new household (Admin)
 // @route   POST /api/households
-// @access  Public (or Protected if Admin creates)
+// @access  Private (Admin)
 export const registerHousehold = async (req, res) => {
   try {
     const { ownerName, mobile, houseNumber, address, ward, panchayatId, lat, lng } = req.body;
@@ -13,11 +52,11 @@ export const registerHousehold = async (req, res) => {
     const activePanchayatId = req.user?.panchayatId || panchayatId;
 
     if (!activePanchayatId) {
-        return res.status(400).json({ message: "Panchayat ID is required." });
+      return res.status(400).json({ message: "Panchayat ID is required." });
     }
 
     const household = await Household.create({
-      panchayat: activePanchayatId, 
+      panchayat: activePanchayatId,
       ownerName,
       mobile,
       houseNumber,

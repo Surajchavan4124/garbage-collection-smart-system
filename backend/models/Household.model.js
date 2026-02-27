@@ -13,6 +13,10 @@ const householdSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    email: {
+      type: String,
+      trim: true,
+    },
     mobile: {
       type: String,
       required: true,
@@ -36,6 +40,8 @@ const householdSchema = new mongoose.Schema(
       enum: ["Pending", "Approved", "Rejected"],
       default: "Pending",
     },
+    identityDoc: { type: String },   // filename stored by multer
+    premisesDoc: { type: String },   // filename stored by multer
     segregationCompliance: {
       type: String,
       enum: ["Compliant", "Non-Compliant"],

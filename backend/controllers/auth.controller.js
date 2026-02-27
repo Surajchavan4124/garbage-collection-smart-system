@@ -1,6 +1,8 @@
 import User from "../models/User.model.js";
 import Panchayat from "../models/Panchayat.model.js";
 import Employee from "../models/Employee.model.js";
+import Household from "../models/Household.model.js";
+import Company from "../models/company.model.js";
 import { generateOTP, verifyOTP } from "../utils/otpService.js";
 import { generateToken } from "../utils/jwt.js";
 
@@ -38,6 +40,36 @@ export const sendOtp = async (req, res) => {
         success: false,
       });
     }
+  } else if (type === "household") {
+    const household = await Household.findOne({ mobile, panchayat: panchayatId });
+    if (!household) {
+      return res.status(404).json({
+        message: "Household not found for this mobile and Panchayat",
+        success: false
+      });
+    }
+    if (household.status === "Pending") {
+      return res.status(403).json({
+        message: "Your registration is pending approval. Please contact your Panchayat office to get your account activated.",
+        success: false,
+        statusCode: "PENDING"
+      });
+    }
+    if (household.status === "Rejected") {
+      return res.status(403).json({
+        message: "Your registration was rejected. Please visit your Panchayat office for assistance.",
+        success: false,
+        statusCode: "REJECTED"
+      });
+    }
+  } else if (type === "company") {
+    const company = await Company.findOne({ contactPhone: mobile, panchayat: panchayatId });
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found for this mobile and Panchayat",
+        success: false
+      });
+    }
   }
 
   const otp = generateOTP(mobile);
@@ -55,8 +87,8 @@ export const sendOtp = async (req, res) => {
 export const verifyOtpAndLogin = async (req, res) => {
   const { mobile, otp, type, panchayatId } = req.body;
 
-  // 1️⃣ Verify OTP
-  if (!verifyOTP(mobile, otp)) {
+  // 1️⃣ Verify OTP (Ensure string comparison)
+  if (!verifyOTP(String(mobile), String(otp))) {
     return res.status(401).json({
       message: "Invalid OTP",
       success: false,
@@ -91,6 +123,30 @@ export const verifyOtpAndLogin = async (req, res) => {
     };
     role = "EMPLOYEE";
 
+  } else if (type === "household") {
+    const household = await Household.findOne({ mobile, panchayat: panchayatId });
+    if (!household) {
+      return res.status(404).json({ message: "Household not found" });
+    }
+    user = {
+      _id: household._id,
+      name: household.ownerName,
+      role: "HOUSEHOLD",
+      panchayatId: household.panchayat
+    };
+    role = "HOUSEHOLD";
+  } else if (type === "company") {
+    const company = await Company.findOne({ contactPhone: mobile, panchayat: panchayatId });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+    user = {
+      _id: company._id,
+      name: company.name,
+      role: "COMPANY",
+      panchayatId: company.panchayat
+    };
+    role = "COMPANY";
   } else {
     // 2️⃣ Try Normal User login
     user = await User.findOne({ mobile });

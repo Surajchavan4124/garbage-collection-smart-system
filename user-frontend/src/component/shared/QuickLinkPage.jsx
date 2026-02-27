@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { Gauge, Leaf } from 'lucide-react';
 import Button from './Button';
 import Breadcrumb from './Breadcrumb';
-import { statisticsData, scheduleData, API_BASE_URL } from '../../config';
+import { statisticsData, scheduleData } from '../../config';
 
-const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
+const QuickLinkPage = ({ navigate, title }) => {
 
     const [showVideo, setShowVideo] = useState(false);
     const [formData, setFormData] = useState({
@@ -15,47 +14,6 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
         description: ''
     });
     const [submittedComplaint, setSubmittedComplaint] = useState(null);
-    const [dynamicContent, setDynamicContent] = useState(null);
-    const [loadingContent, setLoadingContent] = useState(false);
-
-    useEffect(() => {
-        const fetchContent = async () => {
-            if (!selectedPanchayat || !title) return;
-
-            setLoadingContent(true);
-            try {
-                // Map frontend title to backend type
-                const typeMap = {
-                    'How it works': 'about-us',
-                    'Statistics': 'statistics',
-                    'View Schedule': 'schedule',
-                    'Guides / Resources': 'guides',
-                    'Events & Workshops': 'events',
-                    'News & Updates': 'news',
-                    'FAQ’s & Feedback': 'faqs'
-                };
-
-                const type = typeMap[title];
-                
-                if (type) {
-                    const response = await axios.get(`http://localhost:10000/api/content/public/${selectedPanchayat.id}?type=${type}`);
-                    // Backend returns { title: "", body: "", status: "draft", media: [] } if not populated
-                    if (response.data && response.data.body) {
-                        setDynamicContent(response.data);
-                    } else {
-                        setDynamicContent(null);
-                    }
-                }
-            } catch (err) {
-                console.error(`Failed to fetch content for ${title}:`, err);
-                setDynamicContent(null);
-            } finally {
-                setLoadingContent(false);
-            }
-        };
-
-        fetchContent();
-    }, [title, selectedPanchayat]);
 
     const handleChange = (e) => {
         setFormData({
@@ -70,42 +28,8 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
     };
 
     const renderContent = () => {
-        if (loadingContent) {
-           return (
-               <div className="flex justify-center p-12">
-                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-               </div>
-           );
-        }
 
-        // If we have dynamic content from the API, render it directly
-        if (dynamicContent && dynamicContent.body) {
-            return (
-                <div className="text-left space-y-6">
-                    {dynamicContent.title && (
-                        <h3 className="text-xl font-bold text-green-800">
-                            {dynamicContent.title}
-                        </h3>
-                    )}
-                    
-                    {dynamicContent.media && dynamicContent.media.length > 0 && (
-                        <img 
-                            src={`http://localhost:5000/${dynamicContent.media[0]}`} 
-                            alt={dynamicContent.title || title} 
-                            className="w-full rounded-xl shadow-md mb-6 max-h-96 object-cover"
-                            onError={(e) => { e.target.style.display = 'none'; }}
-                        />
-                    )}
-
-                    <div 
-                        className="prose prose-green max-w-none text-gray-700"
-                        dangerouslySetInnerHTML={{ __html: dynamicContent.body }} 
-                    />
-                </div>
-            );
-        }
-
-        /* ================= HOW IT WORKS (FALLBACK) ================= */
+        /* ================= HOW IT WORKS ================= */
 
         if (title === 'How it works') {
             return (
@@ -215,7 +139,7 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
             );
         }
 
-        /* ================= STATISTICS (FALLBACK) ================= */
+        /* ================= STATISTICS ================= */
 
         if (title === 'Statistics') {
             return (
@@ -224,7 +148,7 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
                     <img
                         src="https://images.unsplash.com/photo-1581091215367-59ab6b5c4f0b"
                         alt="Waste Analytics"
-                        className="w-full rounded-xl shadow-md block"
+                        className="w-full rounded-xl shadow-md"
                     />
 
                     <div className="grid md:grid-cols-2 gap-6">
@@ -248,7 +172,7 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
             );
         }
 
-        /* ================= VIEW SCHEDULE (FALLBACK) ================= */
+        /* ================= VIEW SCHEDULE ================= */
 
         if (title === 'View Schedule') {
             return (
@@ -257,7 +181,7 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
                     <img
                         src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c"
                         alt="Schedule"
-                        className="w-full rounded-xl shadow-md block"
+                        className="w-full rounded-xl shadow-md"
                     />
 
                     <div className="grid md:grid-cols-2 gap-6">
@@ -280,7 +204,7 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
             );
         }
 
-        /* ================= GUIDES (FALLBACK) ================= */
+        /* ================= GUIDES ================= */
 
         if (title === 'Guides / Resources') {
             return (
@@ -289,7 +213,7 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
                     <img
                         src="https://images.unsplash.com/photo-1509395176047-4a66953fd231"
                         alt="Guide"
-                        className="w-full rounded-xl shadow-lg block"
+                        className="w-full rounded-xl shadow-lg"
                     />
 
                     <div>
@@ -304,13 +228,8 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
                 </div>
             );
         }
-        
-        // Generic fallback for other titles if no backend data
-        return (
-             <div className="text-gray-500 p-8">
-                 Content for this section is currently being updated by the {selectedPanchayat?.name || 'local'} panchayat. Please check back later.
-             </div>
-        );
+
+        return null;
     };
 
     return (
@@ -326,14 +245,7 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
                     navigate={navigate}
                 />
 
-                <div className="max-w-5xl mx-auto mt-12 bg-white rounded-2xl p-12 border border-green-300 shadow-lg text-center relative overflow-hidden">
-                    
-                    {/* Add selected panchayat badge to header if we have one */}
-                    {selectedPanchayat && (
-                        <div className="absolute top-0 right-0 bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-bl-xl shadow-md">
-                            {selectedPanchayat.name}
-                        </div>
-                    )}
+                <div className="max-w-5xl mx-auto mt-12 bg-white rounded-2xl p-12 border border-green-300 shadow-lg text-center">
 
                     <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center border">
                         <Gauge className="w-10 h-10 text-green-700" />
@@ -359,7 +271,7 @@ const QuickLinkPage = ({ navigate, title, selectedPanchayat }) => {
 
                 </div>
 
-                <div className="text-center mt-12 text-gray-500 flex justify-center items-center gap-2 pb-12">
+                <div className="text-center mt-12 text-gray-500 flex justify-center items-center gap-2">
                     <Leaf className="w-4 h-4 text-green-600" />
                     <span>Building a cleaner & greener community together</span>
                 </div>

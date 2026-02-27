@@ -33,11 +33,11 @@ export const contactMembers = [
 
 export const eventsData = new Array(9).fill(0).map((_, i) => ({
     id: i,
-    title: i % 3 === 0 
-        ? 'Plantation Drive' 
-        : i % 3 === 1 
-        ? 'Community Clean-up' 
-        : 'Recycling Workshop',
+    title: i % 3 === 0
+        ? 'Plantation Drive'
+        : i % 3 === 1
+            ? 'Community Clean-up'
+            : 'Recycling Workshop',
     description:
         "The Foundation organized a plantation drive at Mobor, this green initiative witnessed participation from over 50 volunteers.",
     date: '2025-09-13',

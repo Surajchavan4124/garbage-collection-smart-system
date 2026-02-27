@@ -5,7 +5,7 @@ import Button from '../shared/Button';
 
 const SystemSettings = ({ navigate }) => {
     const [settings, setSettings] = useState({
-        appName: 'Door-to-Door Garbage Collection',
+        appName: 'EcoSyz',
         adminEmail: 'admin@d2d.com',
         supportPhone: '+91 99999 99999',
         timezone: 'IST',

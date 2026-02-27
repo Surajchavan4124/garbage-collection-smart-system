@@ -1,19 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './component/Navbar';
 import Home from './component/Home';
 import About from './component/About';
 import Contact from './component/Contact';
-import RegistrationPage from './component/RegistrationPage';
 import ComplaintPage from './component/ComplaintPage';
 import QuickLinkPage from './component/shared/QuickLinkPage';
+import FAQsPage from './component/FAQsPage';
+import NewsUpdatesPage from './component/NewsUpdatesPage';
+import EventsPage from './component/EventsPage';
+import GuidesResourcesPage from './component/GuidesResourcesPage';
+import ViewSchedulePage from './component/ViewSchedulePage';
+import StatisticsPage from './component/StatisticsPage';
+import HowItWorksPage from './component/HowItWorksPage';
 
 // Auth Pages
 import LoginPage from './component/auth/LoginPage';
 import LoginHousehold from './component/auth/LoginHousehold';
 import LoginCompany from './component/auth/LoginCompany';
-import RegistrationHousehold from './component/auth/RegistrationHousehold';
-import RegistrationCompany from './component/auth/RegistrationCompany';
 import ForgotPasswordPage from './component/auth/ForgotPasswordPage';
+import RegisterPage from './component/RegisterPage';
+
+// Context & Modals
+import { PanchayatProvider } from './context/PanchayatContext';
+import PanchayatModal from './component/shared/PanchayatModal';
 
 // Dashboard Pages
 import HouseholdDashboard from './component/dashboard/HouseholdDashboard';
@@ -32,31 +43,8 @@ import FleetManagement from './component/management/FleetManagement';
 import ComplaintsManagement from './component/management/ComplaintsManagement';
 import SystemSettings from './component/management/SystemSettings';
 
-// New Component
-import PanchayatSelectionModal from './component/PanchayatSelectionModal';
-
 function App() {
     const [view, setView] = useState('home');
-    const [showModal, setShowModal] = useState(false);
-    const [selectedPanchayat, setSelectedPanchayat] = useState(null);
-
-    useEffect(() => {
-        // Check if panchayat is already selected and stored in localStorage
-        const storedPanchayat = localStorage.getItem('selectedPanchayat');
-        if (storedPanchayat) {
-            setSelectedPanchayat(JSON.parse(storedPanchayat));
-        } else {
-            // Show modal if not selected
-            setShowModal(true);
-        }
-    }, []);
-
-    const handlePanchayatSelect = (panchayat) => {
-        setSelectedPanchayat({ id: panchayat._id, name: panchayat.name });
-        setShowModal(false);
-        // Optionally, force a re-render or refetch content here by redirecting to home
-        setView('home');
-    };
 
     const navigate = (newView) => {
         setView(newView);
@@ -73,9 +61,6 @@ function App() {
             case 'contact':
                 return <Contact navigate={navigate} />;
 
-            case 'register':
-                return <RegistrationPage navigate={navigate} />;
-
             case 'complaint':
                 return <ComplaintPage navigate={navigate} />;
 
@@ -89,15 +74,11 @@ function App() {
             case 'login-company':
                 return <LoginCompany navigate={navigate} />;
 
-            // Auth Pages - Registration
-            case 'registration-household':
-                return <RegistrationHousehold navigate={navigate} />;
-
-            case 'registration-company':
-                return <RegistrationCompany navigate={navigate} />;
-
             case 'forgot-password':
                 return <ForgotPasswordPage navigate={navigate} />;
+
+            case 'register':
+                return <RegisterPage navigate={navigate} />;
 
             // Dashboard Pages
             case 'household-dashboard':
@@ -138,28 +119,28 @@ function App() {
             /* ----------- QUICK LINKS ----------- */
 
             case 'howItWorks':
-                return <QuickLinkPage navigate={navigate} title="How it works" selectedPanchayat={selectedPanchayat} />;
+                return <HowItWorksPage navigate={navigate} />;
 
             case 'submitComplaint':
-                return <QuickLinkPage navigate={navigate} title="Submit Complaint" selectedPanchayat={selectedPanchayat} />;
+                return <ComplaintPage navigate={navigate} />;
 
             case 'statisticsReports':
-                return <QuickLinkPage navigate={navigate} title="Statistics" selectedPanchayat={selectedPanchayat} />;
+                return <StatisticsPage navigate={navigate} />;
 
             case 'viewSchedule':
-                return <QuickLinkPage navigate={navigate} title="View Schedule" selectedPanchayat={selectedPanchayat} />;
+                return <ViewSchedulePage navigate={navigate} />;
 
             case 'guidesResources':
-                return <QuickLinkPage navigate={navigate} title="Guides / Resources" selectedPanchayat={selectedPanchayat} />;
+                return <GuidesResourcesPage navigate={navigate} />;
 
             case 'eventsWorkshops':
-                return <QuickLinkPage navigate={navigate} title="Events & Workshops" selectedPanchayat={selectedPanchayat} />;
+                return <EventsPage navigate={navigate} />;
 
             case 'newsUpdates':
-                return <QuickLinkPage navigate={navigate} title="News & Updates" selectedPanchayat={selectedPanchayat} />;
+                return <NewsUpdatesPage navigate={navigate} />;
 
             case 'faqsFeedback':
-                return <QuickLinkPage navigate={navigate} title="FAQ’s & Feedback" selectedPanchayat={selectedPanchayat} />;
+                return <FAQsPage navigate={navigate} />;
 
             default:
                 return <Home navigate={navigate} />;
@@ -167,11 +148,21 @@ function App() {
     };
 
     return (
-        <>
+        <PanchayatProvider>
             <Navbar navigate={navigate} currentPage={view} />
-            {showModal && <PanchayatSelectionModal onSelect={handlePanchayatSelect} />}
             {renderView()}
-        </>
+            <PanchayatModal />
+            <ToastContainer
+                position="top-right"
+                autoClose={3500}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                pauseOnHover
+                toastClassName="!rounded-2xl !shadow-xl !font-sans !text-sm"
+                progressClassName="!bg-green-500"
+            />
+        </PanchayatProvider>
     );
 }
 

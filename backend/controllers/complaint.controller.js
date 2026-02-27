@@ -7,7 +7,7 @@ import Complaint from "../models/Complaint.model.js";
 export const createComplaint = async (req, res) => {
   try {
     const { panchayatId, reporterName, reporterMobile, type, description, lat, lng, ward } = req.body;
-    
+
     // Handle file upload
     const photo = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
@@ -58,21 +58,36 @@ export const getComplaints = async (req, res) => {
   }
 };
 
+// @desc    Get current user's complaints
+// @route   GET /api/complaints/me
+// @access  Private
+export const getMyComplaints = async (req, res) => {
+  try {
+    const complaints = await Complaint.find({
+      reporterMobile: req.user.mobile,
+      panchayat: req.user.panchayatId
+    }).sort({ createdAt: -1 });
+    res.json(complaints);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Update complaint status
 // @route   PATCH /api/complaints/:id
 // @access  Private (Admin/Supervisor)
 export const updateComplaintStatus = async (req, res) => {
   try {
     const { status, assignedTo } = req.body;
-    
+
     let complaint;
     // Check if valid ObjectId, otherwise search by readable complaintId
     if (mongoose.Types.ObjectId.isValid(req.params.id)) {
       complaint = await Complaint.findById(req.params.id);
-    } 
-    
+    }
+
     if (!complaint) {
-       complaint = await Complaint.findOne({ complaintId: req.params.id });
+      complaint = await Complaint.findOne({ complaintId: req.params.id });
     }
 
     if (!complaint) return res.status(404).json({ message: "Complaint not found" });
@@ -83,23 +98,23 @@ export const updateComplaintStatus = async (req, res) => {
 
     if (status) complaint.status = status;
     if (assignedTo) complaint.assignedTo = assignedTo;
-    
+
     if (status === "Resolved") {
       complaint.resolvedAt = new Date();
-      
+
       const created = new Date(complaint.createdAt);
       const resolved = new Date(complaint.resolvedAt);
       const diffMs = resolved - created;
-      
+
       const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
       const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       const diffDays = Math.floor(diffHrs / 24);
-      
+
       let duration = "";
       if (diffDays > 0) duration += `${diffDays} days `;
       if (diffHrs % 24 > 0) duration += `${diffHrs % 24} hours `;
       if (diffMins > 0) duration += `${diffMins} minutes`;
-      
+
       complaint.resolutionTime = duration.trim() || "< 1 minute";
     }
 

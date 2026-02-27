@@ -7,32 +7,28 @@ const Button = ({
     outline = false,
     small = false,
     className = '',
+    disabled = false,
+    type = 'button',
 }) => {
-
-    const base =
-        'inline-flex items-center justify-center rounded-full transition duration-150 focus:outline-none';
-
-    const sizeClass = small
-        ? 'px-4 py-1 text-sm'
-        : 'px-5 py-2 font-semibold';
-
-    let variant = '';
-
     if (outline) {
-        variant =
-            'border-2 border-green-700 text-green-700 hover:bg-green-700/10';
-    } else if (primary) {
-        variant =
-            'bg-green-700 text-white hover:bg-green-800 shadow-md';
-    } else {
-        variant =
-            'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md';
+        return (
+            <button
+                type={type}
+                onClick={onClick}
+                disabled={disabled}
+                className={`btn-outline ${small ? 'text-xs px-4 py-1.5' : ''} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+                {children}
+            </button>
+        );
     }
 
     return (
         <button
+            type={type}
             onClick={onClick}
-            className={`${base} ${sizeClass} ${variant} ${className}`}
+            disabled={disabled}
+            className={`btn-primary ${small ? 'text-xs px-4 py-1.5' : ''} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
             {children}
         </button>

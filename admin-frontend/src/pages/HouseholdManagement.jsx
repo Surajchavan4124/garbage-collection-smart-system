@@ -44,6 +44,13 @@ export default function HouseholdManagement() {
     fetchHouseholds()
     fetchComplaints()
     fetchWards()
+
+    // ── Real-time polling: re-fetch every 5 seconds ──
+    const interval = setInterval(() => {
+      fetchHouseholds()
+    }, 5000)
+
+    return () => clearInterval(interval)   // cleanup on unmount
   }, [])
 
   const fetchWards = async () => {
@@ -339,7 +346,13 @@ export default function HouseholdManagement() {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 {/* Title & Search Toolbar */}
                 <div className="px-6 py-4 border-b border-gray-50">
-                  <h2 className="text-lg font-bold text-gray-800 mb-4">HOUSEHOLD REGISTRY</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-gray-800">HOUSEHOLD REGISTRY</h2>
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 border border-green-200 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-[10px] font-semibold text-green-600">Live</span>
+                    </span>
+                  </div>
                   
                   <div className="flex items-center gap-3">
                     <Search size={18} className="text-gray-400" />

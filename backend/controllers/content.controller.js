@@ -6,12 +6,12 @@ export const getContent = async (req, res) => {
     const { type } = req.query;
     // If authenticated as admin, show draft/published. If public (future), show only published.
     // For now, this is admin side, so show logic handles existence.
-    
+
     // We assume the user is logged in as Panchayat Admin for this endpoint
     const panchayatId = req.user.panchayatId;
 
     const content = await Content.findOne({ panchayat: panchayatId, type });
-    
+
     if (!content) {
       // Return empty structure if not found so frontend can initialize
       return res.json({ type, title: "", body: "", status: "draft", media: [] });
@@ -26,7 +26,7 @@ export const getContent = async (req, res) => {
 // UPSERT CONTENT (SAVE DRAFT OR PUBLISH)
 export const saveContent = async (req, res) => {
   try {
-    const { type, title, body, status, media, cards } = req.body;
+    const { type, title, body, status, media, cards, stats, accordionItems, principles, ctaHeading, ctaSubtext, guides } = req.body;
     const panchayatId = req.user.panchayatId;
 
     let content = await Content.findOne({ panchayat: panchayatId, type });
@@ -35,8 +35,14 @@ export const saveContent = async (req, res) => {
       content.title = title || content.title;
       content.body = body || content.body;
       content.status = status || content.status;
-      if (media) content.media = media; 
-      if (cards) content.cards = cards; // Update cards
+      if (media) content.media = media;
+      if (cards) content.cards = cards;
+      if (stats) content.stats = stats;
+      if (accordionItems) content.accordionItems = accordionItems;
+      if (principles) content.principles = principles;
+      if (ctaHeading !== undefined) content.ctaHeading = ctaHeading;
+      if (ctaSubtext !== undefined) content.ctaSubtext = ctaSubtext;
+      if (guides) content.guides = guides;
       content.lastEditedBy = req.user._id;
       await content.save();
     } else {
@@ -48,6 +54,12 @@ export const saveContent = async (req, res) => {
         status,
         media,
         cards,
+        stats,
+        accordionItems,
+        principles,
+        ctaHeading,
+        ctaSubtext,
+        guides,
         lastEditedBy: req.user._id,
       });
     }
@@ -59,6 +71,7 @@ export const saveContent = async (req, res) => {
   }
 };
 
+
 // GET PUBLIC CONTENT (For Public Website)
 export const getPublicContent = async (req, res) => {
   try {
@@ -66,14 +79,14 @@ export const getPublicContent = async (req, res) => {
     const { type } = req.query;
 
     if (!panchayatId || !type) {
-        return res.status(400).json({ message: "Panchayat ID and Content Type are required" });
+      return res.status(400).json({ message: "Panchayat ID and Content Type are required" });
     }
 
     // Convert string ID to ObjectId if needed, or mongoose handles it.
     // We only show PUBLISHED content to public? 
     // For now, let's just return what's there, but ideally only 'published'
     // const content = await Content.findOne({ panchayat: panchayatId, type, status: 'published' });
-    
+
     // Loosening restriction for development - return whatever is found, or draft if that's all there is
     // But logically public should only see published.
     // Let's stick to returning the document if it exists.
