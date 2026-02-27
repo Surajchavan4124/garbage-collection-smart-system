@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, MapPin, Phone, Calendar, FileText } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -8,6 +8,12 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
   const [selectedEmployee, setSelectedEmployee] = useState(complaint?.assignedEmployee?._id || '')
   const [resolutionTime, setResolutionTime] = useState('')
   const [errors, setErrors] = useState({})
+
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isOpen]);
 
   if (!isOpen || !complaint) return null
 
@@ -39,7 +45,7 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
         <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[90vh]">
 
           {/* Header */}
@@ -59,220 +65,218 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
             </button>
           </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* LEFT COLUMN - Basic Information */}
-            <div className="lg:col-span-2 space-y-6">
-              
-              {/* Basic Information Section */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Basic Information</h3>
-                
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+          {/* Content */}
+          <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+              {/* LEFT COLUMN - Basic Information */}
+              <div className="lg:col-span-2 space-y-6">
+
+                {/* Basic Information Section */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">Basic Information</h3>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-2">Complaint ID</label>
+                        <input
+                          type="text"
+                          value={complaint.id}
+                          disabled
+                          className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-2">Date Submitted</label>
+                        <input
+                          type="text"
+                          value={complaint.dateSubmitted}
+                          disabled
+                          className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-2">Complaint ID</label>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Submitted By</label>
                       <input
                         type="text"
-                        value={complaint.id}
+                        value={complaint.name}
                         disabled
                         className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-2">Date Submitted</label>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Contact Number</label>
                       <input
                         type="text"
-                        value={complaint.dateSubmitted}
+                        value={complaint.mobile || 'N/A'}
                         disabled
                         className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Submitted By</label>
-                    <input
-                      type="text"
-                      value={complaint.name}
-                      disabled
-                      className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Contact Number</label>
-                    <input
-                      type="text"
-                      value={complaint.mobile || 'N/A'}
-                      disabled
-                      className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Category</label>
-                    <input
-                      type="text"
-                      value={complaint.category}
-                      disabled
-                      className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Message</label>
-                    <textarea
-                      value={complaint.description || ''}
-                      disabled
-                      className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm resize-none h-20"
-                    />
-                  </div>
-
-                  {/* Images Section */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Images</label>
-                    <div className="flex gap-3">
-                      {complaint.photo ? (
-                        <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center border border-gray-300 overflow-hidden">
-                          <img 
-                            src={`http://localhost:10000/${complaint.photo}`} 
-                            alt="Complaint" 
-                            className="w-full h-full object-cover"
-                            onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentElement.innerText = '📷'; }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center border border-gray-300">
-                           <span className="text-2xl">📷</span>
-                        </div>
-                      )}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Category</label>
+                      <input
+                        type="text"
+                        value={complaint.category}
+                        disabled
+                        className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
+                      />
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* RIGHT COLUMN - Ward & Location & Status */}
-            <div className="lg:col-span-1 space-y-6">
-              
-              {/* Ward & Location Section */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Ward & Location</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Ward</label>
-                    <input
-                      type="text"
-                      value={complaint.ward}
-                      disabled
-                      className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Message</label>
+                      <textarea
+                        value={complaint.description || ''}
+                        disabled
+                        className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm resize-none h-20"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Location</label>
-                    <div className="w-full h-40 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
-                      <div className="text-center">
-                        <span className="text-4xl">📍</span>
-                        <p className="text-xs text-gray-600 mt-2">Map will be displayed here</p>
+                    {/* Images Section */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Images</label>
+                      <div className="flex gap-3">
+                        {complaint.photo ? (
+                          <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center border border-gray-300 overflow-hidden">
+                            <img
+                              src={`http://localhost:10000/${complaint.photo}`}
+                              alt="Complaint"
+                              className="w-full h-full object-cover"
+                              onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentElement.innerText = '📷'; }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center border border-gray-300">
+                            <span className="text-2xl">📷</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Assigned To & Status Section */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Assigned To & Status</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-xs font-semibold text-gray-600">Assigned To</label>
-                      {errors.employee && <span className="text-[10px] text-red-500 font-bold">{errors.employee}</span>}
-                    </div>
-                    <select
-                      value={selectedEmployee}
-                      onChange={(e) => {
-                        setSelectedEmployee(e.target.value)
-                        if (errors.employee) setErrors(prev => ({ ...prev, employee: '' }))
-                      }}
-                      className={`w-full px-3 py-2 border rounded text-gray-700 text-sm focus:outline-none transition-all ${
-                        errors.employee ? 'border-red-300 focus:ring-2 focus:ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-teal-500'
-                      }`}
-                    >
-                      <option value="">Search a employee</option>
-                      {employees && employees.map(emp => (
-                        <option key={emp._id} value={emp._id}>{emp.name} - {emp.role}</option>
-                      ))}
-                    </select>
-                  </div>
+              {/* RIGHT COLUMN - Ward & Location & Status */}
+              <div className="lg:col-span-1 space-y-6">
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Status</label>
-                    <div className="space-y-2">
-                      {['Received', 'In Progress', 'Resolved'].map((status) => (
-                        <label key={status} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="status"
-                            value={status}
-                            checked={selectedStatus === status}
-                        onChange={(e) => {
-                              const newStatus = e.target.value;
-                              setSelectedStatus(newStatus);
-                              if (newStatus === 'Resolved' && complaint.createdAt) {
-                                const created = new Date(complaint.createdAt);
-                                const now = new Date();
-                                const diffMs = now - created;
-                                const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-                                const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                                const diffDays = Math.floor(diffHrs / 24);
-                                
-                                let duration = "";
-                                if (diffDays > 0) duration += `${diffDays} days `;
-                                if (diffHrs % 24 > 0) duration += `${diffHrs % 24} hours `;
-                                if (diffMins > 0) duration += `${diffMins} minutes`;
-                                setResolutionTime(duration.trim() || "< 1 minute");
-                              }
-                            }}
-                            className="w-4 h-4 text-teal-500"
-                          />
-                          <span className="text-sm text-gray-700">{status}</span>
-                        </label>
-                      ))}
+                {/* Ward & Location Section */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">Ward & Location</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Ward</label>
+                      <input
+                        type="text"
+                        value={complaint.ward}
+                        disabled
+                        className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Location</label>
+                      <div className="w-full h-40 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
+                        <div className="text-center">
+                          <span className="text-4xl">📍</span>
+                          <p className="text-xs text-gray-600 mt-2">Map will be displayed here</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  {selectedStatus === 'Resolved' && (
+                {/* Assigned To & Status Section */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">Assigned To & Status</h3>
+
+                  <div className="space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-semibold text-gray-600">Resolution Time</label>
-                        {errors.resolutionTime && <span className="text-[10px] text-red-500 font-bold">{errors.resolutionTime}</span>}
+                        <label className="block text-xs font-semibold text-gray-600">Assigned To</label>
+                        {errors.employee && <span className="text-[10px] text-red-500 font-bold">{errors.employee}</span>}
                       </div>
-                      <input
-                        type="text"
-                        placeholder="time taken from received to resolved"
-                        value={resolutionTime}
+                      <select
+                        value={selectedEmployee}
                         onChange={(e) => {
-                          setResolutionTime(e.target.value)
-                          if (errors.resolutionTime) setErrors(prev => ({ ...prev, resolutionTime: '' }))
+                          setSelectedEmployee(e.target.value)
+                          if (errors.employee) setErrors(prev => ({ ...prev, employee: '' }))
                         }}
-                        className={`w-full px-3 py-2 border rounded text-gray-700 text-sm focus:outline-none transition-all ${
-                          errors.resolutionTime ? 'border-red-300 focus:ring-2 focus:ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-teal-500'
-                        }`}
-                      />
+                        className={`w-full px-3 py-2 border rounded text-gray-700 text-sm focus:outline-none transition-all ${errors.employee ? 'border-red-300 focus:ring-2 focus:ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-teal-500'
+                          }`}
+                      >
+                        <option value="">Search a employee</option>
+                        {employees && employees.map(emp => (
+                          <option key={emp._id} value={emp._id}>{emp.name} - {emp.role}</option>
+                        ))}
+                      </select>
                     </div>
-                  )}
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Status</label>
+                      <div className="space-y-2">
+                        {['Received', 'In Progress', 'Resolved'].map((status) => (
+                          <label key={status} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="status"
+                              value={status}
+                              checked={selectedStatus === status}
+                              onChange={(e) => {
+                                const newStatus = e.target.value;
+                                setSelectedStatus(newStatus);
+                                if (newStatus === 'Resolved' && complaint.createdAt) {
+                                  const created = new Date(complaint.createdAt);
+                                  const now = new Date();
+                                  const diffMs = now - created;
+                                  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                                  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                                  const diffDays = Math.floor(diffHrs / 24);
+
+                                  let duration = "";
+                                  if (diffDays > 0) duration += `${diffDays} days `;
+                                  if (diffHrs % 24 > 0) duration += `${diffHrs % 24} hours `;
+                                  if (diffMins > 0) duration += `${diffMins} minutes`;
+                                  setResolutionTime(duration.trim() || "< 1 minute");
+                                }
+                              }}
+                              className="w-4 h-4 text-teal-500"
+                            />
+                            <span className="text-sm text-gray-700">{status}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {selectedStatus === 'Resolved' && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-xs font-semibold text-gray-600">Resolution Time</label>
+                          {errors.resolutionTime && <span className="text-[10px] text-red-500 font-bold">{errors.resolutionTime}</span>}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="time taken from received to resolved"
+                          value={resolutionTime}
+                          onChange={(e) => {
+                            setResolutionTime(e.target.value)
+                            if (errors.resolutionTime) setErrors(prev => ({ ...prev, resolutionTime: '' }))
+                          }}
+                          className={`w-full px-3 py-2 border rounded text-gray-700 text-sm focus:outline-none transition-all ${errors.resolutionTime ? 'border-red-300 focus:ring-2 focus:ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-teal-500'
+                            }`}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
           {/* Footer */}
           <div className="px-6 pb-6 pt-4 border-t border-gray-50 flex justify-end gap-3 flex-shrink-0">

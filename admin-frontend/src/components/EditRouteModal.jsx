@@ -16,11 +16,17 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
   });
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isOpen]);
+
   // Load drivers
   useEffect(() => {
     if (isOpen) {
       api.get("/employees?role=driver").then((res) => {
-        setDrivers(res.data.filter(e => e.role?.toLowerCase().includes('driver') || e.role?.toLowerCase().includes('labour'))); 
+        setDrivers(res.data.filter(e => e.role?.toLowerCase().includes('driver') || e.role?.toLowerCase().includes('labour')));
       }).catch(err => console.error("Failed to load drivers", err));
     }
   }, [isOpen]);
@@ -62,10 +68,10 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
   const validate = () => {
     const newErrors = {};
     if (!formData.routeName.trim()) newErrors.routeName = "Route name is required";
-    
+
     const validStops = formData.stops.filter(s => s.stopName.trim() !== "");
     if (validStops.length < 2) newErrors.stops = "At least 2 valid stops required";
-    
+
     if (!formData.assignedDriver) newErrors.assignedDriver = "Driver assignment is required";
     if (!formData.assignedVehicle.trim()) newErrors.assignedVehicle = "Vehicle number is required";
 
@@ -98,7 +104,7 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex justify-between items-center px-6 py-5 flex-shrink-0"
@@ -117,11 +123,11 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
             </button>
           </div>
 
-        {/* Form Body */}
-        <div className="p-6 space-y-4">
-          
-          <div className="grid grid-cols-2 gap-4">
-             <div>
+          {/* Form Body */}
+          <div className="p-6 space-y-4">
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Route Name *</label>
                   {errors.routeName && <span className="text-[10px] text-red-500 font-bold">{errors.routeName}</span>}
@@ -134,28 +140,28 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
                   placeholder="e.g. Ward 1 Morning"
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 outline-none transition-all ${errors.routeName ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
                 />
-             </div>
-             <div>
-               <label className="block text-sm font-medium text-gray-700 mb-1">Route Code</label>
-               <input
-                 type="text"
-                 value={route?.routeCode || "N/A"}
-                 disabled
-                 className="w-full px-3 py-2 bg-gray-100 border rounded-lg text-gray-500 text-sm"
-               />
-             </div>
-          </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Route Code</label>
+                <input
+                  type="text"
+                  value={route?.routeCode || "N/A"}
+                  disabled
+                  className="w-full px-3 py-2 bg-gray-100 border rounded-lg text-gray-500 text-sm"
+                />
+              </div>
+            </div>
 
-          {/* Dynamic Stops */}
-          <div>
-             <div className="flex items-center justify-between mb-2">
-               <label className="block text-sm font-medium text-gray-700">Route Stops *</label>
-               {errors.stops && <span className="text-[10px] text-red-500 font-bold">{errors.stops}</span>}
-             </div>
-            {formData.stops.map((stop, index) => (
-              <div key={index} className="flex gap-2 mb-2">
+            {/* Dynamic Stops */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">Route Stops *</label>
+                {errors.stops && <span className="text-[10px] text-red-500 font-bold">{errors.stops}</span>}
+              </div>
+              {formData.stops.map((stop, index) => (
+                <div key={index} className="flex gap-2 mb-2">
                   <div className="relative flex-1">
-                    <MapPin className={`absolute left-3 top-2.5 transition-colors ${errors.stops ? 'text-red-400' : 'text-gray-400'}`} size={16}/>
+                    <MapPin className={`absolute left-3 top-2.5 transition-colors ${errors.stops ? 'text-red-400' : 'text-gray-400'}`} size={16} />
                     <input
                       type="text"
                       value={stop.stopName}
@@ -164,34 +170,34 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
                       className={`w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 outline-none text-sm transition-all ${errors.stops ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
                     />
                   </div>
-                 {formData.stops.length > 1 && (
-                   <button
-                     type="button"
-                     onClick={() => removeStop(index)}
-                     className="p-2 text-red-500 hover:bg-red-50 rounded"
-                   >
-                     <X size={18} />
-                   </button>
-                 )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addStop}
-              className="text-sm text-teal-600 font-semibold hover:underline mt-1"
-            >
-              + Add Stop
-            </button>
-          </div>
+                  {formData.stops.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeStop(index)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addStop}
+                className="text-sm text-teal-600 font-semibold hover:underline mt-1"
+              >
+                + Add Stop
+              </button>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-             <div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Assign Driver *</label>
                   {errors.assignedDriver && <span className="text-[10px] text-red-500 font-bold">{errors.assignedDriver}</span>}
                 </div>
                 <div className="relative">
-                  <User className={`absolute left-3 top-2.5 transition-colors ${errors.assignedDriver ? 'text-red-400' : 'text-gray-400'}`} size={16}/>
+                  <User className={`absolute left-3 top-2.5 transition-colors ${errors.assignedDriver ? 'text-red-400' : 'text-gray-400'}`} size={16} />
                   <select
                     name="assignedDriver"
                     value={formData.assignedDriver}
@@ -204,15 +210,15 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
                     ))}
                   </select>
                 </div>
-             </div>
+              </div>
 
-             <div>
+              <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700">Vehicle Number *</label>
                   {errors.assignedVehicle && <span className="text-[10px] text-red-500 font-bold">{errors.assignedVehicle}</span>}
                 </div>
                 <div className="relative">
-                  <Truck className={`absolute left-3 top-2.5 transition-colors ${errors.assignedVehicle ? 'text-red-400' : 'text-gray-400'}`} size={16}/>
+                  <Truck className={`absolute left-3 top-2.5 transition-colors ${errors.assignedVehicle ? 'text-red-400' : 'text-gray-400'}`} size={16} />
                   <input
                     type="text"
                     name="assignedVehicle"
@@ -222,10 +228,10 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
                     className={`w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 outline-none text-sm transition-all ${errors.assignedVehicle ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
                   />
                 </div>
-             </div>
-          </div>
+              </div>
+            </div>
 
-        </div>
+          </div>
 
           {/* Footer */}
           <div className="flex justify-end gap-3 px-6 pb-6 pt-4 border-t border-gray-50 flex-shrink-0">

@@ -25,7 +25,7 @@ export default function HouseholdManagement() {
     contact: '',
   })
   const [errors, setErrors] = useState({})
-  
+
   // Modal states
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -87,25 +87,25 @@ export default function HouseholdManagement() {
       const res = await api.get('/complaints')
       const complaints = res.data;
       setComplaintsCount(complaints.length)
-      
+
       // Calculate specific stats for the chart
       const statusCounts = complaints.reduce((acc, curr) => {
         acc[curr.status] = (acc[curr.status] || 0) + 1;
         return acc;
       }, {});
-      
+
       const stats = Object.keys(statusCounts).map(key => ({
         name: key,
         value: statusCounts[key]
       }));
-      
+
       // If empty (no complaints), show placeholder
       if (stats.length === 0) {
         setComplaintStats([{ name: 'No Data', value: 1 }]);
       } else {
         setComplaintStats(stats);
       }
-      
+
     } catch (error) {
       console.error('Failed to fetch complaints', error)
       setComplaintStats([{ name: 'Error', value: 1 }]);
@@ -115,12 +115,12 @@ export default function HouseholdManagement() {
   // Filter households based on search
   // Filter households based on search, ward, and status
   const filteredHouseholds = households.filter((household) => {
-      const matchesSearch = household.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            household.headOfHousehold?.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesWard = wardFilter === 'All' || household.ward === wardFilter
-      const matchesStatus = statusFilter === 'All' || household.status === statusFilter
-      
-      return matchesSearch && matchesWard && matchesStatus
+    const matchesSearch = household.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      household.headOfHousehold?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesWard = wardFilter === 'All' || household.ward === wardFilter
+    const matchesStatus = statusFilter === 'All' || household.status === statusFilter
+
+    return matchesSearch && matchesWard && matchesStatus
   })
 
   // Download Handlers
@@ -152,7 +152,7 @@ export default function HouseholdManagement() {
   const handleDownloadPDF = () => {
     try {
       const doc = new jsPDF()
-      
+
       doc.text('Household Registry', 14, 15)
       doc.setFontSize(10)
       doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22)
@@ -209,7 +209,7 @@ export default function HouseholdManagement() {
     if (!formData.houseNumber.trim()) newErrors.houseNumber = 'House Number is required'
     if (!formData.address.trim()) newErrors.address = 'Address is required'
     if (!formData.headName.trim()) newErrors.headName = 'Owner Name is required'
-    
+
     const contactRegex = /^\d{10}$/
     if (!formData.contact.trim()) newErrors.contact = 'Contact is required'
     else if (!contactRegex.test(formData.contact)) newErrors.contact = 'Invalid 10-digit contact'
@@ -260,36 +260,36 @@ export default function HouseholdManagement() {
 
   const handleUpdateHousehold = async (householdId, updatedData) => {
     try {
-       // payload mapping matching backend expectations
-       const payload = {
-          ownerName: updatedData.headOfHousehold,
-          mobile: updatedData.contact,
-          address: updatedData.address,
-          ward: updatedData.ward,
-          segregationCompliance: updatedData.segregationCompliance
-       }
+      // payload mapping matching backend expectations
+      const payload = {
+        ownerName: updatedData.headOfHousehold,
+        mobile: updatedData.contact,
+        address: updatedData.address,
+        ward: updatedData.ward,
+        segregationCompliance: updatedData.segregationCompliance
+      }
 
-       await api.put(`/households/${householdId}`, payload)
-       fetchHouseholds()
-       toast.success('Household updated successfully')
+      await api.put(`/households/${householdId}`, payload)
+      fetchHouseholds()
+      toast.success('Household updated successfully')
     } catch (e) {
-       console.error(e)
-       toast.error(e.response?.data?.message || 'Update failed')
+      console.error(e)
+      toast.error(e.response?.data?.message || 'Update failed')
     }
   }
-  
+
   const handleVerifyHousehold = async (householdId, newStatus) => {
     try {
-       await api.patch(`/households/${householdId}/status`, { status: newStatus })
-       
-       setHouseholds(households.map(h => 
-          h._id === householdId ? { ...h, status: newStatus } : h
-       ))
-       
-       toast.success(`Household ${newStatus} successfully`)
+      await api.patch(`/households/${householdId}/status`, { status: newStatus })
+
+      setHouseholds(households.map(h =>
+        h._id === householdId ? { ...h, status: newStatus } : h
+      ))
+
+      toast.success(`Household ${newStatus} successfully`)
     } catch (error) {
-       console.error("Verification failed", error)
-       toast.error("Failed to update status")
+      console.error("Verification failed", error)
+      toast.error("Failed to update status")
     }
   }
 
@@ -331,419 +331,425 @@ export default function HouseholdManagement() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* LEFT COLUMN - TABLE & METRICS (2/3 width) */}
-            <div className="lg:col-span-2 space-y-6">
-              
-              {/* ===== HOUSEHOLD REGISTRY TABLE ===== */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                {/* Title & Search Toolbar */}
-                <div className="px-6 py-4 border-b border-gray-50">
-                  <h2 className="text-lg font-bold text-gray-800 mb-4">HOUSEHOLD REGISTRY</h2>
-                  
-                  <div className="flex items-center gap-3">
-                    <Search size={18} className="text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search household by ID"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
-                    />
-                    
-                    {/* Filter Dropdown */}
-                    <div className="relative">
-                      <button 
-                        onClick={() => {
-                          setShowFilterMenu(!showFilterMenu)
-                          setShowDownloadMenu(false)
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition ${wardFilter !== 'All' || statusFilter !== 'All' ? 'bg-teal-50 text-teal-700 border-teal-500' : ''}`}
-                      >
-                        <Filter size={16} />
-                        <span>Filter</span>
-                      </button>
-                      
-                      {showFilterMenu && (
-                        <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded shadow-xl z-20 p-4 space-y-4">
-                            {/* Ward Filter */}
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1">Ward</label>
-                                <select 
-                                    value={wardFilter}
-                                    onChange={(e) => setWardFilter(e.target.value)}
-                                    className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                >
-                                    <option value="All">All Wards</option>
-                                    {wards.map(ward => (
-                                        <option key={ward._id} value={ward.name}>{ward.name}</option>
-                                    ))}
-                                </select>
-                            </div>
 
-                            {/* Status Filter */}
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
-                                <select 
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                >
-                                    <option value="All">All Statuses</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Rejected">Rejected</option>
-                                </select>
-                            </div>
+        {/* LEFT COLUMN - TABLE & METRICS (2/3 width) */}
+        <div className="lg:col-span-2 space-y-6">
 
-                            {/* Clear Filters */}
-                            {(wardFilter !== 'All' || statusFilter !== 'All') && (
-                                <button
-                                    onClick={() => {
-                                        setWardFilter('All')
-                                        setStatusFilter('All')
-                                    }}
-                                    className="w-full py-1 text-xs text-red-500 hover:text-red-700 font-semibold border-t border-gray-100 pt-2"
-                                >
-                                    Clear Filters
-                                </button>
-                            )}
-                        </div>
-                      )}
-                    </div>
+          {/* ===== HOUSEHOLD REGISTRY TABLE ===== */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+            {/* Title & Search Toolbar */}
+            <div className="px-6 py-4 border-b border-gray-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <h2 className="text-lg font-bold text-gray-800">HOUSEHOLD REGISTRY</h2>
 
-                    {/* Download Dropdown */}
-                    <div className="relative">
-                      <button 
-                        onClick={() => {
-                          setShowDownloadMenu(!showDownloadMenu)
-                          setShowFilterMenu(false)
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition"
-                      >
-                        <Download size={16} />
-                        <span>Download</span>
-                      </button>
+              <div className="flex items-center gap-3">
+                <Search size={18} className="text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search household by ID"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
+                />
 
-                      {showDownloadMenu && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-xl z-20">
-                          <button
-                            onClick={handleDownloadCSV}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <Table size={16} /> Download CSV
-                          </button>
-                          <button
-                            onClick={handleDownloadPDF}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <FileText size={16} /> Download PDF
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                {/* Filter Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowFilterMenu(!showFilterMenu)
+                      setShowDownloadMenu(false)
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition ${wardFilter !== 'All' || statusFilter !== 'All' ? 'bg-teal-50 text-teal-700 border-teal-500' : ''}`}
+                  >
+                    <Filter size={16} />
+                    <span>Filter</span>
+                  </button>
 
-                {/* Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
-                        {['Household ID', 'Head of Household', 'Ward', 'Contact', 'Status', 'Actions'].map(h => (
-                          <th key={h} className="px-5 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {filteredHouseholds.map((household, idx) => (
-                        <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-teal-50/30`}>
-                          <td className="px-5 py-3.5">
-                            <span className="text-xs font-mono font-bold text-teal-600">{household.id}</span>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                                style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}>
-                                {household.headOfHousehold?.charAt(0)}
-                              </div>
-                              <span className="text-sm font-semibold text-gray-800">{household.headOfHousehold}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3.5 text-xs text-gray-500">{household.ward}</td>
-                          <td className="px-5 py-3.5 text-xs text-gray-500">{household.contact}</td>
-                          <td className="px-5 py-3.5">
-                             <span className={`px-2.5 py-1 text-[10px] rounded-full font-bold border ${
-                                household.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                household.status === 'Rejected' ? 'bg-red-50 text-red-500 border-red-100' :
-                                'bg-amber-50 text-amber-600 border-amber-100'
-                             }`}>
-                                {household.status || 'Pending'}
-                             </span>
-                          </td>
-                          <td className="px-6 py-4 flex gap-2">
-                            {/* Verification Actions */}
-                            {household.status === 'Pending' && (
-                              <>
-                                <button
-                                  onClick={() => handleVerifyHousehold(household._id, 'Approved')}
-                                  title="Approve"
-                                  className="p-2 text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition"
-                                >
-                                  <CheckCircle size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleVerifyHousehold(household._id, 'Rejected')}
-                                  title="Reject"
-                                  className="p-2 text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition"
-                                >
-                                  <XCircle size={16} />
-                                </button>
-                              </>
-                            )}
-
-                            <button
-                              onClick={() => handleViewHousehold(household)}
-                              title="View Details"
-                              className="p-2 text-blue-500 border border-blue-500 rounded hover:bg-blue-50 transition"
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleOpenDeleteModal(household)}
-                              title="Delete"
-                              className="p-2 text-red-500 border border-red-500 rounded hover:bg-red-50 transition"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* ===== COMPLIANCE METRICS ===== */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold text-gray-800">COMPLIANCE METRICS</h2>
-                
-                {/* Quick Stats */}
-                <p className="text-sm text-gray-600 font-medium">Quick stats summary:</p>
-                <div className="grid grid-cols-3 gap-4">
-                  {/* Total Households */}
-                  <div className="bg-gray-100 rounded-lg p-4 border border-gray-300 text-center">
-                    <p className="text-xs text-gray-600 font-semibold mb-2">Total Household Registered</p>
-                    <p className="text-2xl font-bold text-gray-800">{totalHouseholds}</p>
-                  </div>
-
-                  {/* Complaints */}
-                  <div className="bg-gray-100 rounded-lg p-4 border border-gray-300 text-center">
-                    <p className="text-xs text-gray-600 font-semibold mb-2">Complaints</p>
-                    <p className="text-2xl font-bold text-gray-800">{complaintsCount}</p>
-                  </div>
-
-                  {/* Non-Compliant */}
-                  <div className="bg-gray-100 rounded-lg p-4 border border-gray-300 text-center">
-                    <p className="text-xs text-gray-600 font-semibold mb-2">Non-Compliant</p>
-                    <p className="text-2xl font-bold text-gray-800">{nonCompliantCount}</p>
-                  </div>
-                </div>
-
-                <p className="text-sm text-gray-600 font-medium mt-4">Visuals:</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Compliance Chart */}
-                  <div className="bg-cyan-100 rounded-lg p-4 min-h-64 flex flex-col items-center justify-center">
-                    <svg viewBox="0 0 200 200" className="w-40 h-40">
-                      {/* Background circle */}
-                      <circle cx="100" cy="100" r="80" fill="#f0f0f0" />
-                      
-                      {/* Compliance (large pie slice - teal) */}
-                      <circle
-                        cx="100"
-                        cy="100"
-                        r="80"
-                        fill="none"
-                        stroke="#2c5f5f"
-                        strokeWidth="60"
-                        strokeDasharray={`${(compliancePercentage / 100) * 502.65} 502.65`}
-                        strokeDashoffset="0"
-                        transform="rotate(-90 100 100)"
-                      />
-                      
-                      {/* Non-Compliance (small pie slice - dark grey) */}
-                      <circle
-                        cx="100"
-                        cy="100"
-                        r="80"
-                        fill="none"
-                        stroke="#4a4a4a"
-                        strokeWidth="60"
-                        strokeDasharray={`${(nonCompliancePercentage / 100) * 502.65} 502.65`}
-                        strokeDashoffset={`-${(compliancePercentage / 100) * 502.65}`}
-                        transform="rotate(-90 100 100)"
-                      />
-                    </svg>
-                    <h3 className="text-center font-bold text-gray-800 mt-2 text-xs">
-                      Compliance vs Non-Compliance
-                    </h3>
-                  </div>
-
-                  {/* Complaints Chart */}
-                  <div className="bg-orange-100 rounded-lg p-4 min-h-64 flex flex-col items-center justify-center">
-                    <ResponsiveContainer width="100%" height={160}>
-                      <PieChart>
-                        <Pie
-                          data={complaintStats}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={60}
-                          fill="#8884d8"
-                          paddingAngle={5}
-                          dataKey="value"
+                  {showFilterMenu && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded shadow-xl z-20 p-4 space-y-4">
+                      {/* Ward Filter */}
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Ward</label>
+                        <select
+                          value={wardFilter}
+                          onChange={(e) => {
+                            setWardFilter(e.target.value)
+                            setShowFilterMenu(false)
+                          }}
+                          className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
                         >
-                          {complaintStats.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <option value="All">All Wards</option>
+                          {wards.map(ward => (
+                            <option key={ward._id} value={ward.name}>{ward.name}</option>
                           ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend wrapperStyle={{ fontSize: '10px' }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <h3 className="text-center font-bold text-gray-800 mt-2 text-xs">
-                      Complaints by Status
-                    </h3>
-                  </div>
+                        </select>
+                      </div>
+
+                      {/* Status Filter */}
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => {
+                            setStatusFilter(e.target.value)
+                            setShowFilterMenu(false)
+                          }}
+                          className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        >
+                          <option value="All">All Statuses</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Approved">Approved</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </div>
+
+                      {/* Clear Filters */}
+                      {(wardFilter !== 'All' || statusFilter !== 'All') && (
+                        <button
+                          onClick={() => {
+                            setWardFilter('All')
+                            setStatusFilter('All')
+                            setShowFilterMenu(false)
+                          }}
+                          className="w-full py-1 text-xs text-red-500 hover:text-red-700 font-semibold border-t border-gray-100 pt-2"
+                        >
+                          Clear Filters
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Download Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowDownloadMenu(!showDownloadMenu)
+                      setShowFilterMenu(false)
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition"
+                  >
+                    <Download size={16} />
+                    <span>Download</span>
+                  </button>
+
+                  {showDownloadMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-xl z-20">
+                      <button
+                        onClick={handleDownloadCSV}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <Table size={16} /> Download CSV
+                      </button>
+                      <button
+                        onClick={handleDownloadPDF}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <FileText size={16} /> Download PDF
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* RIGHT COLUMN - ADD HOUSEHOLD FORM (1/3 width) */}
-            <div className="lg:col-span-1">
-              {/* ===== ADD HOUSEHOLD FORM ===== */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">ADD HOUSEHOLD</h3>
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                    {['Household ID', 'Head of Household', 'Ward', 'Contact', 'Status', 'Actions'].map(h => (
+                      <th key={h} className="px-5 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredHouseholds.map((household, idx) => (
+                    <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-teal-50/30`}>
+                      <td className="px-5 py-3.5">
+                        <span className="text-xs font-mono font-bold text-teal-600">{household.id}</span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #1f9e9a, #22c55e)' }}>
+                            {household.headOfHousehold?.charAt(0)}
+                          </div>
+                          <span className="text-sm font-semibold text-gray-800">{household.headOfHousehold}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 text-xs text-gray-500">{household.ward}</td>
+                      <td className="px-5 py-3.5 text-xs text-gray-500">{household.contact}</td>
+                      <td className="px-5 py-3.5">
+                        <span className={`px-2.5 py-1 text-[10px] rounded-full font-bold border ${household.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                            household.status === 'Rejected' ? 'bg-red-50 text-red-500 border-red-100' :
+                              'bg-amber-50 text-amber-600 border-amber-100'
+                          }`}>
+                          {household.status || 'Pending'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 flex gap-2">
+                        {/* Verification Actions */}
+                        {household.status === 'Pending' && (
+                          <>
+                            <button
+                              onClick={() => handleVerifyHousehold(household._id, 'Approved')}
+                              title="Approve"
+                              className="p-2 text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition"
+                            >
+                              <CheckCircle size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleVerifyHousehold(household._id, 'Rejected')}
+                              title="Reject"
+                              className="p-2 text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition"
+                            >
+                              <XCircle size={16} />
+                            </button>
+                          </>
+                        )}
 
-                <form onSubmit={handleSaveHousehold} className="space-y-4">
-                  {/* Household ID (Auto) */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                       System ID
-                    </label>
-                    <input
-                      type="text"
-                      value="Auto Generated"
-                      disabled
-                      className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-600 text-xs"
-                    />
-                  </div>
+                        <button
+                          onClick={() => handleViewHousehold(household)}
+                          title="View Details"
+                          className="p-2 text-blue-500 border border-blue-500 rounded hover:bg-blue-50 transition"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleOpenDeleteModal(household)}
+                          title="Delete"
+                          className="p-2 text-red-500 border border-red-500 rounded hover:bg-red-50 transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-                  {/* House Number (Manual) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                       <label className="block text-xs font-semibold text-gray-700">House Number *</label>
-                       {errors.houseNumber && <span className="text-[10px] text-red-500 font-bold">{errors.houseNumber}</span>}
-                    </div>
-                    <input
-                      type="text"
-                      name="houseNumber"
-                      placeholder="e.g. H-101"
-                      value={formData.houseNumber}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.houseNumber ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
-                    />
-                  </div>
+          {/* ===== COMPLIANCE METRICS ===== */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-gray-800">COMPLIANCE METRICS</h2>
 
-                  {/* Address */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                       <label className="block text-xs font-semibold text-gray-700">Address *</label>
-                       {errors.address && <span className="text-[10px] text-red-500 font-bold">{errors.address}</span>}
-                    </div>
-                    <textarea
-                      name="address"
-                      placeholder="Enter address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all resize-none h-16 ${errors.address ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
-                    ></textarea>
-                  </div>
+            {/* Quick Stats */}
+            <p className="text-sm text-gray-600 font-medium">Quick stats summary:</p>
+            <div className="grid grid-cols-3 gap-4">
+              {/* Total Households */}
+              <div className="bg-gray-100 rounded-lg p-4 border border-gray-300 text-center">
+                <p className="text-xs text-gray-600 font-semibold mb-2">Total Household Registered</p>
+                <p className="text-2xl font-bold text-gray-800">{totalHouseholds}</p>
+              </div>
 
-                  {/* Ward Assigned */}
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Ward Assigned
-                    </label>
-                      <select
-                        name="wardAssigned"
-                        value={formData.wardAssigned}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
-                      >
-                        {wards.map(ward => (
-                          <option key={ward._id} value={ward.name}>
-                            {ward.name}
-                          </option>
-                        ))}
-                      </select>
-                  </div>
+              {/* Complaints */}
+              <div className="bg-gray-100 rounded-lg p-4 border border-gray-300 text-center">
+                <p className="text-xs text-gray-600 font-semibold mb-2">Complaints</p>
+                <p className="text-2xl font-bold text-gray-800">{complaintsCount}</p>
+              </div>
 
-                  {/* Name of the Head */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                       <label className="block text-xs font-semibold text-gray-700">Owner Name *</label>
-                       {errors.headName && <span className="text-[10px] text-red-500 font-bold">{errors.headName}</span>}
-                    </div>
-                    <input
-                      type="text"
-                      name="headName"
-                      placeholder="Enter name"
-                      value={formData.headName}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.headName ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
-                    />
-                  </div>
+              {/* Non-Compliant */}
+              <div className="bg-gray-100 rounded-lg p-4 border border-gray-300 text-center">
+                <p className="text-xs text-gray-600 font-semibold mb-2">Non-Compliant</p>
+                <p className="text-2xl font-bold text-gray-800">{nonCompliantCount}</p>
+              </div>
+            </div>
 
-                  {/* Contact */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                       <label className="block text-xs font-semibold text-gray-700">Contact *</label>
-                       {errors.contact && <span className="text-[10px] text-red-500 font-bold">{errors.contact}</span>}
-                    </div>
-                    <input
-                      type="text"
-                      name="contact"
-                      placeholder="10-digit number"
-                      value={formData.contact}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.contact ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
-                    />
-                  </div>
+            <p className="text-sm text-gray-600 font-medium mt-4">Visuals:</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Compliance Chart */}
+              <div className="bg-cyan-100 rounded-lg p-4 min-h-64 flex flex-col items-center justify-center">
+                <svg viewBox="0 0 200 200" className="w-40 h-40">
+                  {/* Background circle */}
+                  <circle cx="100" cy="100" r="80" fill="#f0f0f0" />
 
-                  {/* Buttons */}
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      type="submit"
-                      className="flex-1 px-3 py-2 bg-teal-500 text-white rounded font-semibold text-xs hover:bg-teal-600 transition"
+                  {/* Compliance (large pie slice - teal) */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    fill="none"
+                    stroke="#2c5f5f"
+                    strokeWidth="60"
+                    strokeDasharray={`${(compliancePercentage / 100) * 502.65} 502.65`}
+                    strokeDashoffset="0"
+                    transform="rotate(-90 100 100)"
+                  />
+
+                  {/* Non-Compliance (small pie slice - dark grey) */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    fill="none"
+                    stroke="#4a4a4a"
+                    strokeWidth="60"
+                    strokeDasharray={`${(nonCompliancePercentage / 100) * 502.65} 502.65`}
+                    strokeDashoffset={`-${(compliancePercentage / 100) * 502.65}`}
+                    transform="rotate(-90 100 100)"
+                  />
+                </svg>
+                <h3 className="text-center font-bold text-gray-800 mt-2 text-xs">
+                  Compliance vs Non-Compliance
+                </h3>
+              </div>
+
+              {/* Complaints Chart */}
+              <div className="bg-orange-100 rounded-lg p-4 min-h-64 flex flex-col items-center justify-center">
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie
+                      data={complaintStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={60}
+                      fill="#8884d8"
+                      paddingAngle={5}
+                      dataKey="value"
                     >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData({ houseNumber: '', address: '', wardAssigned: wards[0]?.name || 'Ward 1', headName: '', contact: '' });
-                        setErrors({});
-                      }}
-                      className="flex-1 px-3 py-2 bg-red-500 text-white rounded font-semibold text-xs hover:bg-red-600 transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+                      {complaintStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: '10px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <h3 className="text-center font-bold text-gray-800 mt-2 text-xs">
+                  Complaints by Status
+                </h3>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* RIGHT COLUMN - ADD HOUSEHOLD FORM (1/3 width) */}
+        <div className="lg:col-span-1">
+          {/* ===== ADD HOUSEHOLD FORM ===== */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">ADD HOUSEHOLD</h3>
+
+            <form onSubmit={handleSaveHousehold} className="space-y-4">
+              {/* Household ID (Auto) */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-2">
+                  System ID
+                </label>
+                <input
+                  type="text"
+                  value="Auto Generated"
+                  disabled
+                  className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-600 text-xs"
+                />
+              </div>
+
+              {/* House Number (Manual) */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold text-gray-700">House Number *</label>
+                  {errors.houseNumber && <span className="text-[10px] text-red-500 font-bold">{errors.houseNumber}</span>}
+                </div>
+                <input
+                  type="text"
+                  name="houseNumber"
+                  placeholder="e.g. H-101"
+                  value={formData.houseNumber}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.houseNumber ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
+                />
+              </div>
+
+              {/* Address */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold text-gray-700">Address *</label>
+                  {errors.address && <span className="text-[10px] text-red-500 font-bold">{errors.address}</span>}
+                </div>
+                <textarea
+                  name="address"
+                  placeholder="Enter address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all resize-none h-16 ${errors.address ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
+                ></textarea>
+              </div>
+
+              {/* Ward Assigned */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-2">
+                  Ward Assigned
+                </label>
+                <select
+                  name="wardAssigned"
+                  value={formData.wardAssigned}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs"
+                >
+                  {wards.map(ward => (
+                    <option key={ward._id} value={ward.name}>
+                      {ward.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Name of the Head */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold text-gray-700">Owner Name *</label>
+                  {errors.headName && <span className="text-[10px] text-red-500 font-bold">{errors.headName}</span>}
+                </div>
+                <input
+                  type="text"
+                  name="headName"
+                  placeholder="Enter name"
+                  value={formData.headName}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.headName ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
+                />
+              </div>
+
+              {/* Contact */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold text-gray-700">Contact *</label>
+                  {errors.contact && <span className="text-[10px] text-red-500 font-bold">{errors.contact}</span>}
+                </div>
+                <input
+                  type="text"
+                  name="contact"
+                  placeholder="10-digit number"
+                  value={formData.contact}
+                  onChange={handleInputChange}
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-xs transition-all ${errors.contact ? 'border-red-300 focus:ring-red-400/20 focus:border-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 px-3 py-2 bg-teal-500 text-white rounded font-semibold text-xs hover:bg-teal-600 transition"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ houseNumber: '', address: '', wardAssigned: wards[0]?.name || 'Ward 1', headName: '', contact: '' });
+                    setErrors({});
+                  }}
+                  className="flex-1 px-3 py-2 bg-red-500 text-white rounded font-semibold text-xs hover:bg-red-600 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
 
       {/* View Household Modal */}
       <ViewHouseholdModal

@@ -14,6 +14,12 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
   })
   const [errors, setErrors] = useState({})
 
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isOpen]);
+
   const validateField = (name, value) => {
     let error = ""
     switch (name) {
@@ -82,7 +88,7 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
 
           {/* Header */}
@@ -102,174 +108,174 @@ export default function EditProfileModal({ isOpen, onClose, user, onSave }) {
             </button>
           </div>
 
-        {/* Content */}
-        <div className="p-8 bg-gray-50">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            {/* Left - Photo */}
-            <div className="flex flex-col items-center gap-6">
-              <div className="w-32 h-32 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-                <span className="text-4xl">👤</span>
-              </div>
-              <div className="text-center text-sm text-gray-600">
-                <p>Upload Photo</p>
-              </div>
-            </div>
+          {/* Content */}
+          <div className="p-8 bg-gray-50">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            {/* Right - Form */}
-            <div className="space-y-4">
-              
-              {/* Photo Upload */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Profile Photo
-                </label>
-                <div 
-                  onClick={() => document.getElementById('edit-user-photo').click()}
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
-                >
-                   {formData.photo ? (
-                     <div className="flex items-center gap-3">
-                        <img 
-                          src={formData.photo instanceof File ? URL.createObjectURL(formData.photo) : formData.photo} 
-                          alt="preview" 
-                          className="w-12 h-12 rounded-full object-cover border" 
+              {/* Left - Photo */}
+              <div className="flex flex-col items-center gap-6">
+                <div className="w-32 h-32 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                  <span className="text-4xl">👤</span>
+                </div>
+                <div className="text-center text-sm text-gray-600">
+                  <p>Upload Photo</p>
+                </div>
+              </div>
+
+              {/* Right - Form */}
+              <div className="space-y-4">
+
+                {/* Photo Upload */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Profile Photo
+                  </label>
+                  <div
+                    onClick={() => document.getElementById('edit-user-photo').click()}
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+                  >
+                    {formData.photo ? (
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={formData.photo instanceof File ? URL.createObjectURL(formData.photo) : formData.photo}
+                          alt="preview"
+                          className="w-12 h-12 rounded-full object-cover border"
                         />
                         <span className="text-xs text-gray-500">{formData.photo instanceof File ? formData.photo.name : 'Current Photo'}</span>
-                     </div>
-                   ) : (
-                     <>
+                      </div>
+                    ) : (
+                      <>
                         <Upload size={24} className="text-gray-400 mb-2" />
                         <span className="text-xs text-gray-500">Click to upload new photo (jpg/png)</span>
-                     </>
-                   )}
-                </div>
-                <input 
-                  id="edit-user-photo"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files[0]
-                    if (file) {
-                      setFormData({...formData, photo: file})
-                    }
-                  }}
-                />
-              </div>
-
-              {/* Name */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Name:</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => {
-                    setFormData({...formData, name: e.target.value})
-                    validateField('name', e.target.value)
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                />
-                {errors.name && <p className="text-[10px] text-red-500 mt-1">{errors.name}</p>}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Email:</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => {
-                    setFormData({...formData, email: e.target.value})
-                    validateField('email', e.target.value)
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                />
-                {errors.email && <p className="text-[10px] text-red-500 mt-1">{errors.email}</p>}
-              </div>
-
-              {/* Contact */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Contact:</label>
-                <input
-                  type="text"
-                  value={formData.mobile}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 10)
-                    setFormData({...formData, mobile: val})
-                    validateField('mobile', val)
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${errors.mobile ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                />
-                {errors.mobile && <p className="text-[10px] text-red-500 mt-1">{errors.mobile}</p>}
-              </div>
-
-
-              {/* Role */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Role:</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                >
-                  <option value="ADMIN">Admin</option>
-                  <option value="MANAGER">Manager</option>
-                  <option value="STAFF">Staff</option>
-                  <option value="SUPERVISOR">Supervisor</option>
-                  <option value="EMPLOYEE">Employee</option>
-                </select>
-              </div>
-
-              {/* Status */}
-              <div className="flex items-center gap-3">
-                <label className="text-xs font-semibold text-gray-600">Status:</label>
-                <div className="flex items-center gap-2">
-                  <div className={`relative w-12 h-6 rounded-full transition cursor-pointer ${formData.isActive ? 'bg-green-500' : 'bg-gray-400'}`}>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({...formData, isActive: !formData.isActive})}
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${formData.isActive ? 'translate-x-6' : ''}`}
-                    />
+                      </>
+                    )}
                   </div>
-                  <span className="text-sm font-medium">{formData.isActive ? 'Active' : 'Inactive'}</span>
+                  <input
+                    id="edit-user-photo"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files[0]
+                      if (file) {
+                        setFormData({ ...formData, photo: file })
+                      }
+                    }}
+                  />
                 </div>
-              </div>
 
-              {/* Permissions */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-3">Permission:</label>
-                <div className="flex gap-3 flex-wrap">
-                  {['View', 'Edit', 'Delete'].map(perm => (
-                    <label key={perm} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.permissions.includes(perm)}
-                        onChange={() => togglePermission(perm)}
-                        className="w-4 h-4 rounded accent-teal-500"
+                {/* Name */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Name:</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value })
+                      validateField('name', e.target.value)
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                  />
+                  {errors.name && <p className="text-[10px] text-red-500 mt-1">{errors.name}</p>}
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Email:</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value })
+                      validateField('email', e.target.value)
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                  />
+                  {errors.email && <p className="text-[10px] text-red-500 mt-1">{errors.email}</p>}
+                </div>
+
+                {/* Contact */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Contact:</label>
+                  <input
+                    type="text"
+                    value={formData.mobile}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10)
+                      setFormData({ ...formData, mobile: val })
+                      validateField('mobile', val)
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${errors.mobile ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                  />
+                  {errors.mobile && <p className="text-[10px] text-red-500 mt-1">{errors.mobile}</p>}
+                </div>
+
+
+                {/* Role */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Role:</label>
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  >
+                    <option value="ADMIN">Admin</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="STAFF">Staff</option>
+                    <option value="SUPERVISOR">Supervisor</option>
+                    <option value="EMPLOYEE">Employee</option>
+                  </select>
+                </div>
+
+                {/* Status */}
+                <div className="flex items-center gap-3">
+                  <label className="text-xs font-semibold text-gray-600">Status:</label>
+                  <div className="flex items-center gap-2">
+                    <div className={`relative w-12 h-6 rounded-full transition cursor-pointer ${formData.isActive ? 'bg-green-500' : 'bg-gray-400'}`}>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${formData.isActive ? 'translate-x-6' : ''}`}
                       />
-                      <span className="text-xs text-gray-700">{perm}</span>
-                    </label>
-                  ))}
+                    </div>
+                    <span className="text-sm font-medium">{formData.isActive ? 'Active' : 'Inactive'}</span>
+                  </div>
+                </div>
+
+                {/* Permissions */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-3">Permission:</label>
+                  <div className="flex gap-3 flex-wrap">
+                    {['View', 'Edit', 'Delete'].map(perm => (
+                      <label key={perm} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.permissions.includes(perm)}
+                          onChange={() => togglePermission(perm)}
+                          className="w-4 h-4 rounded accent-teal-500"
+                        />
+                        <span className="text-xs text-gray-700">{perm}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Footer */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
-            <button onClick={onClose}
-              className="px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors">
-              Cancel
-            </button>
-            <button onClick={handleSave}
-              className="px-6 py-2.5 text-white text-sm font-bold rounded-xl"
-              style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
-              Update & Save
-            </button>
+            {/* Footer */}
+            <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+              <button onClick={onClose}
+                className="px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleSave}
+                className="px-6 py-2.5 text-white text-sm font-bold rounded-xl"
+                style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                Update & Save
+              </button>
+            </div>
           </div>
         </div>
-       </div>
       </div>
     </>
   )
