@@ -100,7 +100,7 @@ export default function ViewPanchayatModal({ isOpen, onClose, data, onApprove, o
           {isPending && (
             <>
               <button onClick={() => onReject(data._id)}
-                style={{ display:"flex", alignItems:"center", gap:7, padding:"11px 22px", borderRadius:10, border:"none", background:"#fef2f2", color:"#dc2626", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", border:"1.5px solid #fecaca" }}>
+                style={{ display:"flex", alignItems:"center", gap:7, padding:"11px 22px", borderRadius:10, background:"#fef2f2", color:"#dc2626", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", border:"1.5px solid #fecaca" }}>
                 <XCircle size={15} /> Reject
               </button>
               <button onClick={() => onApprove(data._id)}

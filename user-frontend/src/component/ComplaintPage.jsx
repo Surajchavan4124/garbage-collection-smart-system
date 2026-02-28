@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, CheckCircle2, X, Leaf } from 'lucide-react';
+import { AlertCircle, CheckCircle2, X, Leaf, ImagePlus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Breadcrumb from './shared/Breadcrumb';
 import Footer from './shared/Footer';
@@ -18,12 +18,19 @@ const ComplaintPage = ({ navigate }) => {
         mobile: user?.mobile || '',
         type: '',
         description: '',
+        photo: null,
     });
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) =>
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setFormData((prev) => ({ ...prev, photo: e.target.files[0] }));
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -37,12 +44,20 @@ const ComplaintPage = ({ navigate }) => {
         }
         setLoading(true);
         try {
-            await api.post('/complaints', {
-                panchayatId: selectedPanchayat._id,
-                reporterName: formData.name,
-                reporterMobile: formData.mobile || user?.mobile || 'Unknown',
-                type: formData.type,
-                description: formData.description,
+            const formDataToSend = new FormData();
+            formDataToSend.append('panchayatId', selectedPanchayat._id);
+            formDataToSend.append('reporterName', formData.name);
+            formDataToSend.append('reporterMobile', formData.mobile || user?.mobile || 'Unknown');
+            formDataToSend.append('type', formData.type);
+            formDataToSend.append('description', formData.description);
+            if (formData.photo) {
+                formDataToSend.append('photo', formData.photo);
+            }
+
+            await api.post('/complaints', formDataToSend, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
             toast.success('Complaint submitted successfully!');
             setSubmitted(true);
@@ -145,6 +160,29 @@ const ComplaintPage = ({ navigate }) => {
                                             placeholder="Describe the issue in detail..."
                                             className="input-field resize-none"
                                         />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Upload Photo (Optional)</label>
+                                        <div className="flex items-center justify-center w-full">
+                                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                                                    {formData.photo ? (
+                                                        <>
+                                                            <CheckCircle2 className="w-8 h-8 mb-2 text-green-500" />
+                                                            <p className="text-sm text-gray-700 font-medium truncate max-w-xs">{formData.photo.name}</p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <ImagePlus className="w-8 h-8 mb-3 text-gray-400" />
+                                                            <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                                            <p className="text-xs text-gray-400">SVG, PNG, JPG or GIF (MAX. 5MB)</p>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                                            </label>
+                                        </div>
                                     </div>
 
                                     <motion.button

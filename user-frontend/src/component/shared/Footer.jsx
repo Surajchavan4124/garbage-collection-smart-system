@@ -1,9 +1,17 @@
 import React from 'react';
 import { Leaf, Phone, Mail, MapPin, Github, Twitter, Facebook } from 'lucide-react';
 import { quickLinks } from '../../config';
+import { usePanchayat } from '../../context/PanchayatContext';
 
-const Footer = ({ navigate }) => (
-    <footer className="bg-gray-950 text-gray-400">
+const Footer = ({ navigate }) => {
+    const { selectedPanchayat } = usePanchayat();
+
+    const phone = selectedPanchayat?.contactPhone || '+91 99999 99999';
+    const email = selectedPanchayat?.contactEmail || 'info@ecosyz.com';
+    const address = selectedPanchayat?.address || 'Your City, Maharashtra';
+
+    return (
+        <footer className="bg-gray-950 text-gray-400">
         {/* Wave separator */}
         <div className="bg-white" style={{ clipPath: 'ellipse(60% 40% at 50% 0%)' }} />
 
@@ -73,9 +81,9 @@ const Footer = ({ navigate }) => (
                     <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Contact</h3>
                     <ul className="space-y-3">
                         {[
-                            { icon: Phone, text: '+91 99999 99999' },
-                            { icon: Mail, text: 'info@ecosyz.com' },
-                            { icon: MapPin, text: 'Your City, Maharashtra' },
+                            { icon: Phone, text: phone },
+                            { icon: Mail, text: email },
+                            { icon: MapPin, text: address },
                         ].map(({ icon: Icon, text }) => (
                             <li key={text} className="flex items-start gap-2.5">
                                 <Icon className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
@@ -97,6 +105,7 @@ const Footer = ({ navigate }) => (
             </div>
         </div>
     </footer>
-);
+    );
+};
 
 export default Footer;
