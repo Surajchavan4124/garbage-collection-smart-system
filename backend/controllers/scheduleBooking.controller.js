@@ -1,4 +1,5 @@
 import ScheduleBooking from "../models/ScheduleBooking.model.js";
+import Panchayat from "../models/Panchayat.model.js";
 
 // POST /api/schedule-bookings  (Auth – household user)
 export const createBooking = async (req, res) => {
@@ -7,6 +8,12 @@ export const createBooking = async (req, res) => {
         if (!panchayatId || !wasteType || !date || !time || !address) {
             return res.status(400).json({ message: "Required fields missing" });
         }
+
+        const panchayat = await Panchayat.findById(panchayatId);
+        if (!panchayat || !panchayat.isScheduleEnabled) {
+            return res.status(403).json({ message: "Schedule pickup is currently disabled for this Panchayat" });
+        }
+
         const user = req.user;
         const booking = await ScheduleBooking.create({
             panchayat: panchayatId,

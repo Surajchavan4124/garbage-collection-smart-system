@@ -105,3 +105,28 @@ export const getPanchayatById = async (req, res) => {
 
   res.status(200).json(panchayat)
 }
+
+/**
+ * UPDATE PANCHAYAT SETTINGS (Admin/Company Admin)
+ */
+export const updatePanchayatSettings = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isScheduleEnabled } = req.body;
+
+    const panchayat = await Panchayat.findByIdAndUpdate(
+      id,
+      { isScheduleEnabled },
+      { new: true }
+    );
+
+    if (!panchayat) {
+      return res.status(404).json({ message: 'Panchayat not found' });
+    }
+
+    res.json({ message: 'Settings updated successfully', panchayat });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to update settings' });
+  }
+}

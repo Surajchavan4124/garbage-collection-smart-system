@@ -69,6 +69,29 @@ const ScheduleBooking = ({ navigate }) => {
 
     const selectedWaste = wasteTypes.find(w => w.id === formData.wasteType);
 
+    // ── Feature Toggle Check ──
+    if (selectedPanchayat && selectedPanchayat.isScheduleEnabled === false) {
+        return (
+            <div className="min-h-screen py-10 px-4" style={{ background: 'var(--surface-2)' }}>
+                <div className="max-w-2xl mx-auto">
+                    <Breadcrumb path={[{ label: 'Dashboard', view: 'household-dashboard' }, { label: 'Schedule Pickup', view: null }]} navigate={navigate} />
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card p-12 text-center mt-10">
+                        <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-amber-100">
+                            <Clock className="w-10 h-10 text-amber-500" />
+                        </div>
+                        <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">Feature Temporarily Unavailable</h2>
+                        <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
+                            The on-demand pickup scheduling feature is currently disabled for <strong>{selectedPanchayat.name}</strong>. Please check back later or contact your ward representative.
+                        </p>
+                        <button onClick={() => navigate('household-dashboard')} className="btn-primary px-8 py-3 text-sm mx-auto">
+                            Back to Dashboard
+                        </button>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
     // ── Success Screen ──
     if (submitted) {
         return (
