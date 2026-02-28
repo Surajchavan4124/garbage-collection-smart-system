@@ -648,7 +648,7 @@ export default function HouseholdManagement() {
               {/* Household ID (Auto) */}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-2">
-                  System ID
+                  Household ID
                 </label>
                 <input
                   type="text"

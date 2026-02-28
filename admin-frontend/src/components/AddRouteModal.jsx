@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 export default function AddRouteModal({ isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [drivers, setDrivers] = useState([]);
+  const [wards, setWards] = useState([]);
 
   const [formData, setFormData] = useState({
     routeName: "",
@@ -21,6 +22,10 @@ export default function AddRouteModal({ isOpen, onClose, onSuccess }) {
       api.get("/employees?role=driver").then((res) => {
         setDrivers(res.data.filter(e => e.role?.toLowerCase().includes('driver') || e.role?.toLowerCase().includes('labour')));
       }).catch(err => console.error("Failed to load drivers", err));
+
+      api.get("/wards").then((res) => {
+        setWards(res.data);
+      }).catch(err => console.error("Failed to load wards", err));
     }
   }, [isOpen]);
 
@@ -148,13 +153,16 @@ export default function AddRouteModal({ isOpen, onClose, onSuccess }) {
               <div key={index} className="flex gap-2 mb-2">
                 <div className="relative flex-1">
                   <MapPin className={`absolute left-3 top-2.5 transition-colors ${errors.stops ? 'text-red-400' : 'text-gray-400'}`} size={16} />
-                  <input
-                    type="text"
+                  <select
                     value={stop.stopName}
                     onChange={(e) => handleStopChange(index, e.target.value)}
-                    placeholder={`Stop ${index + 1}`}
-                    className={`w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 outline-none text-sm transition-all ${errors.stops ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
-                  />
+                    className={`w-full pl-9 px-3 py-2 border rounded-lg focus:ring-2 outline-none appearance-none bg-white text-sm transition-all ${errors.stops ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 focus:ring-teal-500'}`}
+                  >
+                    <option value="">Select Ward for Stop {index + 1}</option>
+                    {wards.map(ward => (
+                      <option key={ward._id} value={ward.name}>{ward.name}</option>
+                    ))}
+                  </select>
                 </div>
                 {formData.stops.length > 1 && (
                   <button
