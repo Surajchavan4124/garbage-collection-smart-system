@@ -4,53 +4,57 @@ import Attendance from '../models/attendance.model.js';
 import Employee from '../models/Employee.model.js';
 
 export const generateReport = async (req, res) => {
-  try {
-    const { type, from, to, panchayatId, subType } = req.query;
+    try {
+        const { type, from, to, panchayatId, subType } = req.query;
 
-    if (!from || !to) {
-      return res.status(400).json({ message: "Date range (from, to) is required" });
+        if (!from || !to) {
+            return res.status(400).json({ message: "Date range (from, to) is required" });
+        }
+
+        const startDate = new Date(from);
+        const endDate = new Date(to);
+        endDate.setHours(23, 59, 59, 999);
+
+        let data = {};
+
+        switch (type) {
+            case 'Waste Collection Summaries':
+                data = await getWasteCollectionSummary(startDate, endDate, panchayatId);
+                break;
+            case 'Complaint and Grievance Resolution Times':
+            case 'Complaint & Grievance Resolution Times':
+            case 'Complaint & Grievance Resolution':
+                data = await getComplaintResolutionSummary(startDate, endDate, panchayatId);
+                break;
+            case 'Segregation Compliance Percentage':
+            case 'Segregation Compliance Metrics':
+                data = await getSegregationCompliance(startDate, endDate, panchayatId);
+                break;
+            case 'Employee Attendance Summaries':
+                data = await getAttendanceSummary(startDate, endDate, panchayatId);
+                break;
+            case 'Year-on-Year comparison charts':
+            case 'Year-on-Year Growth Charts':
+                data = await getYearOnYearComparison(startDate, endDate, panchayatId, subType);
+                break;
+            case 'Monthly Expense Reports':
+                data = getExpenseReportMock(startDate, endDate);
+                break;
+            default:
+                return res.status(400).json({ message: "Invalid report type" });
+        }
+
+        res.status(200).json({
+            success: true,
+            reportType: type,
+            period: { from, to },
+            data
+        });
+
+    } catch (error) {
+        console.error("Report Generation Error:", error);
+        res.status(500).json({ message: "Failed to generate report", error: error.message });
     }
-
-    const startDate = new Date(from);
-    const endDate = new Date(to);
-    endDate.setHours(23, 59, 59, 999);
-
-    let data = {};
-
-    switch (type) {
-      case 'Waste Collection Summaries':
-        data = await getWasteCollectionSummary(startDate, endDate, panchayatId);
-        break;
-      case 'Complaint & Grievance Resolution Times':
-        data = await getComplaintResolutionSummary(startDate, endDate, panchayatId);
-        break;
-      case 'Segregation Compliance Percentage':
-        data = await getSegregationCompliance(startDate, endDate, panchayatId);
-        break;
-      case 'Employee Attendance Summaries':
-        data = await getAttendanceSummary(startDate, endDate, panchayatId);
-        break;
-      case 'Year-on-Year comparison charts':
-        data = await getYearOnYearComparison(startDate, endDate, panchayatId, subType);
-        break;
-      case 'Monthly Expense Reports':
-        data = getExpenseReportMock(startDate, endDate);
-        break;
-      default:
-        return res.status(400).json({ message: "Invalid report type" });
-    }
-
-    res.status(200).json({
-      success: true,
-      reportType: type,
-      period: { from, to },
-      data
-    });
-
-  } catch (error) {
-    console.error("Report Generation Error:", error);
-    res.status(500).json({ message: "Failed to generate report", error: error.message });
-  }
 };
 
 // Helper Functions
@@ -60,7 +64,7 @@ const getWasteCollectionSummary = async (start, end, panchayatId) => {
     // If strict panchayat check needed, we'd filter by Wards belonging to Panchayat. 
     // For now, assuming Global or filtered by Ward if passed. 
     // Current WasteData model: entryId, date, collectionType, ward, bio, recyclable, etc.
-    
+
     // Aggregation
     const summary = await WasteData.aggregate([
         {
@@ -100,15 +104,15 @@ const getComplaintResolutionSummary = async (start, end, panchayatId) => {
             }
         }
     ]);
-    
+
     // Calculate Average Resolution Time for Resolved complaints
     const resolutionStats = await Complaint.aggregate([
-        { 
-            $match: { 
-                ...matchQuery, 
-                status: "Resolved", 
-                resolvedAt: { $exists: true } 
-            } 
+        {
+            $match: {
+                ...matchQuery,
+                status: "Resolved",
+                resolvedAt: { $exists: true }
+            }
         },
         {
             $project: {
@@ -133,13 +137,13 @@ const getSegregationCompliance = async (start, end, panchayatId) => {
     // Logic: Compare "Mixed" waste vs Segregated (Bio + Recyclable + NonBio)
     const stats = await WasteData.aggregate([
         {
-             $match: { date: { $gte: start, $lte: end } }
+            $match: { date: { $gte: start, $lte: end } }
         },
         {
             $group: {
                 _id: "$ward",
                 totalWhoSegregated: { // Count entries where Mixed is 0 or low
-                     $sum: { $cond: [{ $eq: ["$mixed", 0] }, 1, 0] }
+                    $sum: { $cond: [{ $eq: ["$mixed", 0] }, 1, 0] }
                 },
                 totalCollections: { $sum: 1 }
             }
@@ -196,7 +200,7 @@ const getYearOnYearComparison = async (start, end, panchayatId, subType = 'waste
                 $group: {
                     _id: { $year: "$createdAt" },
                     totalComplaints: { $sum: 1 },
-                    resolvedCount: { 
+                    resolvedCount: {
                         $sum: { $cond: [{ $eq: ["$status", "Resolved"] }, 1, 0] }
                     }
                 }
@@ -207,13 +211,13 @@ const getYearOnYearComparison = async (start, end, panchayatId, subType = 'waste
                     year: "$_id",
                     totalComplaints: 1,
                     resolvedCount: 1,
-                    resolutionRate: { 
+                    resolutionRate: {
                         $multiply: [{ $divide: ["$resolvedCount", { $max: ["$totalComplaints", 1] }] }, 100]
                     }
                 }
             }
         ]);
-    } 
+    }
     else if (subType === 'attendance') {
         stats = await Attendance.aggregate([
             {
@@ -238,14 +242,14 @@ const getYearOnYearComparison = async (start, end, panchayatId, subType = 'waste
         // Avg compliance per year
         stats = await WasteData.aggregate([
             {
-                 $match: { date: { $gte: start, $lte: end } }
+                $match: { date: { $gte: start, $lte: end } }
             },
             {
                 $group: {
                     _id: { $year: "$date" },
                     // 1 if segregated, 0 if mixed > 0
-                    totalSegregated: { 
-                        $sum: { $cond: [{ $eq: ["$mixed", 0] }, 1, 0] } 
+                    totalSegregated: {
+                        $sum: { $cond: [{ $eq: ["$mixed", 0] }, 1, 0] }
                     },
                     totalCollections: { $sum: 1 }
                 }
@@ -265,7 +269,7 @@ const getYearOnYearComparison = async (start, end, panchayatId, subType = 'waste
         // Default: Waste
         stats = await WasteData.aggregate([
             {
-                 $match: { date: { $gte: start, $lte: end } }
+                $match: { date: { $gte: start, $lte: end } }
             },
             {
                 $group: {

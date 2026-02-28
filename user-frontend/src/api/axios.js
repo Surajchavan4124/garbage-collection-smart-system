@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Get the base URL from the environment or use the default local address
-const baseURL = import.meta.env.VITE_API_URL || 'https://ecosyz-backend.onrender.com/api';
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:10000/api';
 
 const api = axios.create({
     baseURL,
