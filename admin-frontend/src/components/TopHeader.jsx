@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { 
-  Search, Bell, Settings, LogOut, Moon, Sun, Menu, ChevronDown, 
-  User, CheckCircle2, AlertCircle, Clock, Trash2 
+import {
+  Search, Bell, Settings, LogOut, Moon, Sun, Menu, ChevronDown,
+  User, CheckCircle2, AlertCircle, Clock, Trash2
 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
@@ -133,7 +133,7 @@ export default function TopHeader({ onMenuClick }) {
       >
         {/* Search Bar Area */}
         <div className="flex items-center gap-4 flex-1 max-w-2xl relative">
-          <button 
+          <button
             onClick={onMenuClick}
             className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
@@ -148,7 +148,8 @@ export default function TopHeader({ onMenuClick }) {
               <input
                 type="text"
                 placeholder="Search wards, bins, employees..."
-                className="flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400 text-sm"
+                className="flex-1 bg-transparent outline-none placeholder-gray-400 text-sm"
+                style={{ color: isDark ? 'white' : 'black' }}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
@@ -205,7 +206,7 @@ export default function TopHeader({ onMenuClick }) {
           <button
             onClick={toggleTheme}
             className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-            style={{ 
+            style={{
               background: isDark ? 'rgba(31,158,154,0.15)' : '#f4f6fa',
               color: isDark ? '#5eead4' : '#64748b'
             }}
