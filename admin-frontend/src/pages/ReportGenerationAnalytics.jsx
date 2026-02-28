@@ -23,17 +23,7 @@ export default function ReportGenerationAnalytics() {
     localStorage.setItem('generatedReports', JSON.stringify(generatedReports))
   }, [generatedReports])
 
-  const prevReportCount = useRef(generatedReports.length)
-  useEffect(() => {
-    if (generatedReports.length > prevReportCount.current && !viewReport) {
-      setTimeout(() => {
-        if (resultsRef.current) {
-          resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
-      }, 150)
-    }
-    prevReportCount.current = generatedReports.length
-  }, [generatedReports.length, viewReport])
+
 
   const reports = [
     { id: 1, title: 'Waste Collection Summaries', description: 'Generate detailed reports on waste collection activities and trends', icon: TrendingUp, color: 'bg-blue-50 dark:bg-blue-900/20', iconColor: 'text-blue-600 dark:text-blue-400', borderColor: 'border-blue-100 dark:border-blue-800/50' },
