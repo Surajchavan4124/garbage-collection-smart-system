@@ -24,9 +24,9 @@ export default function ViewHouseholdModal({ isOpen, onClose, household, onEdit,
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={onClose} />
+      <div className="fixed inset-0 flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden pointer-events-auto">
 
           {/* Header */}
           <div className="px-6 py-5 flex items-center justify-between"

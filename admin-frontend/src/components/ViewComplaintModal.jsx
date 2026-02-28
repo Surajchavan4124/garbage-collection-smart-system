@@ -44,9 +44,9 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={onClose} />
+      <div className="fixed inset-0 flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto">
 
           {/* Header */}
           <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
