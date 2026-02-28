@@ -21,9 +21,14 @@ const upload = multer({ storage });
 
 const router = express.Router();
 
+import { getDashboardData } from "../controllers/householdDashboard.controller.js";
 
 // Public self-registration (no auth required)
 router.post("/register", upload.fields([{ name: 'identity', maxCount: 1 }, { name: 'premises', maxCount: 1 }]), publicRegisterHousehold);
+
+// Dashboard data (protected)
+router.get("/dashboard", protect, getDashboardData);
+
 // Admin-created registration (protected)
 router.post("/", protect, registerHousehold);
 router.get("/", protect, getHouseholds);

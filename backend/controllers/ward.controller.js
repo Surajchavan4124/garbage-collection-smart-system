@@ -48,6 +48,20 @@ export const getWards = async (req, res) => {
   }
 };
 
+/* ================= PUBLIC LIST ================= */
+export const getPublicWards = async (req, res) => {
+  try {
+    const { panchayatId } = req.query;
+    if (!panchayatId) {
+      return res.status(400).json({ message: "Panchayat ID is required" });
+    }
+    const wards = await Ward.find({ panchayat: panchayatId }).sort({ name: 1 });
+    res.json(wards);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 /* ================= UPDATE ================= */
 export const updateWard = async (req, res) => {
   try {

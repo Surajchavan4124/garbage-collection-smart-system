@@ -2,6 +2,9 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import Panchayat from "../models/Panchayat.model.js";
 import Subscription from "../models/Subscription.model.js";
+import Household from "../models/Household.model.js";
+import Company from "../models/company.model.js";
+import Employee from "../models/Employee.model.js";
 
 export const protect = async (req, res, next) => {
   try {
@@ -18,41 +21,75 @@ export const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Extract directly from token if possible (for Employee/Admin)
+    // 🔹 Extract User Data based on Role
     if (decoded.role === "EMPLOYEE") {
-      req.user = {
-        _id: decoded.userId,
-        role: "EMPLOYEE",
-        panchayatId: decoded.panchayatId,
-        panchayat: decoded.panchayatId, // Consistent naming
-        wards: decoded.wards || []
-      };
+      const employee = await Employee.findById(decoded.userId);
+      if (employee) {
+        req.user = {
+          _id: employee._id,
+          role: "EMPLOYEE",
+          panchayatId: employee.panchayat,
+          panchayat: employee.panchayat,
+          wards: employee.wards || [],
+          mobile: employee.phone,
+        };
+      }
+    } else if (decoded.role === "HOUSEHOLD") {
+      const household = await Household.findById(decoded.userId);
+      if (household) {
+        req.user = {
+          _id: household._id,
+          role: "HOUSEHOLD",
+          panchayatId: household.panchayat,
+          panchayat: household.panchayat,
+          mobile: household.mobile,
+        };
+      }
+    } else if (decoded.role === "COMPANY") {
+      const company = await Company.findById(decoded.userId);
+      if (company) {
+        req.user = {
+          _id: company._id,
+          role: "COMPANY",
+          panchayatId: company.panchayat,
+          panchayat: company.panchayat,
+          mobile: company.mobile,
+        };
+      }
     } else if (decoded.role === "ADMIN" || decoded.role === "PANCHAYAT_ADMIN") {
-      req.user = {
-        _id: decoded.userId,
-        role: "PANCHAYAT_ADMIN",
-        panchayatId: decoded.panchayatId || decoded.userId,
-        panchayat: decoded.panchayatId || decoded.userId, // Consistent naming
-      };
+      const panchayat = await Panchayat.findById(decoded.userId);
+      if (panchayat) {
+        req.user = {
+          _id: panchayat._id,
+          role: "PANCHAYAT_ADMIN",
+          panchayatId: panchayat._id,
+          panchayat: panchayat._id,
+          mobile: panchayat.contactPhone,
+        };
+      } else {
+        // Handle User as Admin
+        const user = await User.findById(decoded.userId);
+        if (user) {
+          req.user = {
+            _id: user._id,
+            role: user.role,
+            panchayatId: user.panchayat,
+            panchayat: user.panchayat,
+            mobile: user.mobile,
+          };
+        }
+      }
     } else {
-      // Try User first (Super Admin etc)
+      // 🔹 Fallback for other roles (Super Admin etc)
       const user = await User.findById(decoded.userId);
       if (user) {
         req.user = {
           _id: user._id,
           role: user.role,
+          panchayatId: user.panchayat,
+          panchayat: user.panchayat,
+          mobile: user.mobile,
         };
-      } else {
-        // Fallback try Panchayat model (Legacy support)
-        const panchayat = await Panchayat.findById(decoded.userId);
-        if (panchayat && panchayat.status === "active") {
-          req.user = {
-            _id: panchayat._id,
-            role: "PANCHAYAT_ADMIN",
-            panchayatId: panchayat._id,
-            panchayat: panchayat._id, // Consistent naming
-          };
-        }
       }
     }
 

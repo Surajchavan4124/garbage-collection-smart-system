@@ -51,10 +51,35 @@ const RegisterPage = ({ navigate }) => {
         address: '',
         pincode: '',
     });
+    const [wards, setWards] = useState([]);
     const [identityFile, setIdentityFile] = useState(null);
     const [premisesFile, setPremisesFile] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [fetchingWards, setFetchingWards] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+
+    // Fetch wards whenever panchayat changes
+    React.useEffect(() => {
+        if (selectedPanchayat?._id) {
+            const fetchWards = async () => {
+                setFetchingWards(true);
+                try {
+                    const res = await api.get(`/wards/public?panchayatId=${selectedPanchayat._id}`);
+                    setWards(res.data);
+                    // Reset ward field if current choice is not in new list
+                    setForm(p => ({ ...p, ward: '' }));
+                } catch (err) {
+                    console.error('Error fetching wards:', err);
+                    toast.error('Could not fetch wards for the selected Panchayat.');
+                } finally {
+                    setFetchingWards(false);
+                }
+            };
+            fetchWards();
+        } else {
+            setWards([]);
+        }
+    }, [selectedPanchayat]);
 
     const update = (field) => (e) => setForm(p => ({ ...p, [field]: e.target.value }));
 
@@ -195,7 +220,30 @@ const RegisterPage = ({ navigate }) => {
                         </h2>
                         <div className="grid sm:grid-cols-2 gap-4">
                             <InputField label="House Number" icon={Home} value={form.houseNumber} onChange={update('houseNumber')} placeholder="Enter house number" required />
-                            <InputField label="Area / Ward" icon={MapPin} value={form.ward} onChange={update('ward')} placeholder="Enter area or ward" required />
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                                    Area / Ward<span className="text-red-500 ml-0.5">*</span>
+                                </label>
+                                <div className="relative">
+                                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                        <MapPin className="w-4 h-4 text-gray-400" />
+                                    </span>
+                                    <select
+                                        value={form.ward}
+                                        onChange={update('ward')}
+                                        className="input-field appearance-none pl-10 pr-10"
+                                        disabled={fetchingWards || !selectedPanchayat}
+                                    >
+                                        <option value="">{fetchingWards ? 'Loading wards...' : 'Select Ward'}</option>
+                                        {wards.map(w => (
+                                            <option key={w._id} value={w.name}>{w.name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                        <ChevronRight className="w-4 h-4 rotate-90" />
+                                    </div>
+                                </div>
+                            </div>
                             <InputField label="Pincode" icon={MapPin} value={form.pincode} onChange={update('pincode')} placeholder="Enter pincode" />
                             <div className="sm:col-span-2">
                                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">

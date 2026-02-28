@@ -77,18 +77,33 @@ const HouseholdDashboard = ({ navigate }) => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U';
 
-    const schedules = [
-        { date: '1 Mar 2025', time: '08:00 AM', type: 'Mixed Waste', status: 'Confirmed' },
-        { date: '8 Mar 2025', time: '08:00 AM', type: 'Recyclable',  status: 'Pending' },
-    ];
+    const [dashboardData, setDashboardData] = useState({
+        totalPickups: 0,
+        thisMonthPickups: 0,
+        openComplaints: 0,
+        ecoScore: 100,
+        upcomingPickups: [],
+        householdData: { compliance: "Compliant" },
+    });
 
     useEffect(() => {
         if (!user) return;
+        
+        // Fetch Complaints (for recent complaints list)
         api.get('/complaints/me')
             .then(r => setComplaints(r.data))
-            .catch(() => {})
+            .catch(() => {});
+            
+        // Fetch Dashboard aggregations
+        api.get('/households/dashboard')
+            .then(res => {
+                setDashboardData(res.data);
+            })
+            .catch(err => {
+                console.error("Failed to fetch dashboard data:", err);
+            })
             .finally(() => setLoading(false));
-    }, []);
+    }, [user]);
 
     const confirmLogout = () => {
         localStorage.removeItem('token');
@@ -96,7 +111,8 @@ const HouseholdDashboard = ({ navigate }) => {
         navigate('home');
     };
 
-    const openComplaints = complaints.filter(c => c.status !== 'Resolved').length;
+    const schedules = dashboardData.upcomingPickups;
+    const openComplaints = dashboardData.openComplaints;
 
     return (
         <div className="min-h-screen" style={{ background: 'var(--surface-2)' }}>
@@ -145,10 +161,10 @@ const HouseholdDashboard = ({ navigate }) => {
 
                 {/* ── STAT CARDS ── */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <StatCard delay={0} icon={Truck}        label="Total Pickups"    value="12"    sub="All time"         gradient="bg-gradient-to-br from-blue-500 to-blue-600" />
-                    <StatCard delay={1} icon={Calendar}     label="This Month"       value="3"     sub="Scheduled"        gradient="bg-gradient-to-br from-green-500 to-emerald-500" />
+                    <StatCard delay={0} icon={Truck}        label="Total Pickups"    value={dashboardData.totalPickups}    sub="All time"         gradient="bg-gradient-to-br from-blue-500 to-blue-600" />
+                    <StatCard delay={1} icon={Calendar}     label="This Month"       value={dashboardData.thisMonthPickups}     sub="Scheduled"        gradient="bg-gradient-to-br from-green-500 to-emerald-500" />
                     <StatCard delay={2} icon={AlertCircle}  label="Open Complaints"  value={openComplaints}  sub="Awaiting resolution" gradient="bg-gradient-to-br from-amber-500 to-orange-500" />
-                    <StatCard delay={3} icon={Recycle}      label="Compliance"       value="98%"   sub="Segregation score" gradient="bg-gradient-to-br from-purple-500 to-purple-600" />
+                    <StatCard delay={3} icon={Recycle}      label="Compliance"       value={`${dashboardData.ecoScore}%`}   sub="Segregation score" gradient="bg-gradient-to-br from-purple-500 to-purple-600" />
                 </div>
 
                 {/* ── QUICK ACTIONS ── */}
@@ -156,11 +172,9 @@ const HouseholdDashboard = ({ navigate }) => {
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-base font-display font-bold text-gray-900">Quick Actions</h2>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         <QuickAction delay={5} label="Schedule Pickup"    icon={Calendar}   bg="bg-blue-50/60 border-blue-100 hover:border-blue-300"    iconColor="bg-blue-100 text-blue-600"    onClick={() => navigate('schedule-booking')} />
                         <QuickAction delay={6} label="Submit Complaint"   icon={AlertCircle} bg="bg-red-50/60 border-red-100 hover:border-red-300"       iconColor="bg-red-100 text-red-500"      onClick={() => navigate('complaint')} />
-                        <QuickAction delay={7} label="View Statistics"    icon={TrendingUp}  bg="bg-purple-50/60 border-purple-100 hover:border-purple-300" iconColor="bg-purple-100 text-purple-600" onClick={() => navigate('statisticsReports')} />
-                        <QuickAction delay={8} label="Payment History"    icon={Wallet}      bg="bg-emerald-50/60 border-emerald-100 hover:border-emerald-300" iconColor="bg-emerald-100 text-emerald-600" onClick={() => navigate('payments')} />
                     </div>
                 </motion.div>
 

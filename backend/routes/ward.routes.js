@@ -1,8 +1,10 @@
 import express from "express";
-import { createWard, getWards, updateWard, deleteWard, getWardDustbins } from "../controllers/ward.controller.js";
+import { createWard, getWards, updateWard, deleteWard, getWardDustbins, getPublicWards } from "../controllers/ward.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
+
+router.get("/public", getPublicWards);
 
 router.use(protect);
 
