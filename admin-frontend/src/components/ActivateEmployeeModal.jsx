@@ -1,6 +1,6 @@
 import { X, User, CheckCircle } from "lucide-react"
 
-const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || "https://ecosyz-backend.onrender.com/api"
+const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:10000/api"
 const STATIC_BASE = RAW_API_BASE.replace(/\/api$/, "")
 const isImage = (path = "") => /\.(jpg|jpeg|png|webp)$/i.test(path)
 
@@ -44,9 +44,9 @@ export default function ActivateEmployeeModal({ isOpen, onClose, employee, onCon
                 {employee.documents?.photo && isImage(employee.documents.photo)
                   ? <img src={`${STATIC_BASE}/${employee.documents.photo}`} className="w-full h-full object-cover" alt="Employee" />
                   : <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
-                      style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
-                      {employee.name?.charAt(0)}
-                    </div>
+                    style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
+                    {employee.name?.charAt(0)}
+                  </div>
                 }
               </div>
               <div className="space-y-1 min-w-0">

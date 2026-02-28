@@ -2,7 +2,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://ecosyz-backend.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:10000/api",
   withCredentials: true,
 })
 

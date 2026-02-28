@@ -7,13 +7,13 @@ import { generatePDF, generateExcel } from '../utils/reportGenerator'
 export default function ReportGenerationAnalytics() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedReport, setSelectedReport] = useState(null)
-  
+
   // Initialize from localStorage
   const [generatedReports, setGeneratedReports] = useState(() => {
     const saved = localStorage.getItem('generatedReports')
     return saved ? JSON.parse(saved) : []
   })
-  
+
   const [viewReport, setViewReport] = useState(null)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const resultsRef = useRef(null)
@@ -23,12 +23,17 @@ export default function ReportGenerationAnalytics() {
     localStorage.setItem('generatedReports', JSON.stringify(generatedReports))
   }, [generatedReports])
 
-  // Scroll to results when a new report is added
+  const prevReportCount = useRef(generatedReports.length)
   useEffect(() => {
-    if (generatedReports.length > 0 && resultsRef.current) {
-        resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (generatedReports.length > prevReportCount.current && !viewReport) {
+      setTimeout(() => {
+        if (resultsRef.current) {
+          resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 150)
     }
-  }, [generatedReports.length])
+    prevReportCount.current = generatedReports.length
+  }, [generatedReports.length, viewReport])
 
   const reports = [
     { id: 1, title: 'Waste Collection Summaries', description: 'Generate detailed reports on waste collection activities and trends', icon: TrendingUp, color: 'bg-blue-50 dark:bg-blue-900/20', iconColor: 'text-blue-600 dark:text-blue-400', borderColor: 'border-blue-100 dark:border-blue-800/50' },
@@ -47,8 +52,8 @@ export default function ReportGenerationAnalytics() {
 
   const confirmDelete = () => {
     if (reportToDelete) {
-        setGeneratedReports(prev => prev.filter(r => r.id !== reportToDelete))
-        setReportToDelete(null)
+      setGeneratedReports(prev => prev.filter(r => r.id !== reportToDelete))
+      setReportToDelete(null)
     }
   }
 
@@ -117,7 +122,7 @@ export default function ReportGenerationAnalytics() {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => setViewReport(report)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="View"><Eye size={16} /></button>
-                          
+
                           <div className="relative">
                             <button onClick={() => setActiveDropdown(activeDropdown === report.id ? null : report.id)} className="p-2 text-gray-400 hover:text-teal-600 transition-colors" title="Download"><Download size={16} /></button>
                             {activeDropdown === report.id && (
@@ -127,7 +132,7 @@ export default function ReportGenerationAnalytics() {
                               </div>
                             )}
                           </div>
-                          
+
                           <button onClick={() => setReportToDelete(report.id)} className="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Delete"><Trash2 size={16} /></button>
                         </div>
                       </td>
@@ -145,15 +150,15 @@ export default function ReportGenerationAnalytics() {
         onClose={() => setIsModalOpen(false)}
         reportType={selectedReport?.title}
         onReportGenerated={(data) => {
-            const newReport = {
-              id: Date.now(),
-              title: selectedReport.title,
-              generatedAt: new Date().toLocaleString(),
-              status: 'Success',
-              data: data
-            }
-            setGeneratedReports([newReport, ...generatedReports])
-            setViewReport(newReport)
+          const newReport = {
+            id: Date.now(),
+            title: selectedReport.title,
+            generatedAt: new Date().toLocaleString(),
+            status: 'Success',
+            data: data
+          }
+          setGeneratedReports([newReport, ...generatedReports])
+          setViewReport(newReport)
         }}
       />
 
@@ -162,15 +167,15 @@ export default function ReportGenerationAnalytics() {
       {/* Delete Confirmation Modal */}
       {reportToDelete && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-                <div className="p-3 bg-red-50 text-red-600 w-fit rounded-xl mb-4"><Trash2 size={24} /></div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Report?</h3>
-                <p className="text-sm text-gray-500 mb-8 leading-relaxed">This report will be permanently removed from your history. This action cannot be reversed.</p>
-                <div className="flex gap-3">
-                    <button onClick={() => setReportToDelete(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition">Cancel</button>
-                    <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition">Delete Report</button>
-                </div>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+            <div className="p-3 bg-red-50 text-red-600 w-fit rounded-xl mb-4"><Trash2 size={24} /></div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Report?</h3>
+            <p className="text-sm text-gray-500 mb-8 leading-relaxed">This report will be permanently removed from your history. This action cannot be reversed.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setReportToDelete(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition">Cancel</button>
+              <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition">Delete Report</button>
             </div>
+          </div>
         </div>
       )}
     </div>

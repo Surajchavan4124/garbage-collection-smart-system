@@ -63,22 +63,22 @@ export default function GenerationOfReportModal({ isOpen, onClose, reportType, o
     setLoading(true)
     try {
       // 1. Fetch Data
-    const res = await api.get('/reports/generate', {
+      const res = await api.get('/reports/generate', {
         params: {
-            type: reportType,
-            from: filters.fromDate,
-            to: filters.toDate,
-            subType: filters.subType
-            // panchayatId: ... (add context later if needed)
+          type: reportType,
+          from: filters.fromDate,
+          to: filters.toDate,
+          subType: filters.subType
+          // panchayatId: ... (add context later if needed)
         }
       })
 
       const reportData = res.data
-      
+
       const fullReportObject = {
-          title: reportType,
-          generatedAt: new Date().toLocaleString(),
-          data: reportData
+        title: reportType,
+        generatedAt: new Date().toLocaleString(),
+        data: reportData
       }
 
       // 2. Handle Output Format
@@ -87,11 +87,11 @@ export default function GenerationOfReportModal({ isOpen, onClose, reportType, o
         toast.success("PDF Downloaded")
       } else if (filters.outputFormat === 'excel') {
         generateExcel(fullReportObject)
-         toast.success("Excel Downloaded")
+        toast.success("Excel Downloaded")
       } else {
         // Screen View
         if (onReportGenerated) {
-            onReportGenerated(reportData)
+          onReportGenerated(reportData)
         }
         toast.success("Report Generated for Screen View")
       }
@@ -99,10 +99,10 @@ export default function GenerationOfReportModal({ isOpen, onClose, reportType, o
       handleCancel()
 
     } catch (error) {
-        console.error("Generate Error", error)
-        toast.error(error.response?.data?.message || "Failed to generate report")
+      console.error("Generate Error", error)
+      toast.error(error.response?.data?.message || "Failed to generate report")
     } finally {
-        setLoading(false)
+      setLoading(false)
     }
   }
 
@@ -123,9 +123,9 @@ export default function GenerationOfReportModal({ isOpen, onClose, reportType, o
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={handleCancel} />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={handleCancel} />
+      <div className="fixed inset-0 flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col pointer-events-auto">
 
           {/* Header */}
           <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
