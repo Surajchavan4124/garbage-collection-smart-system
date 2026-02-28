@@ -92,9 +92,9 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-10">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={onClose} />
+      <div className="fixed inset-0 flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden max-h-[85vh] flex flex-col pointer-events-auto">
 
           {/* Header */}
           <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
@@ -152,10 +152,10 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 onChange={handleInputChange}
                 disabled={!editingFields.headOfHousehold}
                 className={`w-full px-4 py-2 rounded text-sm border transition ${editingFields.headOfHousehold
-                    ? errors.headOfHousehold
-                      ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
-                      : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
-                    : 'bg-gray-50 border-gray-300 text-gray-700'
+                  ? errors.headOfHousehold
+                    ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                  : 'bg-gray-50 border-gray-300 text-gray-700'
                   }`}
               />
             </div>
@@ -182,10 +182,10 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 onChange={handleInputChange}
                 disabled={!editingFields.address}
                 className={`w-full px-4 py-2 rounded text-sm border transition resize-none h-20 ${editingFields.address
-                    ? errors.address
-                      ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
-                      : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
-                    : 'bg-gray-50 border-gray-300 text-gray-700'
+                  ? errors.address
+                    ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                  : 'bg-gray-50 border-gray-300 text-gray-700'
                   }`}
               />
             </div>
@@ -212,10 +212,10 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 onChange={handleInputChange}
                 disabled={!editingFields.ward}
                 className={`w-full px-4 py-2 rounded text-sm border transition ${editingFields.ward
-                    ? errors.ward
-                      ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
-                      : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
-                    : 'bg-gray-50 border-gray-300 text-gray-700'
+                  ? errors.ward
+                    ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                  : 'bg-gray-50 border-gray-300 text-gray-700'
                   }`}
               >
                 <option value="">Select Ward</option>
@@ -248,10 +248,10 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 onChange={handleInputChange}
                 disabled={!editingFields.contact}
                 className={`w-full px-4 py-2 rounded text-sm border transition ${editingFields.contact
-                    ? errors.contact
-                      ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
-                      : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
-                    : 'bg-gray-50 border-gray-300 text-gray-700'
+                  ? errors.contact
+                    ? 'border-red-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                  : 'bg-gray-50 border-gray-300 text-gray-700'
                   }`}
               />
             </div>
@@ -275,8 +275,8 @@ export default function EditHouseholdModal({ isOpen, onClose, household, onUpdat
                 onChange={handleInputChange}
                 disabled={!editingFields.segregationCompliance}
                 className={`w-full px-4 py-2 rounded text-sm border transition ${editingFields.segregationCompliance
-                    ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
-                    : 'bg-gray-50 border-gray-300 text-gray-700'
+                  ? 'border-teal-500 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+                  : 'bg-gray-50 border-gray-300 text-gray-700'
                   }`}
               >
                 <option value="Compliant">Compliant</option>
