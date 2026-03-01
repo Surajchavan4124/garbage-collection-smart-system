@@ -16,7 +16,7 @@ const fadeUp = {
 };
 
 /* ─── Defined OUTSIDE RegisterPage so React never remounts it on state change ─── */
-const InputField = ({ label, icon: Icon, type = 'text', value, onChange, placeholder, required = false }) => (
+const InputField = ({ label, icon: Icon, type = 'text', value, onChange, placeholder, required = false, error }) => (
     <div>
         <label className="block text-xs font-semibold text-gray-600 mb-1.5">
             {label}{required && <span className="text-red-500 ml-0.5">*</span>}
@@ -32,10 +32,11 @@ const InputField = ({ label, icon: Icon, type = 'text', value, onChange, placeho
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className="input-field"
+                className={`input-field ${error ? 'border-red-400 focus:ring-red-300' : ''}`}
                 style={Icon ? { paddingLeft: '2.5rem' } : {}}
             />
         </div>
+        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
 );
 
@@ -57,6 +58,9 @@ const RegisterPage = ({ navigate }) => {
     const [loading, setLoading] = useState(false);
     const [fetchingWards, setFetchingWards] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    const clearError = (field) => setErrors(prev => ({ ...prev, [field]: '' }));
 
     // Fetch wards whenever panchayat changes
     React.useEffect(() => {
@@ -81,31 +85,86 @@ const RegisterPage = ({ navigate }) => {
         }
     }, [selectedPanchayat]);
 
-    const update = (field) => (e) => setForm(p => ({ ...p, [field]: e.target.value }));
+    const update = (field) => (e) => {
+        setForm(p => ({ ...p, [field]: e.target.value }));
+        clearError(field);
+    };
+
+    const MAX_FILE_MB = 5;
+
+    const validate = () => {
+        const newErrors = {};
+
+        // Panchayat
+        if (!selectedPanchayat?._id) {
+            toast.error('Please select your Panchayat first from the top bar.');
+            return false;
+        }
+
+        // Full Name
+        if (!form.ownerName.trim()) {
+            newErrors.ownerName = 'Full name is required.';
+        } else if (form.ownerName.trim().length < 3) {
+            newErrors.ownerName = 'Name must be at least 3 characters.';
+        } else if (!/^[a-zA-Z\s.'-]+$/.test(form.ownerName.trim())) {
+            newErrors.ownerName = 'Name can only contain letters, spaces, and . \' -';
+        }
+
+        // Email (optional but must be valid if provided)
+        if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+            newErrors.email = 'Enter a valid email address.';
+        }
+
+        // Mobile
+        if (!form.mobile.trim()) {
+            newErrors.mobile = 'Mobile number is required.';
+        } else if (!/^[6-9]\d{9}$/.test(form.mobile.trim())) {
+            newErrors.mobile = 'Enter a valid 10-digit Indian mobile number (starts with 6-9).';
+        }
+
+        // House Number
+        if (!form.houseNumber.trim()) {
+            newErrors.houseNumber = 'House number is required.';
+        }
+
+        // Ward
+        if (!form.ward) {
+            newErrors.ward = 'Please select a ward.';
+        }
+
+        // Pincode (optional, must be 6 digits if provided)
+        if (form.pincode.trim() && !/^\d{6}$/.test(form.pincode.trim())) {
+            newErrors.pincode = 'Pincode must be exactly 6 digits.';
+        }
+
+        // Full Address
+        if (!form.address.trim()) {
+            newErrors.address = 'Full address is required.';
+        } else if (form.address.trim().length < 10) {
+            newErrors.address = 'Address must be at least 10 characters.';
+        }
+
+        // Identity File
+        if (!identityFile) {
+            newErrors.identityFile = 'Identity proof document is required.';
+        } else if (identityFile.size > MAX_FILE_MB * 1024 * 1024) {
+            newErrors.identityFile = `File size must be under ${MAX_FILE_MB} MB.`;
+        }
+
+        // Premises File
+        if (!premisesFile) {
+            newErrors.premisesFile = 'Premises proof document is required.';
+        } else if (premisesFile.size > MAX_FILE_MB * 1024 * 1024) {
+            newErrors.premisesFile = `File size must be under ${MAX_FILE_MB} MB.`;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!selectedPanchayat?._id) {
-            toast.error('Please select your Panchayat first from the top bar.');
-            return;
-        }
-        if (!form.ownerName || !form.mobile || !form.houseNumber || !form.ward || !form.address) {
-            toast.error('Please fill in all required fields.');
-            return;
-        }
-        if (form.mobile.length < 10) {
-            toast.error('Please enter a valid 10-digit mobile number.');
-            return;
-        }
-        if (!identityFile) {
-            toast.error('Please upload your Identity Proof document (Aadhaar, Passport, or Voter ID).');
-            return;
-        }
-        if (!premisesFile) {
-            toast.error('Please upload your Premises Proof document (Electricity bill or Rent agreement).');
-            return;
-        }
+        if (!validate()) return;
 
         setLoading(true);
         try {
@@ -207,9 +266,9 @@ const RegisterPage = ({ navigate }) => {
                             Personal Information
                         </h2>
                         <div className="grid sm:grid-cols-2 gap-4">
-                            <InputField label="Full Name (Owner)" icon={User} value={form.ownerName} onChange={update('ownerName')} placeholder="Enter full name" required />
-                            <InputField label="Email Address" icon={Mail} type="email" value={form.email} onChange={update('email')} placeholder="Enter email (optional)" />
-                            <InputField label="Mobile Number" icon={Phone} type="tel" value={form.mobile} onChange={update('mobile')} placeholder="10-digit mobile number" required />
+                            <InputField label="Full Name (Owner)" icon={User} value={form.ownerName} onChange={update('ownerName')} placeholder="Enter full name" required error={errors.ownerName} />
+                            <InputField label="Email Address" icon={Mail} type="email" value={form.email} onChange={update('email')} placeholder="Enter email (optional)" error={errors.email} />
+                            <InputField label="Mobile Number" icon={Phone} type="tel" value={form.mobile} onChange={update('mobile')} placeholder="10-digit mobile number" required error={errors.mobile} />
                         </div>
                     </div>
 
@@ -219,7 +278,7 @@ const RegisterPage = ({ navigate }) => {
                             Address Details
                         </h2>
                         <div className="grid sm:grid-cols-2 gap-4">
-                            <InputField label="House Number" icon={Home} value={form.houseNumber} onChange={update('houseNumber')} placeholder="Enter house number" required />
+                            <InputField label="House Number" icon={Home} value={form.houseNumber} onChange={update('houseNumber')} placeholder="Enter house number" required error={errors.houseNumber} />
                             <div>
                                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">
                                     Area / Ward<span className="text-red-500 ml-0.5">*</span>
@@ -230,8 +289,8 @@ const RegisterPage = ({ navigate }) => {
                                     </span>
                                     <select
                                         value={form.ward}
-                                        onChange={update('ward')}
-                                        className="input-field appearance-none pl-10 pr-10"
+                                        onChange={(e) => { update('ward')(e); clearError('ward'); }}
+                                        className={`input-field appearance-none pl-10 pr-10 ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
                                         disabled={fetchingWards || !selectedPanchayat}
                                     >
                                         <option value="">{fetchingWards ? 'Loading wards...' : 'Select Ward'}</option>
@@ -243,19 +302,21 @@ const RegisterPage = ({ navigate }) => {
                                         <ChevronRight className="w-4 h-4 rotate-90" />
                                     </div>
                                 </div>
+                                {errors.ward && <p className="mt-1 text-xs text-red-500">{errors.ward}</p>}
                             </div>
-                            <InputField label="Pincode" icon={MapPin} value={form.pincode} onChange={update('pincode')} placeholder="Enter pincode" />
+                            <InputField label="Pincode" icon={MapPin} value={form.pincode} onChange={update('pincode')} placeholder="Enter pincode (optional)" error={errors.pincode} />
                             <div className="sm:col-span-2">
                                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">
                                     Full Address<span className="text-red-500 ml-0.5">*</span>
                                 </label>
                                 <textarea
                                     value={form.address}
-                                    onChange={update('address')}
+                                    onChange={(e) => { update('address')(e); clearError('address'); }}
                                     rows={2}
                                     placeholder="Street, Area, City..."
-                                    className="input-field resize-none"
+                                    className={`input-field resize-none ${errors.address ? 'border-red-400 focus:ring-red-300' : ''}`}
                                 />
+                                {errors.address && <p className="mt-1 text-xs text-red-500">{errors.address}</p>}
                             </div>
                         </div>
                     </div>
@@ -272,15 +333,16 @@ const RegisterPage = ({ navigate }) => {
                                     Identity Proof<span className="text-red-500 ml-0.5">*</span>
                                 </label>
                                 <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-5 cursor-pointer transition-all group ${
-                                    identityFile ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-green-50'
+                                    errors.identityFile ? 'border-red-400 bg-red-50' : identityFile ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-green-50'
                                 }`}>
-                                    <Upload className={`w-6 h-6 mb-2 transition-colors ${identityFile ? 'text-green-500' : 'text-gray-400 group-hover:text-green-500'}`} />
-                                    <span className={`text-sm font-medium transition-colors ${identityFile ? 'text-green-700' : 'text-gray-600 group-hover:text-green-700'}`}>
+                                    <Upload className={`w-6 h-6 mb-2 transition-colors ${identityFile ? 'text-green-500' : errors.identityFile ? 'text-red-400' : 'text-gray-400 group-hover:text-green-500'}`} />
+                                    <span className={`text-sm font-medium transition-colors ${identityFile ? 'text-green-700' : errors.identityFile ? 'text-red-500' : 'text-gray-600 group-hover:text-green-700'}`}>
                                         {identityFile ? identityFile.name : 'Choose file'}
                                     </span>
-                                    <span className="text-xs text-gray-400 mt-1">Aadhaar, Passport, Voter ID</span>
-                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setIdentityFile(e.target.files[0])} className="hidden" />
+                                    <span className="text-xs text-gray-400 mt-1">Aadhaar, Passport, Voter ID · Max 5 MB</span>
+                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => { setIdentityFile(e.target.files[0]); clearError('identityFile'); }} className="hidden" />
                                 </label>
+                                {errors.identityFile && <p className="mt-1 text-xs text-red-500">{errors.identityFile}</p>}
                             </div>
                             {/* Premises */}
                             <div>
@@ -288,15 +350,16 @@ const RegisterPage = ({ navigate }) => {
                                     Premises Proof<span className="text-red-500 ml-0.5">*</span>
                                 </label>
                                 <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-5 cursor-pointer transition-all group ${
-                                    premisesFile ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-green-50'
+                                    errors.premisesFile ? 'border-red-400 bg-red-50' : premisesFile ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-green-50'
                                 }`}>
-                                    <Upload className={`w-6 h-6 mb-2 transition-colors ${premisesFile ? 'text-green-500' : 'text-gray-400 group-hover:text-green-500'}`} />
-                                    <span className={`text-sm font-medium transition-colors ${premisesFile ? 'text-green-700' : 'text-gray-600 group-hover:text-green-700'}`}>
+                                    <Upload className={`w-6 h-6 mb-2 transition-colors ${premisesFile ? 'text-green-500' : errors.premisesFile ? 'text-red-400' : 'text-gray-400 group-hover:text-green-500'}`} />
+                                    <span className={`text-sm font-medium transition-colors ${premisesFile ? 'text-green-700' : errors.premisesFile ? 'text-red-500' : 'text-gray-600 group-hover:text-green-700'}`}>
                                         {premisesFile ? premisesFile.name : 'Choose file'}
                                     </span>
-                                    <span className="text-xs text-gray-400 mt-1">Electricity bill, Rent agreement</span>
-                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setPremisesFile(e.target.files[0])} className="hidden" />
+                                    <span className="text-xs text-gray-400 mt-1">Electricity bill, Rent agreement · Max 5 MB</span>
+                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => { setPremisesFile(e.target.files[0]); clearError('premisesFile'); }} className="hidden" />
                                 </label>
+                                {errors.premisesFile && <p className="mt-1 text-xs text-red-500">{errors.premisesFile}</p>}
                             </div>
                         </div>
                     </div>

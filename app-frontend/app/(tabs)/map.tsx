@@ -19,16 +19,7 @@ type BinItem = {
   ward: string; type: string; geo: { lat: number; lng: number }; scanned: boolean;
 };
 
-function buildLeafletHTML(bins: BinItem[], lat: number, lng: number, isDark: boolean) {
-  const markers = bins.map(b => {
-    const color = b.scanned ? 'green' : 'blue';
-    return `L.marker([${b.geo.lat},${b.geo.lng}],{icon:L.icon({
-      iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png',
-      shadowUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-      iconSize:[25,41],iconAnchor:[12,41],popupAnchor:[1,-34]
-    })}).addTo(map).bindPopup('<b>${b.binCode}</b><br>${b.locationText}${b.scanned ? '<br><span style="color:green">✓ Collected</span>' : ''}');`;
-  }).join('\n');
-
+function buildInitialLeafletHTML(lat: number, lng: number, isDark: boolean) {
   const tileDark = isDark
     ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
     : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -42,13 +33,51 @@ function buildLeafletHTML(bins: BinItem[], lat: number, lng: number, isDark: boo
   </head><body><div id="map"></div><script>
   var map=L.map('map').setView([${lat},${lng}],15);
   L.tileLayer('${tileDark}',{attribution:'© OSM',maxZoom:19}).addTo(map);
-  ${markers}
+  var markerLayer = L.layerGroup().addTo(map);
+
+  // Listen for messages from React Native to update markers
+  document.addEventListener('message', function(e) {
+    try {
+      var data = JSON.parse(e.data);
+      if (data.type === 'UPDATE_BINS') {
+        markerLayer.clearLayers();
+        data.bins.forEach(function(b) {
+          var color = b.scanned ? 'green' : 'blue';
+          var m = L.marker([b.geo.lat, b.geo.lng], {
+            icon: L.icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-' + color + '.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+              iconSize: [25,41], iconAnchor: [12,41], popupAnchor: [1,-34]
+            })
+          }).bindPopup('<b>' + b.binCode + '</b><br>' + b.locationText + (b.scanned ? '<br><span style="color:green">✓ Collected</span>' : ''));
+          markerLayer.addLayer(m);
+        });
+      }
+    } catch(err) {}
+  });
+
+  // Polyfill for iOS React Native WebView message passing
+  window.addEventListener('message', function(e) {
+    document.dispatchEvent(new MessageEvent('message', { data: e.data }));
+  });
+
   </script></body></html>`;
 }
 
-function MapWebView({ html }: { html: string }) {
+function MapWebView({ bins, lat, lng, isDark }: { bins: BinItem[], lat: number, lng: number, isDark: boolean }) {
   const { theme } = useTheme();
   const [ready, setReady] = useState(false);
+  const webViewRef = React.useRef<WebView>(null);
+
+  // Memoize the initial HTML so Webview doesn't reload.
+  const initialHtml = React.useMemo(() => buildInitialLeafletHTML(lat, lng, isDark), [isDark]);
+
+  useEffect(() => {
+    if (ready && webViewRef.current) {
+      webViewRef.current.postMessage(JSON.stringify({ type: 'UPDATE_BINS', bins }));
+    }
+  }, [bins, ready]);
+
   return (
     <View style={{ flex: 1 }}>
       {!ready && (
@@ -57,7 +86,15 @@ function MapWebView({ html }: { html: string }) {
           <Text style={{ color: theme.primary, marginTop: 10, fontSize: 13, fontWeight: '600' }}>Loading map…</Text>
         </View>
       )}
-      <WebView source={{ html }} style={{ flex: 1 }} javaScriptEnabled domStorageEnabled originWhitelist={['*']} onLoad={() => setReady(true)} />
+      <WebView
+        ref={webViewRef}
+        source={{ html: initialHtml }}
+        style={{ flex: 1, backgroundColor: 'transparent' }}
+        javaScriptEnabled
+        domStorageEnabled
+        originWhitelist={['*']}
+        onLoad={() => setReady(true)}
+      />
     </View>
   );
 }
@@ -102,7 +139,6 @@ export default function MapScreen() {
 
   const collected = bins.filter(b => b.scanned).length;
   const pending = bins.filter(b => !b.scanned).length;
-  const leafletHTML = buildLeafletHTML(bins, userLocation.lat, userLocation.lng, isDark);
 
   const renderMap = () => {
     if (hasPermission === null) return (
@@ -116,7 +152,7 @@ export default function MapScreen() {
         <Text style={{ color: theme.subtext, textAlign: 'center', marginTop: 12 }}>Location permission required to view the map.</Text>
       </View>
     );
-    return <MapWebView html={leafletHTML} />;
+    return <MapWebView bins={bins} lat={userLocation.lat} lng={userLocation.lng} isDark={isDark} />;
   };
 
   return (
