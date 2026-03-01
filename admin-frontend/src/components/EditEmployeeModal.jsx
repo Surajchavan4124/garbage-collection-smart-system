@@ -59,6 +59,11 @@ export default function EditEmployeeModal({ isOpen, onClose, employee, onSuccess
       e.target.value = '';
       return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, [name]: 'File size must be under 5 MB.' }));
+      e.target.value = '';
+      return;
+    }
     if (file) setFiles(p => ({ ...p, [e.target.name]: file }));
   };
   const toggleWard = (name) => {

@@ -49,6 +49,11 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       e.target.value = '';
       return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, [name]: 'File size must be under 5 MB.' }));
+      e.target.value = '';
+      return;
+    }
     setFiles(p => ({ ...p, [name]: file }));
     setPreview(p => ({ ...p, [name]: { url: URL.createObjectURL(file), type: file.type, name: file.name, key: Date.now() } }));
     e.target.value = "";

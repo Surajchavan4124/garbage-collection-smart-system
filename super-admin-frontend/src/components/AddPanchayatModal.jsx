@@ -108,6 +108,11 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
       e.target.value = '';
       return;
     }
+    if (f.size > 5 * 1024 * 1024) {
+      toast.error('File size must be under 5 MB.');
+      e.target.value = '';
+      return;
+    }
     set(field, f);
   };
 
