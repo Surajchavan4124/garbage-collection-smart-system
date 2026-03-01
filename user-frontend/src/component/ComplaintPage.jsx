@@ -52,8 +52,10 @@ const ComplaintPage = ({ navigate }) => {
         } else if (!/^[a-zA-Z\s.'`-]+$/.test(formData.name.trim())) {
             newErrors.name = "Name can only contain letters and spaces.";
         }
-        // Mobile (optional)
-        if (formData.mobile.trim() && !/^[6-9]\d{9}$/.test(formData.mobile.trim())) {
+        // Mobile (required, 10-digit Indian)
+        if (!formData.mobile.trim()) {
+            newErrors.mobile = 'Mobile number is required.';
+        } else if (!/^[6-9]\d{9}$/.test(formData.mobile.trim())) {
             newErrors.mobile = 'Enter a valid 10-digit Indian mobile number.';
         }
         // Type
@@ -162,8 +164,8 @@ const ComplaintPage = ({ navigate }) => {
                                             {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mobile Number <span className="text-gray-400 font-normal text-xs">(optional)</span></label>
-                                            <input name="mobile" value={formData.mobile} onChange={handleChange} placeholder="10-digit mobile (optional)" className={`input-field ${errors.mobile ? 'border-red-400 focus:ring-red-300' : ''}`} />
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mobile Number <span className="text-red-500">*</span></label>
+                                            <input name="mobile" value={formData.mobile} onChange={handleChange} placeholder="10-digit mobile number" className={`input-field ${errors.mobile ? 'border-red-400 focus:ring-red-300' : ''}`} />
                                             {errors.mobile && <p className="mt-1 text-xs text-red-500">{errors.mobile}</p>}
                                         </div>
                                     </div>
