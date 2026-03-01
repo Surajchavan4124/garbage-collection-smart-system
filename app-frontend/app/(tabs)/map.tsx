@@ -156,6 +156,7 @@ export default function MapScreen() {
         height: 220, borderWidth: 1, borderColor: theme.border,
         shadowColor: theme.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
         marginBottom: 14,
+        opacity: 0.99, // Fix for Android WebView disappearing bug when using overflow: hidden + border radius
       }}>
         {renderMap()}
         <TouchableOpacity
