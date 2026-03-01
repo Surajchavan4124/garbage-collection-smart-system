@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Search, BarChart3, Download, ShieldAlert, RefreshCw, Users, UserCheck, UserX, Percent } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../api/axios";
@@ -21,6 +21,13 @@ export default function AttendanceManagement() {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [filter, setFilter] = useState('all');
+  const manualModalRef = useRef(null);
+
+  useEffect(() => {
+    if (showManualModal && manualModalRef.current) {
+      manualModalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showManualModal]);
 
   const fetchTodayAttendance = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -48,7 +55,7 @@ export default function AttendanceManagement() {
   const filteredAttendance = attendance.filter(
     (a) => {
       const matchesSearch = a.labour.name.toLowerCase().includes(searchEmployee.toLowerCase()) ||
-                           a.labour.employeeCode.toLowerCase().includes(searchEmployee.toLowerCase());
+        a.labour.employeeCode.toLowerCase().includes(searchEmployee.toLowerCase());
       const matchesFilter = filter === 'all' || (filter === 'present' ? a.present : !a.present);
       return matchesSearch && matchesFilter;
     }
@@ -67,9 +74,9 @@ export default function AttendanceManagement() {
   };
 
   const handleManualMark = async () => {
-    if (!reason.trim()) { 
+    if (!reason.trim()) {
       setErrors({ reason: "Reason is required" });
-      return; 
+      return;
     }
     try {
       setSubmitting(true);
@@ -267,11 +274,10 @@ export default function AttendanceManagement() {
                     <td className="px-6 py-3.5 text-gray-500 text-xs">{a.labour.role}</td>
                     <td className="px-6 py-3.5 text-gray-500 text-xs">{a.labour.ward}</td>
                     <td className="px-6 py-3.5">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                        a.present
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${a.present
                           ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                           : 'bg-red-50 text-red-500 border-red-100'
-                      }`}>
+                        }`}>
                         {a.present ? '● Present' : '● Absent'}
                       </span>
                     </td>
@@ -305,8 +311,8 @@ export default function AttendanceManagement() {
 
       {/* Manual Modal */}
       {showManualModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div ref={manualModalRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
             <div className="p-5 border-b" style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}>
               <h3 className="text-white font-bold text-base">Manual Attendance Override</h3>
               <p className="text-white/70 text-xs mt-0.5">Marking present for: {selectedEmployee?.labour?.name}</p>
@@ -322,11 +328,10 @@ export default function AttendanceManagement() {
                   setReason(e.target.value);
                   if (errors.reason) setErrors({});
                 }}
-                className={`w-full border rounded-xl p-3 text-sm resize-none outline-none transition-all ${
-                  errors.reason 
-                    ? 'border-red-300 focus:ring-2 focus:ring-red-100 text-gray-700' 
+                className={`w-full border rounded-xl p-3 text-sm resize-none outline-none transition-all ${errors.reason
+                    ? 'border-red-300 focus:ring-2 focus:ring-red-100 text-gray-700'
                     : 'border-gray-200 text-gray-700 focus:border-teal-300 focus:ring-2 focus:ring-teal-100'
-                }`}
+                  }`}
                 rows={3}
                 placeholder="Enter reason for manual override…"
               />

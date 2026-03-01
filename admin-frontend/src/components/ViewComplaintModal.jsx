@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, MapPin, Phone, Calendar, FileText } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -9,9 +9,15 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
   const [resolutionTime, setResolutionTime] = useState('')
   const [errors, setErrors] = useState({})
 
+  const modalRef = useRef(null)
+
   useEffect(() => {
     if (isOpen) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (modalRef.current) {
+        modalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   }, [isOpen]);
 
@@ -46,7 +52,7 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={onClose} />
       <div className="fixed inset-0 flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto">
+        <div ref={modalRef} className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto">
 
           {/* Header */}
           <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
@@ -66,7 +72,7 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className="p-6 overflow-y-auto flex-1">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
               {/* LEFT COLUMN - Basic Information */}
