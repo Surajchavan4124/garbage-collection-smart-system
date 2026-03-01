@@ -35,6 +35,20 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     const file = e.target.files?.[0];
     if (!file) return;
     const name = e.target.name;
+    // Validate file type
+    const isPhoto = name === 'photo';
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedDocTypes = [...allowedImageTypes, 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (isPhoto && !allowedImageTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, [name]: 'Only JPG, PNG, GIF or WEBP images are allowed.' }));
+      e.target.value = '';
+      return;
+    }
+    if (!isPhoto && !allowedDocTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, [name]: 'Only PDF, JPG, PNG, DOC or DOCX files are allowed.' }));
+      e.target.value = '';
+      return;
+    }
     setFiles(p => ({ ...p, [name]: file }));
     setPreview(p => ({ ...p, [name]: { url: URL.createObjectURL(file), type: file.type, name: file.name, key: Date.now() } }));
     e.target.value = "";
@@ -180,10 +194,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Documents</p>
               <div className="grid grid-cols-1 gap-3">
-                <UploadCard icon={<Camera size={14} />} label="Employee Photo *" name="photo" file={files.photo} preview={preview.photo} onChange={handleFileChange} error={errors.photo} />
-                <UploadCard icon={<FileText size={14} />} label="ID Proof *" name="idProof" file={files.idProof} preview={preview.idProof} onChange={handleFileChange} error={errors.idProof} />
+                <UploadCard icon={<Camera size={14} />} label="Employee Photo *" name="photo" file={files.photo} preview={preview.photo} onChange={handleFileChange} error={errors.photo} accept="image/*" />
+                <UploadCard icon={<FileText size={14} />} label="ID Proof *" name="idProof" file={files.idProof} preview={preview.idProof} onChange={handleFileChange} error={errors.idProof} accept="image/*,.pdf,.doc,.docx" />
                 {form.role === "Driver" && (
-                  <UploadCard icon={<Car size={14} />} label="Driving License *" name="license" file={files.license} preview={preview.license} onChange={handleFileChange} error={errors.license} />
+                  <UploadCard icon={<Car size={14} />} label="Driving License *" name="license" file={files.license} preview={preview.license} onChange={handleFileChange} error={errors.license} accept="image/*,.pdf,.doc,.docx" />
                 )}
               </div>
             </div>
@@ -227,7 +241,7 @@ function StyledTextarea({ error, ...props }) {
 function StyledSelect({ children, error, ...props }) {
   return <select {...props} className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 transition-all ${error ? 'border-red-300 focus:ring-red-400/20 focus:border-red-400' : 'border-gray-200 focus:ring-teal-400/30 focus:border-teal-400'}`}>{children}</select>;
 }
-function UploadCard({ icon, label, name, file, preview, onChange, error }) {
+function UploadCard({ icon, label, name, file, preview, onChange, error, accept }) {
   return (
     <div className={`border rounded-xl overflow-hidden transition-colors ${error ? 'border-red-200 bg-red-50/10' : 'border-gray-100'}`}>
       <label className="flex items-center gap-3 p-3 bg-gray-50 cursor-pointer hover:bg-teal-50/30 transition-all group">
@@ -242,7 +256,7 @@ function UploadCard({ icon, label, name, file, preview, onChange, error }) {
           <p className="text-[10px] text-gray-400 truncate">{file ? file.name : 'Click to upload file'}</p>
         </div>
         <Upload size={14} className={`transition-colors flex-shrink-0 ${error ? 'text-red-300' : 'text-gray-300 group-hover:text-teal-400'}`} />
-        <input type="file" name={name} onChange={onChange} className="hidden" />
+        <input type="file" name={name} onChange={onChange} accept={accept} className="hidden" />
       </label>
       {preview && (
         <div className="px-3 pb-3">

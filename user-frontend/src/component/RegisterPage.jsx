@@ -343,7 +343,16 @@ const RegisterPage = ({ navigate }) => {
                                         {identityFile ? identityFile.name : 'Choose file'}
                                     </span>
                                     <span className="text-xs text-gray-400 mt-1">Aadhaar, Passport, Voter ID · Max 5 MB</span>
-                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => { setIdentityFile(e.target.files[0]); clearError('identityFile'); }} className="hidden" />
+                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+                                        const allowed = ['application/pdf','image/jpeg','image/png','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                                        if (!allowed.includes(file.type)) {
+                                            setErrors(prev => ({ ...prev, identityFile: 'Only PDF, JPG, PNG, DOC or DOCX files are accepted.' }));
+                                            e.target.value = ''; return;
+                                        }
+                                        setIdentityFile(file); clearError('identityFile');
+                                    }} className="hidden" />
                                 </label>
                                 {errors.identityFile && <p className="mt-1 text-xs text-red-500">{errors.identityFile}</p>}
                             </div>
@@ -360,7 +369,16 @@ const RegisterPage = ({ navigate }) => {
                                         {premisesFile ? premisesFile.name : 'Choose file'}
                                     </span>
                                     <span className="text-xs text-gray-400 mt-1">Electricity bill, Rent agreement · Max 5 MB</span>
-                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => { setPremisesFile(e.target.files[0]); clearError('premisesFile'); }} className="hidden" />
+                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+                                        const allowed = ['application/pdf','image/jpeg','image/png','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                                        if (!allowed.includes(file.type)) {
+                                            setErrors(prev => ({ ...prev, premisesFile: 'Only PDF, JPG, PNG, DOC or DOCX files are accepted.' }));
+                                            e.target.value = ''; return;
+                                        }
+                                        setPremisesFile(file); clearError('premisesFile');
+                                    }} className="hidden" />
                                 </label>
                                 {errors.premisesFile && <p className="mt-1 text-xs text-red-500">{errors.premisesFile}</p>}
                             </div>

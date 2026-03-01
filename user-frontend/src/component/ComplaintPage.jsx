@@ -33,7 +33,14 @@ const ComplaintPage = ({ navigate }) => {
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
-            setFormData((prev) => ({ ...prev, photo: e.target.files[0] }));
+            const file = e.target.files[0];
+            const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+            if (!allowedImageTypes.includes(file.type)) {
+                setErrors(prev => ({ ...prev, photo: 'Only image files (JPG, PNG, GIF, WEBP) are accepted.' }));
+                e.target.value = '';
+                return;
+            }
+            setFormData((prev) => ({ ...prev, photo: file }));
             clearError('photo');
         }
     };

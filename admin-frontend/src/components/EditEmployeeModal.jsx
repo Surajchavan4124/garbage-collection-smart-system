@@ -43,6 +43,22 @@ export default function EditEmployeeModal({ isOpen, onClose, employee, onSuccess
   const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
+    if (!file) return;
+    const name = e.target.name;
+    // Validate file type
+    const isPhoto = name === 'photo';
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedDocTypes = [...allowedImageTypes, 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (isPhoto && !allowedImageTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, [name]: 'Only JPG, PNG, GIF or WEBP images are allowed.' }));
+      e.target.value = '';
+      return;
+    }
+    if (!isPhoto && !allowedDocTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, [name]: 'Only PDF, JPG, PNG, DOC or DOCX files are allowed.' }));
+      e.target.value = '';
+      return;
+    }
     if (file) setFiles(p => ({ ...p, [e.target.name]: file }));
   };
   const toggleWard = (name) => {
@@ -182,10 +198,10 @@ export default function EditEmployeeModal({ isOpen, onClose, employee, onSuccess
                 <FileText size={12} /> Replace Documents (optional)
               </p>
               <div className="grid grid-cols-1 gap-3">
-                <UploadCard icon={<Camera size={14} />} label="Employee Photo" name="photo" file={files.photo} onChange={handleFileChange} />
-                <UploadCard icon={<FileText size={14} />} label="ID Proof" name="idProof" file={files.idProof} onChange={handleFileChange} />
+                <UploadCard icon={<Camera size={14} />} label="Employee Photo" name="photo" file={files.photo} onChange={handleFileChange} accept="image/*" />
+                <UploadCard icon={<FileText size={14} />} label="ID Proof" name="idProof" file={files.idProof} onChange={handleFileChange} accept="image/*,.pdf,.doc,.docx" />
                 {formData.role === "Driver" && (
-                  <UploadCard icon={<Car size={14} />} label="Driving License" name="license" file={files.license} onChange={handleFileChange} />
+                  <UploadCard icon={<Car size={14} />} label="Driving License" name="license" file={files.license} onChange={handleFileChange} accept="image/*,.pdf,.doc,.docx" />
                 )}
               </div>
             </div>
@@ -230,7 +246,7 @@ function StyledTextarea({ error, ...props }) {
 function StyledSelect({ children, error, ...props }) {
   return <select {...props} className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 transition-all ${error ? 'border-red-300 focus:ring-red-400/20 focus:border-red-400' : 'border-gray-200 focus:ring-teal-400/30 focus:border-teal-400'}`}>{children}</select>;
 }
-function UploadCard({ icon, label, name, file, onChange, error }) {
+function UploadCard({ icon, label, name, file, onChange, error, accept }) {
   return (
     <label className={`flex items-center gap-3 p-3 bg-gray-50 border rounded-xl cursor-pointer hover:bg-teal-50/30 transition-all group ${error ? 'border-red-300' : 'border-gray-100'}`}>
       <div className={`w-8 h-8 rounded-lg bg-white border flex items-center justify-center flex-shrink-0 transition-colors ${error ? 'border-red-300 text-red-500' : 'border-gray-200 text-teal-500 group-hover:border-teal-300'}`}>
@@ -244,7 +260,7 @@ function UploadCard({ icon, label, name, file, onChange, error }) {
         <p className="text-[10px] text-gray-400 truncate">{file ? file.name : 'Click to upload file'}</p>
       </div>
       <Upload size={14} className={`transition-colors flex-shrink-0 ${error ? 'text-red-300' : 'text-gray-300 group-hover:text-teal-400'}`} />
-      <input type="file" name={name} onChange={onChange} className="hidden" />
+      <input type="file" name={name} onChange={onChange} accept={accept} className="hidden" />
     </label>
   );
 }

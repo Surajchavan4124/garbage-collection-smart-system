@@ -56,10 +56,10 @@ function Select({ ...props }) {
   );
 }
 
-function FileUpload({ id, label, value, onChange }) {
+function FileUpload({ id, label, value, onChange, accept }) {
   return (
     <div>
-      <input type="file" id={id} onChange={onChange} style={{ display:"none" }} />
+      <input type="file" id={id} onChange={onChange} accept={accept} style={{ display:"none" }} />
       <label htmlFor={id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", border:"1.5px dashed #e2e8f0", borderRadius:10, cursor:"pointer", background:"#f8fafc", transition:"all 0.15s" }}
         onMouseEnter={e => { e.currentTarget.style.borderColor="#6366f1"; e.currentTarget.style.background="rgba(99,102,241,0.04)"; }}
         onMouseLeave={e => { e.currentTarget.style.borderColor="#e2e8f0"; e.currentTarget.style.background="#f8fafc"; }}>
@@ -99,7 +99,17 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
 
   const set = (name, value) => { setFormData(p => ({ ...p, [name]: value })); setErrors(prev => ({ ...prev, [name]: '' })); };
   const handleInput = e => set(e.target.name, e.target.value);
-  const handleFile = (e, field) => { const f = e.target.files[0]; if (f) set(field, f); };
+  const handleFile = (e, field) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const allowedDocTypes = ['image/jpeg','image/png','image/gif','image/webp','application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedDocTypes.includes(f.type)) {
+      toast.error('Only PDF, JPG, PNG, DOC or DOCX files are accepted.');
+      e.target.value = '';
+      return;
+    }
+    set(field, f);
+  };
 
   const handleAddSave = async () => {
     if (loading) return;
@@ -225,11 +235,11 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
                 <div>
                   <FieldLabel>Incharge ID Proof</FieldLabel>
-                  <FileUpload id="idProofInput" label="Upload ID Proof" value={formData.inchargeIdProof} onChange={e => handleFile(e, "inchargeIdProof")} />
+                  <FileUpload id="idProofInput" label="Upload ID Proof" value={formData.inchargeIdProof} onChange={e => handleFile(e, "inchargeIdProof")} accept="image/*,.pdf,.doc,.docx" />
                 </div>
                 <div>
                   <FieldLabel>Registration Letter</FieldLabel>
-                  <FileUpload id="registrationInput" label="Upload Letter" value={formData.registrationLetter} onChange={e => handleFile(e, "registrationLetter")} />
+                  <FileUpload id="registrationInput" label="Upload Letter" value={formData.registrationLetter} onChange={e => handleFile(e, "registrationLetter")} accept="image/*,.pdf,.doc,.docx" />
                 </div>
               </div>
             </div>
