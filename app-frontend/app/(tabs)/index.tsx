@@ -84,14 +84,6 @@ export default function HomeScreen() {
     return 'Good Evening';
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={PRIMARY} />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }} edges={['top']}>
       <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} backgroundColor={theme.bg} />
@@ -195,70 +187,79 @@ export default function HomeScreen() {
             <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text, marginLeft: 8 }}>Today's Performance</Text>
           </View>
 
-          {/* Stat Cards Row */}
-          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 14 }}>
-            {/* Collected */}
-            <View style={{
-              flex: 1, backgroundColor: '#eef2ff', borderRadius: 16, padding: 16,
-              borderWidth: 1, borderColor: '#c7d2fe',
-            }}>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: '#6366f1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Collected</Text>
-              <Text style={{ fontSize: 32, fontWeight: '800', color: '#4338ca' }}>{stats.completed}</Text>
-              <Text style={{ fontSize: 12, color: '#818cf8', marginTop: 2 }}>of {stats.total} bins</Text>
+          {loading ? (
+            <View style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator size="large" color={PRIMARY} />
+              <Text style={{ color: theme.muted, marginTop: 12, fontSize: 13, fontWeight: '500' }}>Loading performance data...</Text>
             </View>
+          ) : (
+            <>
+              {/* Stat Cards Row */}
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 14 }}>
+                {/* Collected */}
+                <View style={{
+                  flex: 1, backgroundColor: '#eef2ff', borderRadius: 16, padding: 16,
+                  borderWidth: 1, borderColor: '#c7d2fe',
+                }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: '#6366f1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Collected</Text>
+                  <Text style={{ fontSize: 32, fontWeight: '800', color: '#4338ca' }}>{stats.completed}</Text>
+                  <Text style={{ fontSize: 12, color: '#818cf8', marginTop: 2 }}>of {stats.total} bins</Text>
+                </View>
 
-            {/* Pending */}
-            <View style={{
-              flex: 1, backgroundColor: '#fffbeb', borderRadius: 16, padding: 16,
-              borderWidth: 1, borderColor: '#fde68a',
-            }}>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: '#d97706', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Pending</Text>
-              <Text style={{ fontSize: 32, fontWeight: '800', color: '#b45309' }}>{stats.pending}</Text>
-              <Text style={{ fontSize: 12, color: '#fbbf24', marginTop: 2 }}>bins remaining</Text>
-            </View>
-          </View>
+                {/* Pending */}
+                <View style={{
+                  flex: 1, backgroundColor: '#fffbeb', borderRadius: 16, padding: 16,
+                  borderWidth: 1, borderColor: '#fde68a',
+                }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: '#d97706', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Pending</Text>
+                  <Text style={{ fontSize: 32, fontWeight: '800', color: '#b45309' }}>{stats.pending}</Text>
+                  <Text style={{ fontSize: 12, color: '#fbbf24', marginTop: 2 }}>bins remaining</Text>
+                </View>
+              </View>
 
-          {/* Progress Card */}
-          <View style={{
-            backgroundColor: theme.card, borderRadius: 20, padding: 20,
-            flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-            shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
-            borderWidth: 1, borderColor: theme.border,
-          }}>
-            <View style={{ flex: 1, marginRight: 16 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.text, marginBottom: 12 }}>Completion Status</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                <CheckCircle size={18} color={GREEN} />
-                <Text style={{ fontSize: 14, color: theme.subtext, marginLeft: 10, fontWeight: '500' }}>
-                  {stats.completed} Bins Collected
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Clock size={18} color={ORANGE} />
-                <Text style={{ fontSize: 14, color: theme.subtext, marginLeft: 10, fontWeight: '500' }}>
-                  {stats.pending} Bins Pending
-                </Text>
-              </View>
-              {/* Progress bar */}
-              <View style={{ marginTop: 14, height: 6, backgroundColor: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                <View style={{ height: '100%', width: `${pct}%`, backgroundColor: PRIMARY, borderRadius: 3 }} />
-              </View>
-            </View>
+              {/* Progress Card */}
+              <View style={{
+                backgroundColor: theme.card, borderRadius: 20, padding: 20,
+                flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+                shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
+                borderWidth: 1, borderColor: theme.border,
+              }}>
+                <View style={{ flex: 1, marginRight: 16 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: theme.text, marginBottom: 12 }}>Completion Status</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                    <CheckCircle size={18} color={GREEN} />
+                    <Text style={{ fontSize: 14, color: theme.subtext, marginLeft: 10, fontWeight: '500' }}>
+                      {stats.completed} Bins Collected
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Clock size={18} color={ORANGE} />
+                    <Text style={{ fontSize: 14, color: theme.subtext, marginLeft: 10, fontWeight: '500' }}>
+                      {stats.pending} Bins Pending
+                    </Text>
+                  </View>
+                  {/* Progress bar */}
+                  <View style={{ marginTop: 14, height: 6, backgroundColor: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+                    <View style={{ height: '100%', width: `${pct}%`, backgroundColor: PRIMARY, borderRadius: 3 }} />
+                  </View>
+                </View>
 
-            {/* Donut */}
-            <View style={{ width: 100, height: 100, justifyContent: 'center', alignItems: 'center' }}>
-              <Svg width={100} height={100} viewBox="0 0 100 100">
-                <G rotation="-90" origin="50,50">
-                  <Circle cx="50" cy="50" r={RADIUS} stroke="#e2e8f0" strokeWidth="10" fill="none" />
-                  <Circle cx="50" cy="50" r={RADIUS} stroke={PRIMARY} strokeWidth="10" fill="none"
-                    strokeDasharray={CIRCUMFERENCE} strokeDashoffset={offset} strokeLinecap="round" />
-                </G>
-              </Svg>
-              <View style={{ position: 'absolute', justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: PRIMARY }}>{Math.round(pct)}%</Text>
+                {/* Donut */}
+                <View style={{ width: 100, height: 100, justifyContent: 'center', alignItems: 'center' }}>
+                  <Svg width={100} height={100} viewBox="0 0 100 100">
+                    <G rotation="-90" origin="50,50">
+                      <Circle cx="50" cy="50" r={RADIUS} stroke="#e2e8f0" strokeWidth="10" fill="none" />
+                      <Circle cx="50" cy="50" r={RADIUS} stroke={PRIMARY} strokeWidth="10" fill="none"
+                        strokeDasharray={CIRCUMFERENCE} strokeDashoffset={offset} strokeLinecap="round" />
+                    </G>
+                  </Svg>
+                  <View style={{ position: 'absolute', justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 18, fontWeight: '800', color: PRIMARY }}>{Math.round(pct)}%</Text>
+                  </View>
+                </View>
               </View>
-            </View>
-          </View>
+            </>
+          )}
         </View>
 
       </ScrollView>

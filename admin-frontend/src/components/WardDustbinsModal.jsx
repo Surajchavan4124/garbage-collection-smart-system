@@ -1,13 +1,20 @@
+import { useEffect } from 'react'
 import { X, Trash2 } from "lucide-react"
 
 export default function WardDustbinsModal({ isOpen, onClose, wardName, dustbins }) {
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[80vh]">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={onClose} />
+      <div className="fixed inset-0 flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[80vh] pointer-events-auto">
 
           {/* Header */}
           <div className="px-6 py-5 flex items-center justify-between flex-shrink-0"
