@@ -16,9 +16,40 @@ const UserProfile = ({ navigate }) => {
         memberSince: storedUser?.createdAt ? new Date(storedUser.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'Jan 2024',
     });
     const [tempProfile, setTempProfile] = useState({ ...profile });
+    const [profileErrors, setProfileErrors] = useState({});
 
-    const handleChange = (e) => setTempProfile((p) => ({ ...p, [e.target.name]: e.target.value }));
-    const handleSave = () => { setProfile({ ...tempProfile }); setIsEditing(false); };
+    const handleChange = (e) => {
+        setTempProfile((p) => ({ ...p, [e.target.name]: e.target.value }));
+        setProfileErrors(prev => ({ ...prev, [e.target.name]: '' }));
+    };
+
+    const validateProfile = () => {
+        const errs = {};
+        if (!tempProfile.name.trim()) {
+            errs.name = 'Full name is required.';
+        } else if (tempProfile.name.trim().length < 3) {
+            errs.name = 'Name must be at least 3 characters.';
+        } else if (!/^[a-zA-Z\s.'`-]+$/.test(tempProfile.name.trim())) {
+            errs.name = 'Name can only contain letters and spaces.';
+        }
+        if (tempProfile.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tempProfile.email.trim())) {
+            errs.email = 'Enter a valid email address.';
+        }
+        if (tempProfile.phone.trim() && !/^[6-9]\d{9}$/.test(tempProfile.phone.replace(/\D/g, ''))) {
+            errs.phone = 'Enter a valid 10-digit Indian phone number.';
+        }
+        if (tempProfile.pincode.trim() && !/^\d{6}$/.test(tempProfile.pincode.trim())) {
+            errs.pincode = 'Pincode must be exactly 6 digits.';
+        }
+        setProfileErrors(errs);
+        return Object.keys(errs).length === 0;
+    };
+
+    const handleSave = () => {
+        if (!validateProfile()) return;
+        setProfile({ ...tempProfile });
+        setIsEditing(false);
+    };
 
     const fields = [
         { name: 'name', label: 'Full Name', icon: User },
@@ -136,15 +167,16 @@ const UserProfile = ({ navigate }) => {
                                             name={name}
                                             value={tempProfile[name]}
                                             onChange={handleChange}
-                                            className="input-field"
+                                            className={`input-field ${profileErrors[name] ? 'border-red-400 focus:ring-red-300' : ''}`}
                                             placeholder={label}
                                         />
+                                        {profileErrors[name] && <p className="mt-1 text-xs text-red-500">{profileErrors[name]}</p>}
                                     </div>
                                 ))}
                             </div>
                             <div className="flex gap-3 mt-6">
                                 <button onClick={handleSave} className="btn-primary px-6 py-2.5">Save Changes</button>
-                                <button onClick={() => { setIsEditing(false); setTempProfile({ ...profile }); }} className="btn-outline px-6 py-2.5">Cancel</button>
+                                <button onClick={() => { setIsEditing(false); setTempProfile({ ...profile }); setProfileErrors({}); }} className="btn-outline px-6 py-2.5">Cancel</button>
                             </div>
                         </motion.div>
                     )}

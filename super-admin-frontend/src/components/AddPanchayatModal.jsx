@@ -95,15 +95,49 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("general");
   const [formData, setFormData] = useState(EMPTY);
+  const [errors, setErrors] = useState({});
 
-  const set = (name, value) => setFormData(p => ({ ...p, [name]: value }));
+  const set = (name, value) => { setFormData(p => ({ ...p, [name]: value })); setErrors(prev => ({ ...prev, [name]: '' })); };
   const handleInput = e => set(e.target.name, e.target.value);
   const handleFile = (e, field) => { const f = e.target.files[0]; if (f) set(field, f); };
 
   const handleAddSave = async () => {
     if (loading) return;
-    if (!formData.panchayatName || !formData.location || !formData.inchargePerson || !formData.phoneNumber) {
-      toast.error("Please fill all required fields"); return;
+    // Validate all required fields
+    const newErrors = {};
+    if (!formData.panchayatName.trim()) {
+      newErrors.panchayatName = 'Panchayat name is required.';
+    } else if (formData.panchayatName.trim().length < 3) {
+      newErrors.panchayatName = 'Name must be at least 3 characters.';
+    }
+    if (!formData.inchargePerson.trim()) {
+      newErrors.inchargePerson = 'Incharge person name is required.';
+    } else if (!/^[a-zA-Z\s.'`-]+$/.test(formData.inchargePerson.trim())) {
+      newErrors.inchargePerson = 'Name can only contain letters and spaces.';
+    }
+    if (!formData.location.trim()) {
+      newErrors.location = 'Location/address is required.';
+    } else if (formData.location.trim().length < 10) {
+      newErrors.location = 'Please enter a full address (min 10 characters).';
+    }
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = 'Phone number is required.';
+    } else if (!/^[6-9]\d{9}$/.test(formData.phoneNumber.replace(/\D/g, ''))) {
+      newErrors.phoneNumber = 'Enter a valid 10-digit Indian phone number.';
+    }
+    if (formData.emailAddress.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailAddress.trim())) {
+      newErrors.emailAddress = 'Enter a valid email address.';
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      // Navigate to the first tab with errors
+      if (newErrors.panchayatName || newErrors.inchargePerson || newErrors.location) {
+        setActiveSection('general');
+      } else if (newErrors.phoneNumber || newErrors.emailAddress) {
+        setActiveSection('contact');
+      }
+      toast.error('Please fix the errors in the form');
+      return;
     }
     try {
       setLoading(true);
@@ -174,16 +208,19 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
                 <div>
                   <FieldLabel required>Panchayat Name</FieldLabel>
-                  <Input icon={Building2} name="panchayatName" placeholder="e.g. Navelim Panchayat" value={formData.panchayatName} onChange={handleInput} />
+                  <Input icon={Building2} name="panchayatName" placeholder="e.g. Navelim Panchayat" value={formData.panchayatName} onChange={handleInput} style={errors.panchayatName ? {borderColor:'#ef4444'} : {}} />
+                  {errors.panchayatName && <p style={{fontSize:11,color:'#ef4444',marginTop:4}}>{errors.panchayatName}</p>}
                 </div>
                 <div>
                   <FieldLabel required>Incharge Person</FieldLabel>
-                  <Input icon={User} name="inchargePerson" placeholder="Full name" value={formData.inchargePerson} onChange={handleInput} />
+                  <Input icon={User} name="inchargePerson" placeholder="Full name" value={formData.inchargePerson} onChange={handleInput} style={errors.inchargePerson ? {borderColor:'#ef4444'} : {}} />
+                  {errors.inchargePerson && <p style={{fontSize:11,color:'#ef4444',marginTop:4}}>{errors.inchargePerson}</p>}
                 </div>
               </div>
               <div>
                 <FieldLabel required>Location / Address</FieldLabel>
-                <TextArea name="location" placeholder="Full address of the panchayat…" rows={3} value={formData.location} onChange={handleInput} />
+                <TextArea name="location" placeholder="Full address of the panchayat…" rows={3} value={formData.location} onChange={handleInput} style={errors.location ? {borderColor:'#ef4444'} : {}} />
+                {errors.location && <p style={{fontSize:11,color:'#ef4444',marginTop:4}}>{errors.location}</p>}
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
                 <div>
@@ -237,11 +274,13 @@ export default function AddPanchayatModal({ isOpen, onClose, onSuccess }) {
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
                 <div>
                   <FieldLabel required>Phone Number</FieldLabel>
-                  <Input icon={Phone} type="tel" name="phoneNumber" placeholder="+91 XXXXX XXXXX" value={formData.phoneNumber} onChange={handleInput} />
+                  <Input icon={Phone} type="tel" name="phoneNumber" placeholder="+91 XXXXX XXXXX" value={formData.phoneNumber} onChange={handleInput} style={errors.phoneNumber ? {borderColor:'#ef4444'} : {}} />
+                  {errors.phoneNumber && <p style={{fontSize:11,color:'#ef4444',marginTop:4}}>{errors.phoneNumber}</p>}
                 </div>
                 <div>
                   <FieldLabel>Email Address</FieldLabel>
-                  <Input icon={Mail} type="email" name="emailAddress" placeholder="name@gov.in" value={formData.emailAddress} onChange={handleInput} />
+                  <Input icon={Mail} type="email" name="emailAddress" placeholder="name@gov.in" value={formData.emailAddress} onChange={handleInput} style={errors.emailAddress ? {borderColor:'#ef4444'} : {}} />
+                  {errors.emailAddress && <p style={{fontSize:11,color:'#ef4444',marginTop:4}}>{errors.emailAddress}</p>}
                 </div>
               </div>
               <div>

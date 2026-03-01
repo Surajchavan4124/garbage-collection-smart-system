@@ -132,8 +132,10 @@ const RegisterPage = ({ navigate }) => {
             newErrors.ward = 'Please select a ward.';
         }
 
-        // Pincode (optional, must be 6 digits if provided)
-        if (form.pincode.trim() && !/^\d{6}$/.test(form.pincode.trim())) {
+        // Pincode (required, must be 6 digits)
+        if (!form.pincode.trim()) {
+            newErrors.pincode = 'Pincode is required.';
+        } else if (!/^\d{6}$/.test(form.pincode.trim())) {
             newErrors.pincode = 'Pincode must be exactly 6 digits.';
         }
 
@@ -284,13 +286,14 @@ const RegisterPage = ({ navigate }) => {
                                     Area / Ward<span className="text-red-500 ml-0.5">*</span>
                                 </label>
                                 <div className="relative">
-                                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                         <MapPin className="w-4 h-4 text-gray-400" />
                                     </span>
                                     <select
                                         value={form.ward}
                                         onChange={(e) => { update('ward')(e); clearError('ward'); }}
-                                        className={`input-field appearance-none pl-10 pr-10 ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
+                                        className={`input-field appearance-none pr-8 ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
+                                        style={{ paddingLeft: '2.25rem' }}
                                         disabled={fetchingWards || !selectedPanchayat}
                                     >
                                         <option value="">{fetchingWards ? 'Loading wards...' : 'Select Ward'}</option>
@@ -304,7 +307,7 @@ const RegisterPage = ({ navigate }) => {
                                 </div>
                                 {errors.ward && <p className="mt-1 text-xs text-red-500">{errors.ward}</p>}
                             </div>
-                            <InputField label="Pincode" icon={MapPin} value={form.pincode} onChange={update('pincode')} placeholder="Enter pincode (optional)" error={errors.pincode} />
+                            <InputField label="Pincode" icon={MapPin} value={form.pincode} onChange={update('pincode')} placeholder="Enter 6-digit pincode" required error={errors.pincode} />
                             <div className="sm:col-span-2">
                                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">
                                     Full Address<span className="text-red-500 ml-0.5">*</span>

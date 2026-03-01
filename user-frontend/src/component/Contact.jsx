@@ -25,8 +25,11 @@ const ContactPage = ({ navigate }) => {
     const [form, setForm] = useState({ name: '', email: '', message: '' });
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
+    const [errors, setErrors] = useState({});
     const [contactMembers, setContactMembers] = useState(defaultMembers);
     const [panchayatInfo, setPanchayatInfo] = useState(null);
+
+    const clearErr = (field) => setErrors(prev => ({ ...prev, [field]: '' }));
 
     /* ── Load panchayat info (address, hours, contact members) ── */
     useEffect(() => {
@@ -56,8 +59,24 @@ const ContactPage = ({ navigate }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.name || !form.email || !form.message) {
-            toast.error('Please fill in all fields before sending.');
+        const newErrors = {};
+        if (!form.name.trim()) {
+            newErrors.name = 'Name is required.';
+        } else if (form.name.trim().length < 3) {
+            newErrors.name = 'Name must be at least 3 characters.';
+        }
+        if (!form.email.trim()) {
+            newErrors.email = 'Email is required.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+            newErrors.email = 'Enter a valid email address.';
+        }
+        if (!form.message.trim()) {
+            newErrors.message = 'Message is required.';
+        } else if (form.message.trim().length < 10) {
+            newErrors.message = 'Message must be at least 10 characters.';
+        }
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
         if (!selectedPanchayat?._id) {
@@ -210,33 +229,36 @@ const ContactPage = ({ navigate }) => {
                         ) : (
                             <form onSubmit={handleSubmit} className="space-y-3">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Your Name</label>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Your Name <span className="text-red-500">*</span></label>
                                     <input
                                         value={form.name}
-                                        onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
+                                        onChange={(e) => { setForm(p => ({ ...p, name: e.target.value })); clearErr('name'); }}
                                         placeholder="Full Name"
-                                        className="input-field text-sm py-2.5"
+                                        className={`input-field text-sm py-2.5 ${errors.name ? 'border-red-400 focus:ring-red-300' : ''}`}
                                     />
+                                    {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Email <span className="text-red-500">*</span></label>
                                     <input
                                         type="email"
                                         value={form.email}
-                                        onChange={(e) => setForm(p => ({ ...p, email: e.target.value }))}
+                                        onChange={(e) => { setForm(p => ({ ...p, email: e.target.value })); clearErr('email'); }}
                                         placeholder="you@example.com"
-                                        className="input-field text-sm py-2.5"
+                                        className={`input-field text-sm py-2.5 ${errors.email ? 'border-red-400 focus:ring-red-300' : ''}`}
                                     />
+                                    {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Message</label>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Message <span className="text-red-500">*</span></label>
                                     <textarea
                                         value={form.message}
-                                        onChange={(e) => setForm(p => ({ ...p, message: e.target.value }))}
+                                        onChange={(e) => { setForm(p => ({ ...p, message: e.target.value })); clearErr('message'); }}
                                         rows={3}
-                                        placeholder="How can we help you?"
-                                        className="input-field text-sm py-2.5 resize-none"
+                                        placeholder="How can we help you? (min 10 characters)"
+                                        className={`input-field text-sm py-2.5 resize-none ${errors.message ? 'border-red-400 focus:ring-red-300' : ''}`}
                                     />
+                                    {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message}</p>}
                                 </div>
                                 <motion.button
                                     type="submit"

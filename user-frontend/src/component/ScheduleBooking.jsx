@@ -30,8 +30,12 @@ const ScheduleBooking = ({ navigate }) => {
     const [formData, setFormData] = useState({ date: '', time: '', address: '', phone: '', wasteType: '', note: '' });
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [step3Errors, setStep3Errors] = useState({});
 
-    const set = (field) => (val) => setFormData(p => ({ ...p, [field]: val }));
+    const set = (field) => (val) => {
+        setFormData(p => ({ ...p, [field]: val }));
+        setStep3Errors(prev => ({ ...prev, [field]: '' }));
+    };
 
     // Get date 1 day from now as min (advance booking)
     const minDate = new Date();
@@ -43,7 +47,17 @@ const ScheduleBooking = ({ navigate }) => {
     const step3Valid = formData.address;
 
     const handleSubmit = async () => {
-        if (!step3Valid) { toast.error('Please enter your pickup address.'); return; }
+        // Validate step 3 fields
+        const errs = {};
+        if (!formData.address.trim()) {
+            errs.address = 'Pickup address is required.';
+        } else if (formData.address.trim().length < 10) {
+            errs.address = 'Please enter a full address (min 10 characters).';
+        }
+        if (formData.phone.trim() && !/^[6-9]\d{9}$/.test(formData.phone.replace(/\D/g, ''))) {
+            errs.phone = 'Enter a valid 10-digit Indian mobile number.';
+        }
+        if (Object.keys(errs).length > 0) { setStep3Errors(errs); return; }
         if (!selectedPanchayat?._id) { toast.error('Please select a Panchayat from the header.'); return; }
         setLoading(true);
         try {
@@ -287,17 +301,18 @@ const ScheduleBooking = ({ navigate }) => {
                                         </label>
                                         <div className="relative">
                                             <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
-                                                <MapPin className="w-4 h-4 text-gray-400" />
+                                                <MapPin className={`w-4 h-4 ${step3Errors.address ? 'text-red-400' : 'text-gray-400'}`} />
                                             </span>
                                             <textarea
                                                 rows={3}
                                                 value={formData.address}
                                                 onChange={e => set('address')(e.target.value)}
-                                                placeholder="House No, Street, Area, City..."
-                                                className="input-field resize-none"
+                                                placeholder="House No, Street, Area, City (min 10 chars)..."
+                                                className={`input-field resize-none ${step3Errors.address ? 'border-red-400 focus:ring-red-300' : ''}`}
                                                 style={{ paddingLeft: '2.5rem' }}
                                             />
                                         </div>
+                                        {step3Errors.address && <p className="mt-1 text-xs text-red-500">{step3Errors.address}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-gray-600 mb-1.5">Contact Phone <span className="text-gray-400 font-normal">(optional)</span></label>
@@ -305,9 +320,10 @@ const ScheduleBooking = ({ navigate }) => {
                                             type="tel"
                                             value={formData.phone}
                                             onChange={e => set('phone')(e.target.value)}
-                                            placeholder="+91 XXXXX XXXXX"
-                                            className="input-field"
+                                            placeholder="10-digit mobile number (optional)"
+                                            className={`input-field ${step3Errors.phone ? 'border-red-400 focus:ring-red-300' : ''}`}
                                         />
+                                        {step3Errors.phone && <p className="mt-1 text-xs text-red-500">{step3Errors.phone}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-gray-600 mb-1.5">Additional Notes <span className="text-gray-400 font-normal">(optional)</span></label>

@@ -91,6 +91,7 @@ export default function EditRouteModal({ isOpen, onClose, onSuccess, route }) {
 
     try {
       setLoading(true);
+      const validStops = formData.stops.filter(s => s.stopName.trim() !== "");
       await api.put(`/routes/${route._id}`, { ...formData, stops: validStops });
       toast.success("Route updated successfully");
       if (onSuccess) onSuccess();

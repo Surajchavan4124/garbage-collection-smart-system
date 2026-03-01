@@ -22,26 +22,62 @@ const ComplaintPage = ({ navigate }) => {
     });
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
 
-    const handleChange = (e) =>
+    const clearError = (field) => setErrors(prev => ({ ...prev, [field]: '' }));
+
+    const handleChange = (e) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        clearError(e.target.name);
+    };
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
             setFormData((prev) => ({ ...prev, photo: e.target.files[0] }));
+            clearError('photo');
         }
+    };
+
+    const validate = () => {
+        const newErrors = {};
+        if (!selectedPanchayat) {
+            toast.error('Please select a Panchayat from the header first.');
+            return false;
+        }
+        // Name
+        if (!formData.name.trim()) {
+            newErrors.name = 'Full name is required.';
+        } else if (formData.name.trim().length < 3) {
+            newErrors.name = 'Name must be at least 3 characters.';
+        } else if (!/^[a-zA-Z\s.'`-]+$/.test(formData.name.trim())) {
+            newErrors.name = "Name can only contain letters and spaces.";
+        }
+        // Mobile (optional)
+        if (formData.mobile.trim() && !/^[6-9]\d{9}$/.test(formData.mobile.trim())) {
+            newErrors.mobile = 'Enter a valid 10-digit Indian mobile number.';
+        }
+        // Type
+        if (!formData.type) {
+            newErrors.type = 'Please select a complaint type.';
+        }
+        // Description
+        if (!formData.description.trim()) {
+            newErrors.description = 'Description is required.';
+        } else if (formData.description.trim().length < 20) {
+            newErrors.description = 'Description must be at least 20 characters.';
+        }
+        // Photo (optional, size check)
+        if (formData.photo && formData.photo.size > 5 * 1024 * 1024) {
+            newErrors.photo = 'Photo must be under 5 MB.';
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.type || !formData.description) {
-            toast.error('Please fill in Name, Type and Description.');
-            return;
-        }
-        if (!selectedPanchayat) {
-            toast.error('Please select a Panchayat from the header first.');
-            return;
-        }
+        if (!validate()) return;
+
         setLoading(true);
         try {
             const formDataToSend = new FormData();
@@ -121,26 +157,30 @@ const ComplaintPage = ({ navigate }) => {
                                 <form onSubmit={handleSubmit} className="space-y-5">
                                     <div className="grid sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name *</label>
-                                            <input name="name" value={formData.name} onChange={handleChange} placeholder="Enter your name" className="input-field" />
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
+                                            <input name="name" value={formData.name} onChange={handleChange} placeholder="Enter your name" className={`input-field ${errors.name ? 'border-red-400 focus:ring-red-300' : ''}`} />
+                                            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mobile Number</label>
-                                            <input name="mobile" value={formData.mobile} onChange={handleChange} placeholder="+91 XXXXX XXXXX" className="input-field" />
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mobile Number <span className="text-gray-400 font-normal text-xs">(optional)</span></label>
+                                            <input name="mobile" value={formData.mobile} onChange={handleChange} placeholder="10-digit mobile (optional)" className={`input-field ${errors.mobile ? 'border-red-400 focus:ring-red-300' : ''}`} />
+                                            {errors.mobile && <p className="mt-1 text-xs text-red-500">{errors.mobile}</p>}
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Complaint Type *</label>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Complaint Type <span className="text-red-500">*</span></label>
+                                        <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 ${errors.type ? 'rounded-xl ring-1 ring-red-300 p-1' : ''}`}>
                                             {complaintTypes.map((t) => (
                                                 <button
                                                     key={t}
                                                     type="button"
-                                                    onClick={() => setFormData((p) => ({ ...p, type: t }))}
+                                                    onClick={() => { setFormData((p) => ({ ...p, type: t })); clearError('type'); }}
                                                     className={`px-3 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
                                                         formData.type === t
                                                             ? 'border-green-500 bg-green-50 text-green-700'
+                                                            : errors.type
+                                                            ? 'border-red-200 bg-white text-gray-600 hover:border-red-300'
                                                             : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                                                     }`}
                                                 >
@@ -148,24 +188,26 @@ const ComplaintPage = ({ navigate }) => {
                                                 </button>
                                             ))}
                                         </div>
+                                        {errors.type && <p className="mt-1 text-xs text-red-500">{errors.type}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description *</label>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description <span className="text-red-500">*</span></label>
                                         <textarea
                                             name="description"
                                             value={formData.description}
                                             onChange={handleChange}
                                             rows={4}
-                                            placeholder="Describe the issue in detail..."
-                                            className="input-field resize-none"
+                                            placeholder="Describe the issue in detail (min 20 characters)..."
+                                            className={`input-field resize-none ${errors.description ? 'border-red-400 focus:ring-red-300' : ''}`}
                                         />
+                                        {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Upload Photo (Optional)</label>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Upload Photo <span className="text-gray-400 font-normal text-xs">(optional, max 5 MB)</span></label>
                                         <div className="flex items-center justify-center w-full">
-                                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                                            <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${errors.photo ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}`}>
                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
                                                     {formData.photo ? (
                                                         <>
@@ -174,7 +216,7 @@ const ComplaintPage = ({ navigate }) => {
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <ImagePlus className="w-8 h-8 mb-3 text-gray-400" />
+                                                            <ImagePlus className={`w-8 h-8 mb-3 ${errors.photo ? 'text-red-400' : 'text-gray-400'}`} />
                                                             <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                                                             <p className="text-xs text-gray-400">SVG, PNG, JPG or GIF (MAX. 5MB)</p>
                                                         </>
@@ -183,6 +225,7 @@ const ComplaintPage = ({ navigate }) => {
                                                 <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                                             </label>
                                         </div>
+                                        {errors.photo && <p className="mt-1 text-xs text-red-500">{errors.photo}</p>}
                                     </div>
 
                                     <motion.button
