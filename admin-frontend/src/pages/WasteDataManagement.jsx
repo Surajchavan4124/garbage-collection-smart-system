@@ -7,7 +7,7 @@ import DeleteWasteEntryModal from '../components/DeleteWasteEntryModal'
 const inputCls = "w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100/60 transition-all bg-white"
 const labelCls = "block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5"
 
-const Field = ({ label, name, value, onChange, type = 'text', suffix, error, children }) => {
+const Field = ({ label, name, value, onChange, type = 'text', suffix, error, min, children }) => {
   const customInputCls = error 
     ? inputCls.replace('border-gray-200', 'border-red-300').replace('focus:border-teal-300', 'focus:border-red-500').replace('focus:ring-teal-100', 'focus:ring-red-100')
     : inputCls;
@@ -26,6 +26,7 @@ const Field = ({ label, name, value, onChange, type = 'text', suffix, error, chi
             value={value}
             onChange={onChange}
             placeholder="0"
+            min={min}
             className={customInputCls}
           />
           {suffix && (
@@ -104,7 +105,9 @@ export default function WasteDataManagement() {
   )
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
+    let { name, value } = e.target
+    // Prevent negative values for number fields
+    if (e.target.type === 'number' && Number(value) < 0) value = '0'
     setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
   }
@@ -248,10 +251,10 @@ export default function WasteDataManagement() {
                 </Field>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Biodegradable (kgs)" name="biodegradable" value={formData.biodegradable} onChange={handleInputChange} type="number" />
-                  <Field label="Recyclable (kgs)" name="recyclable" value={formData.recyclable} onChange={handleInputChange} type="number" />
-                  <Field label="Non-Biodegradable (kgs)" name="nonBiodegradable" value={formData.nonBiodegradable} onChange={handleInputChange} type="number" />
-                  <Field label="Mixed / Others (kgs)" name="mixed" value={formData.mixed} onChange={handleInputChange} type="number" />
+                  <Field label="Biodegradable (kgs)" name="biodegradable" value={formData.biodegradable} onChange={handleInputChange} type="number" min={0} />
+                  <Field label="Recyclable (kgs)" name="recyclable" value={formData.recyclable} onChange={handleInputChange} type="number" min={0} />
+                  <Field label="Non-Biodegradable (kgs)" name="nonBiodegradable" value={formData.nonBiodegradable} onChange={handleInputChange} type="number" min={0} />
+                  <Field label="Mixed / Others (kgs)" name="mixed" value={formData.mixed} onChange={handleInputChange} type="number" min={0} />
                 </div>
 
                 <div className="flex gap-3 pt-2">
