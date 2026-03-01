@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react"
 import { X, User, CheckCircle } from "lucide-react"
 
 const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || "https://ecosyz-backend.onrender.com/api"
@@ -5,6 +6,14 @@ const STATIC_BASE = RAW_API_BASE.replace(/\/api$/, "")
 const isImage = (path = "") => /\.(jpg|jpeg|png|webp)$/i.test(path)
 
 export default function ActivateEmployeeModal({ isOpen, onClose, employee, onConfirm }) {
+  const modalRef = useRef(null)
+
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      modalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [isOpen])
+
   if (!isOpen || !employee) return null
 
   const handleActivate = () => { onConfirm(employee._id); onClose() }
@@ -14,7 +23,7 @@ export default function ActivateEmployeeModal({ isOpen, onClose, employee, onCon
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-gray-100 animate-fade-in-up overflow-hidden">
+        <div ref={modalRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-gray-100 animate-fade-in-up overflow-hidden">
 
           {/* Header */}
           <div className="px-6 py-5 flex items-center justify-between"
