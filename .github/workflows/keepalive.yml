@@ -11,5 +11,4 @@ jobs:
 
     steps:
       - name: Ping Render Server
-        run: |
-          curl https://ecosyz-backend.onrender.com/
+        run: curl https://ecosyz-backend.onrender.com/
