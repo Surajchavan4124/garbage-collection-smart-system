@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import { X, User, CheckCircle } from "lucide-react"
 
-const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:10000/api"
+const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || "https://ecosyz-backend.onrender.com/api"
 const STATIC_BASE = RAW_API_BASE.replace(/\/api$/, "")
 const isImage = (path = "") => /\.(jpg|jpeg|png|webp)$/i.test(path)
 
@@ -21,8 +21,8 @@ export default function ActivateEmployeeModal({ isOpen, onClose, employee, onCon
 
   return (
     <>
- <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]" onClick={onClose} /> 
- <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4"> 
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]" onClick={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
         <div ref={modalRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-gray-100 animate-fade-in-up overflow-hidden">
 
           {/* Header */}
