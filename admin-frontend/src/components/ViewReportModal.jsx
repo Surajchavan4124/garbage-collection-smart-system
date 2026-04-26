@@ -82,7 +82,6 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                                 <th className="border p-2 text-right text-sm">Bio (kg)</th>
                                 <th className="border p-2 text-right text-sm">Recyclable (kg)</th>
                                 <th className="border p-2 text-right text-sm">Non-Bio (kg)</th>
-                                <th className="border p-2 text-right text-sm">Mixed (kg)</th>
                                 <th className="border p-2 text-right text-sm">Total (kg)</th>
                                 <th className="border p-2 text-center text-sm">Collections</th>
                             </tr>
@@ -94,7 +93,6 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                                     <td className="border p-2 text-right text-sm">{row.totalBiodegradable}</td>
                                     <td className="border p-2 text-right text-sm">{row.totalRecyclable}</td>
                                     <td className="border p-2 text-right text-sm">{row.totalNonBiodegradable}</td>
-                                    <td className="border p-2 text-right text-sm">{row.totalMixed}</td>
                                     <td className="border p-2 text-right text-sm font-bold">{row.totalWaste}</td>
                                     <td className="border p-2 text-center text-sm">{row.collectionCount}</td>
                                 </tr>
@@ -276,7 +274,7 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
     }
 
     return (
-        <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-24 md:pt-28 bg-black/50 backdrop-blur-sm">
+ <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"> 
             <div ref={modalContentRef} className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-4xl max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
                     <div>

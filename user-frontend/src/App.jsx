@@ -24,9 +24,9 @@ import LoginCompany from './component/auth/LoginCompany';
 import ForgotPasswordPage from './component/auth/ForgotPasswordPage';
 import RegisterPage from './component/RegisterPage';
 
-// Context & Modals
 import { PanchayatProvider } from './context/PanchayatContext';
 import PanchayatModal from './component/shared/PanchayatModal';
+import GlobalScrollLock from './component/shared/GlobalScrollLock';
 
 // Dashboard Pages
 import HouseholdDashboard from './component/dashboard/HouseholdDashboard';
@@ -157,6 +157,7 @@ function App() {
 
     return (
         <PanchayatProvider>
+            <GlobalScrollLock />
             <Navbar navigate={navigate} currentPage={view} />
             {renderView()}
             <PanchayatModal />

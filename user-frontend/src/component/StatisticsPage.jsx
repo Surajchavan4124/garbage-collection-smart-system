@@ -16,7 +16,7 @@ const stats = [
 const wasteBreakdown = [
     { label: 'Organic Waste', value: 48, color: 'bg-green-500' },
     { label: 'Recyclable', value: 30, color: 'bg-blue-500' },
-    { label: 'Mixed / Residual', value: 17, color: 'bg-amber-500' },
+    { label: 'Non-Biodegradable', value: 17, color: 'bg-amber-500' },
     { label: 'Hazardous', value: 5, color: 'bg-red-500' },
 ];
 

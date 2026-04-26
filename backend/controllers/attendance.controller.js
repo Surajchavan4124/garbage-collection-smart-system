@@ -197,7 +197,7 @@ export const manualAttendance = async (req, res) => {
 // 🔹 TOGGLE AVAILABILITY (Employee switches ON/OFF duty)
 export const updateAvailability = async (req, res) => {
   try {
-    const { available } = req.body;
+    const { available, leaveReason } = req.body;
     const { _id, panchayatId } = req.user;
     const date = today();
 
@@ -205,28 +205,30 @@ export const updateAvailability = async (req, res) => {
     const isLocked = !!(existing && (existing.source === "QR" || existing.source === "ADMIN" || existing.present));
 
     if (available) {
-      // Mark as on duty
+      // Mark as on duty — clear any prior leave reason
       await Attendance.findOneAndUpdate(
         { labour: _id, date, panchayat: panchayatId },
         {
           onDuty: true,
           markedAt: new Date(),
+          leaveReason: "",
           ...(isLocked ? {} : { source: "APP_TOGGLE" })
         },
         { upsert: true, new: true }
       );
     } else {
-      // Off duty
+      // Off duty — save leave reason
+      const reasonUpdate = leaveReason?.trim() ? { leaveReason: leaveReason.trim() } : {};
       if (isLocked) {
         await Attendance.findOneAndUpdate(
           { labour: _id, date, panchayat: panchayatId },
-          { onDuty: false },
+          { onDuty: false, ...reasonUpdate },
           { new: true }
         );
       } else {
         await Attendance.findOneAndUpdate(
           { labour: _id, date, panchayat: panchayatId },
-          { onDuty: false, $unset: { source: 1 } },
+          { onDuty: false, $unset: { source: 1 }, ...reasonUpdate },
           { upsert: true, new: true }
         );
       }
@@ -392,6 +394,7 @@ export const getTodayAttendance = async (req, res) => {
         present: att ? att.present : false,
         source: att ? att.source : null,
         markedAt: att ? att.markedAt : null,
+        leaveReason: att ? (att.leaveReason || "") : "",
       };
     });
 

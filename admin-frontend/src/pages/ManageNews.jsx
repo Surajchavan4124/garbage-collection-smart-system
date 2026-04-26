@@ -109,7 +109,7 @@ export default function ManageNews() {
       {/* Form Modal */}
       <AnimatePresence>
         {showForm && (
-          <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-24 md:pt-28 overflow-y-auto">
+ <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto"> 
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

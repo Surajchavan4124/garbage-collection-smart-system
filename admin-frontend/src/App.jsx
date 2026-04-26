@@ -33,6 +33,7 @@ const ScheduleBookings = lazy(() => import('./pages/ScheduleBookings'))
 
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
+import GlobalScrollLock from './components/GlobalScrollLock'
 import { ThemeWatcher } from './contexts/ThemeContext'
 
 const queryClient = new QueryClient({
@@ -65,6 +66,7 @@ function App() {
 
       <Router>
         <ThemeWatcher />
+        <GlobalScrollLock />
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
 

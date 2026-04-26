@@ -60,7 +60,7 @@ const faqCategories = [
             },
             {
                 q: 'What types of waste can be scheduled for pickup?',
-                a: 'You can schedule pickups for Mixed Waste, Organic Waste, Recyclable materials, and Hazardous items. Please ensure proper segregation before collection.'
+                a: 'You can schedule pickups for Organic Waste, Recyclable materials, Hazardous items, and Bulk Items. Please ensure proper segregation before collection.'
             },
             {
                 q: 'What happens if the pickup vehicle doesn\'t arrive?',

@@ -20,7 +20,7 @@ export default function Layout({ children }) {
         <TopHeader onMenuClick={toggleSidebar} />
 
         {/* Content with padding that adjusts for header */}
-        <main className="flex-1 animate-fade-in-up pt-20 px-4 sm:px-6 lg:px-8 pb-10">
+        <main className="flex-1 pt-20 px-4 sm:px-6 lg:px-8 pb-10">
           <Outlet />
         </main>
       </div>
@@ -28,7 +28,7 @@ export default function Layout({ children }) {
       {/* Mobile Backdrop */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300" 
           onClick={closeSidebar}
         />
       )}

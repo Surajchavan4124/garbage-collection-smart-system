@@ -35,14 +35,13 @@ export const generatePDF = (report) => {
         }
     
         if (reportType === 'Waste Collection Summaries') {
-            head = [['Ward', 'Bio (kg)', 'Recyclable (kg)', 'Non-Bio (kg)', 'Mixed (kg)', 'Total (kg)', 'Collections']]
+            head = [['Ward', 'Bio (kg)', 'Recyclable (kg)', 'Non-Bio (kg)', 'Total (kg)', 'Collections']]
             const rows = Array.isArray(reportData) ? reportData : (reportData.data || [])
             body = rows.map(item => [
                 item._id,
                 item.totalBiodegradable,
                 item.totalRecyclable,
                 item.totalNonBiodegradable,
-                item.totalMixed,
                 item.totalWaste,
                 item.collectionCount
             ])

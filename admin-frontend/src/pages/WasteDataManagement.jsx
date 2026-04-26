@@ -46,7 +46,6 @@ export default function WasteDataManagement() {
     biodegradable: '',
     recyclable: '',
     nonBiodegradable: '',
-    mixed: ''
   })
   const [wasteRecords, setWasteRecords] = useState([])
   const [loading, setLoading] = useState(true)
@@ -131,7 +130,7 @@ export default function WasteDataManagement() {
       const payload = {
         date: formData.date, collectionType: formData.collectionType, ward: formData.ward,
         biodegradable: formData.biodegradable, recyclable: formData.recyclable,
-        nonBiodegradable: formData.nonBiodegradable, mixed: formData.mixed
+        nonBiodegradable: formData.nonBiodegradable
       }
       if (editingId) {
         await api.put(`/waste-data/${editingId}`, payload)
@@ -156,7 +155,6 @@ export default function WasteDataManagement() {
       biodegradable: record.biodegradable,
       recyclable: record.recyclable,
       nonBiodegradable: record.nonBiodegradable,
-      mixed: record.mixed
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -168,7 +166,7 @@ export default function WasteDataManagement() {
       date: new Date().toISOString().split('T')[0],
       collectionType: 'Daily',
       ward: wards.length > 0 ? wards[0].name : '',
-      biodegradable: '', recyclable: '', nonBiodegradable: '', mixed: ''
+      biodegradable: '', recyclable: '', nonBiodegradable: ''
     })
   }
 
@@ -196,14 +194,10 @@ export default function WasteDataManagement() {
     ? (wardRecords.reduce((sum, r) => sum + r.recyclable, 0) / wardRecords.length).toFixed(0) : 0
   const avgNonBiodegradable = wardRecords.length > 0
     ? (wardRecords.reduce((sum, r) => sum + r.nonBiodegradable, 0) / wardRecords.length).toFixed(0) : 0
-  const avgMixed = wardRecords.length > 0
-    ? (wardRecords.reduce((sum, r) => sum + (r.mixed || 0), 0) / wardRecords.length).toFixed(0) : 0
-
   const barData = [
     { label: 'Bio', value: avgBiodegradable, color: '#22c55e', icon: Leaf },
     { label: 'Non-Bio', value: avgNonBiodegradable, color: '#ef4444', icon: AlertTriangle },
     { label: 'Recyclable', value: avgRecyclable, color: '#3b82f6', icon: Recycle },
-    { label: 'Mixed', value: avgMixed, color: '#f59e0b', icon: Package },
   ]
   const maxBar = Math.max(...barData.map(b => Number(b.value))) || 100
 
@@ -254,7 +248,6 @@ export default function WasteDataManagement() {
                   <Field label="Biodegradable (kgs)" name="biodegradable" value={formData.biodegradable} onChange={handleInputChange} type="number" min={0} />
                   <Field label="Recyclable (kgs)" name="recyclable" value={formData.recyclable} onChange={handleInputChange} type="number" min={0} />
                   <Field label="Non-Biodegradable (kgs)" name="nonBiodegradable" value={formData.nonBiodegradable} onChange={handleInputChange} type="number" min={0} />
-                  <Field label="Mixed / Others (kgs)" name="mixed" value={formData.mixed} onChange={handleInputChange} type="number" min={0} />
                 </div>
 
                 <div className="flex gap-3 pt-2">
@@ -351,7 +344,7 @@ export default function WasteDataManagement() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
-                      {['Entry ID', 'Date', 'Ward', 'Bio (kg)', 'Non-Bio (kg)', 'Recyclable (kg)', 'Mixed (kg)', 'Total (kg)', 'Actions'].map(h => (
+                      {['Entry ID', 'Date', 'Ward', 'Bio (kg)', 'Non-Bio (kg)', 'Recyclable (kg)', 'Total (kg)', 'Actions'].map(h => (
                         <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
                       ))}
                     </tr>
@@ -374,7 +367,6 @@ export default function WasteDataManagement() {
                           <td className="px-4 py-3.5 text-xs font-semibold text-emerald-600">{record.biodegradable}</td>
                           <td className="px-4 py-3.5 text-xs font-semibold text-red-500">{record.nonBiodegradable}</td>
                           <td className="px-4 py-3.5 text-xs font-semibold text-blue-500">{record.recyclable}</td>
-                          <td className="px-4 py-3.5 text-xs text-gray-500">{record.others ?? record.mixed ?? '—'}</td>
                           <td className="px-4 py-3.5">
                             <span className="text-xs font-black text-gray-800">{record.total}</span>
                           </td>

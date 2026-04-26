@@ -15,7 +15,6 @@ const fadeUp = {
 };
 
 const wasteTypes = [
-    { id: 'Mixed Waste',  icon: Trash2,        color: 'from-gray-400 to-gray-500',   bg: 'bg-gray-50',   border: 'border-gray-200',   active: 'border-gray-500 bg-gray-50',   desc: 'General household waste' },
     { id: 'Organic',      icon: Leaf,          color: 'from-green-500 to-emerald-500', bg: 'bg-green-50',  border: 'border-green-100',  active: 'border-green-500 bg-green-50', desc: 'Food scraps, garden waste' },
     { id: 'Recyclable',   icon: Recycle,       color: 'from-blue-500 to-cyan-500',    bg: 'bg-blue-50',   border: 'border-blue-100',   active: 'border-blue-500 bg-blue-50',   desc: 'Paper, plastic, metal, glass' },
     { id: 'Hazardous',    icon: AlertTriangle, color: 'from-red-500 to-orange-500',   bg: 'bg-red-50',    border: 'border-red-100',    active: 'border-red-500 bg-red-50',     desc: 'Batteries, chemicals, e-waste' },

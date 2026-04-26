@@ -156,7 +156,7 @@ export default function ReportGenerationAnalytics() {
 
       {/* Delete Confirmation Modal */}
       {reportToDelete && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+ <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"> 
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
             <div className="p-3 bg-red-50 text-red-600 w-fit rounded-xl mb-4"><Trash2 size={24} /></div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Report?</h3>

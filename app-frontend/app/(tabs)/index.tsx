@@ -1,8 +1,8 @@
 import { MapPin, User, CheckCircle, Clock, Zap, TrendingUp } from 'lucide-react-native';
 import React, { useState, useCallback } from 'react';
 import {
-  ScrollView, Switch, Text, TouchableOpacity, View,
-  ActivityIndicator, StatusBar, Animated,
+  ScrollView, Switch, Text, TextInput, TouchableOpacity, View,
+  ActivityIndicator, StatusBar, Animated, Modal, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, G, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
@@ -21,21 +21,51 @@ const ORANGE = '#F59E0B';
 export default function HomeScreen() {
   const router = useRouter();
   const { theme } = useTheme();
-  const [isAvailable, setIsAvailable] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [employeeName, setEmployeeName] = useState('Employee');
   const [employeeRole, setEmployeeRole] = useState('Garbage Collector');
   const [displayLocation, setDisplayLocation] = useState('Loading...');
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({ title: '', message: '', type: 'success' as 'success' | 'error' });
-  const [stats, setStats] = useState({ location: 'Loading...', ward: '', wards: [] as string[], total: 0, completed: 0, pending: 0, onDuty: false });
+  const [stats, setStats] = useState({ location: 'Loading...', ward: '', wards: [] as string[], total: 0, completed: 0, pending: 0, onDuty: true });
+
+  // Leave reason dialog
+  const [leaveDialogVisible, setLeaveDialogVisible] = useState(false);
+  const [leaveReason, setLeaveReason] = useState('');
 
   const handleToggleDuty = async (val: boolean) => {
+    if (!val) {
+      // Turning OFF — show reason dialog first
+      setLeaveReason('');
+      setLeaveDialogVisible(true);
+      return;
+    }
+    // Turning ON
     try {
-      setIsAvailable(val);
-      const res = await request('/attendance/availability', { method: 'PUT', body: JSON.stringify({ available: val }) });
-      if (!res.ok) setIsAvailable(!val);
-    } catch { setIsAvailable(!val); }
+      setIsAvailable(true);
+      const res = await request('/attendance/availability', { method: 'PUT', body: JSON.stringify({ available: true }) });
+      if (!res.ok) setIsAvailable(false);
+    } catch { setIsAvailable(false); }
+  };
+
+  const submitLeaveReason = async () => {
+    if (!leaveReason.trim()) return;
+    setLeaveDialogVisible(false);
+    try {
+      setIsAvailable(false);
+      const res = await request('/attendance/availability', {
+        method: 'PUT',
+        body: JSON.stringify({ available: false, leaveReason: leaveReason.trim() }),
+      });
+      if (!res.ok) setIsAvailable(true);
+    } catch { setIsAvailable(true); }
+  };
+
+  const cancelLeaveDialog = () => {
+    setLeaveDialogVisible(false);
+    // Keep toggle ON since user cancelled
+    setIsAvailable(true);
   };
 
   const fetchLocation = async () => {
@@ -63,7 +93,8 @@ export default function HomeScreen() {
       const data = await res.json();
       if (res.ok) {
         setStats(data);
-        setIsAvailable(data.onDuty ?? false);
+        // Default to ON DUTY if no record yet (new day)
+        setIsAvailable(data.onDuty ?? true);
         if (displayLocation === 'Loading...') setDisplayLocation(data.location || 'Panchayat Area');
       }
     } catch { } finally { setLoading(false); }
@@ -266,6 +297,84 @@ export default function HomeScreen() {
 
       <CustomAlert visible={alertVisible} title={alertConfig.title} message={alertConfig.message}
         type={alertConfig.type} onClose={() => setAlertVisible(false)} />
+
+      {/* ── Leave Reason Dialog ──────────────────────────── */}
+      <Modal transparent animationType="none" visible={leaveDialogVisible} onRequestClose={cancelLeaveDialog}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 28 }}
+        >
+          {/* Accent strip */}
+          <View style={{
+            backgroundColor: 'white', width: '100%', maxWidth: 360,
+            borderRadius: 24, overflow: 'hidden',
+            shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 28, elevation: 20,
+          }}>
+            <View style={{ height: 5, backgroundColor: '#F59E0B' }} />
+            <View style={{ padding: 28 }}>
+              {/* Icon */}
+              <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                <View style={{
+                  width: 64, height: 64, borderRadius: 32,
+                  backgroundColor: '#fffbeb', borderWidth: 2, borderColor: '#fde68a',
+                  justifyContent: 'center', alignItems: 'center',
+                }}>
+                  <Clock size={28} color="#F59E0B" />
+                </View>
+              </View>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#1e293b', textAlign: 'center', marginBottom: 6 }}>
+                Going Off Duty?
+              </Text>
+              <Text style={{ fontSize: 13, color: '#64748b', textAlign: 'center', lineHeight: 20, marginBottom: 20 }}>
+                Please enter your reason for absence or leave. This will be visible to your admin.
+              </Text>
+              <TextInput
+                value={leaveReason}
+                onChangeText={setLeaveReason}
+                placeholder="e.g. Sick leave, personal emergency…"
+                placeholderTextColor="#94a3b8"
+                multiline
+                numberOfLines={3}
+                style={{
+                  borderWidth: 1.5,
+                  borderColor: leaveReason.trim() ? '#F59E0B' : '#e2e8f0',
+                  borderRadius: 14,
+                  padding: 14,
+                  fontSize: 14,
+                  color: '#1e293b',
+                  textAlignVertical: 'top',
+                  minHeight: 80,
+                  backgroundColor: '#fafafa',
+                  marginBottom: 20,
+                }}
+              />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity
+                  onPress={cancelLeaveDialog}
+                  style={{
+                    flex: 1, height: 46, borderRadius: 14,
+                    backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: '#64748b', fontWeight: '700', fontSize: 15 }}>Stay On Duty</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={submitLeaveReason}
+                  disabled={!leaveReason.trim()}
+                  style={{
+                    flex: 1, height: 46, borderRadius: 14,
+                    backgroundColor: leaveReason.trim() ? '#F59E0B' : '#e2e8f0',
+                    justifyContent: 'center', alignItems: 'center',
+                    shadowColor: '#F59E0B', shadowOpacity: leaveReason.trim() ? 0.3 : 0, shadowRadius: 8, elevation: 4,
+                  }}
+                >
+                  <Text style={{ color: leaveReason.trim() ? 'white' : '#94a3b8', fontWeight: '800', fontSize: 15 }}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }

@@ -104,9 +104,10 @@ export default function AttendanceManagement() {
       "Employee Code": a.labour.employeeCode,
       Name: a.labour.name,
       Role: a.labour.role,
-      Ward: a.labour.ward,
+      Ward: a.labour.wards?.join(', ') || '—',
       Status: a.present ? "Present" : "Absent",
       Source: a.source || "-",
+      "Leave Reason": a.leaveReason || "—",
     }));
     const sheet = XLSX.utils.json_to_sheet(rows);
     const book = XLSX.utils.book_new();
@@ -124,10 +125,12 @@ export default function AttendanceManagement() {
     doc.text(`Date: ${new Date().toISOString().split("T")[0]}`, 14, 22);
     autoTable(doc, {
       startY: 28,
-      head: [["Code", "Name", "Role", "Ward", "Status", "Source"]],
+      head: [["Code", "Name", "Role", "Ward", "Status", "Source", "Leave Reason"]],
       body: filteredAttendance.map((a) => [
-        a.labour.employeeCode, a.labour.name, a.labour.role, a.labour.ward,
+        a.labour.employeeCode, a.labour.name, a.labour.role,
+        a.labour.wards?.join(', ') || '—',
         a.present ? "Present" : "Absent", a.source || "-",
+        a.leaveReason || "—",
       ]),
       styles: { fontSize: 9 },
       headStyles: { fillColor: [31, 158, 154] },
@@ -272,14 +275,26 @@ export default function AttendanceManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-3.5 text-gray-500 text-xs">{a.labour.role}</td>
-                    <td className="px-6 py-3.5 text-gray-500 text-xs">{a.labour.ward}</td>
+                    <td className="px-6 py-3.5 text-gray-500 text-xs">
+                      {a.labour.wards?.length ? a.labour.wards.join(', ') : '—'}
+                    </td>
                     <td className="px-6 py-3.5">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${a.present
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                          : 'bg-red-50 text-red-500 border-red-100'
-                        }`}>
-                        {a.present ? '● Present' : '● Absent'}
-                      </span>
+                      <div className="flex flex-col gap-1.5">
+                        <span className={`self-start px-2.5 py-1 rounded-full text-[10px] font-bold border ${a.present
+                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                            : 'bg-red-50 text-red-500 border-red-100'
+                          }`}>
+                          {a.present ? '● Present' : '● Absent'}
+                        </span>
+                        {a.leaveReason && (
+                          <span
+                            className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-md text-[10px] font-medium max-w-[160px] truncate"
+                            title={a.leaveReason}
+                          >
+                            ⚠ {a.leaveReason}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-3.5">
                       {a.source === "ADMIN" ? (
@@ -311,7 +326,7 @@ export default function AttendanceManagement() {
 
       {/* Manual Modal */}
       {showManualModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+ <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"> 
           <div ref={manualModalRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
             <div className="p-5 border-b" style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}>
               <h3 className="text-white font-bold text-base">Manual Attendance Override</h3>

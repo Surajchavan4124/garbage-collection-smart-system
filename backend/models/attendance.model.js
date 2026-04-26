@@ -50,6 +50,11 @@ const attendanceSchema = new mongoose.Schema(
     overrideReason: {
       type: String,
     },
+
+    leaveReason: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

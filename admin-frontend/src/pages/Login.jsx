@@ -298,7 +298,7 @@ export default function Login() {
 
       {/* ── OTP Preview Modal ── */}
       {showOtpModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+ <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"> 
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up">
             <div className="p-5 flex justify-between items-center" style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}>
               <h2 className="text-white text-base font-bold">Your OTP Code</h2>

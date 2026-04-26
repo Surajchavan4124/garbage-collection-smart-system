@@ -7,8 +7,8 @@ export default function DeleteHouseholdModal({ isOpen, onClose, household, onCon
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999]" onClick={onClose} />
-      <div className="fixed inset-0 flex items-start justify-center z-[999] p-4 pt-24 md:pt-28 pointer-events-none">
+ <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]" onClick={onClose} /> 
+ <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none"> 
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-gray-100 animate-fade-in-up overflow-hidden pointer-events-auto">
 
           {/* Header */}

@@ -16,7 +16,7 @@ const scheduleBookingSchema = new mongoose.Schema(
         userMobile: { type: String },
         wasteType: {
             type: String,
-            enum: ["Mixed Waste", "Organic", "Recyclable", "Hazardous", "Bulk Items"],
+            enum: ["Organic", "Recyclable", "Hazardous", "Bulk Items"],
             required: true,
         },
         date: { type: String, required: true },

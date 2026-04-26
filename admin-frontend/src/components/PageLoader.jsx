@@ -6,7 +6,7 @@ import logo from '../assets/images/logo.png'
  */
 export default function PageLoader({ message = 'Loading…' }) {
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
+ <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center" 
       style={{ background: 'linear-gradient(135deg, #f0fdfa 0%, #f8fafc 50%, #f0fdf4 100%)' }}
     >
       {/* Pulse rings */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, CheckCircle2, X, Leaf, ImagePlus } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -19,10 +19,19 @@ const ComplaintPage = ({ navigate }) => {
         type: '',
         description: '',
         photo: null,
+        ward: '',
     });
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const [wards, setWards] = useState([]);
+
+    useEffect(() => {
+        if (!selectedPanchayat?._id) return;
+        api.get(`/wards/public?panchayatId=${selectedPanchayat._id}`)
+            .then(res => setWards(res.data || []))
+            .catch(() => setWards([]));
+    }, [selectedPanchayat]);
 
     const clearError = (field) => setErrors(prev => ({ ...prev, [field]: '' }));
 
@@ -65,6 +74,10 @@ const ComplaintPage = ({ navigate }) => {
         } else if (!/^[6-9]\d{9}$/.test(formData.mobile.trim())) {
             newErrors.mobile = 'Enter a valid 10-digit Indian mobile number.';
         }
+        // Ward
+        if (!formData.ward) {
+            newErrors.ward = 'Please select your ward.';
+        }
         // Type
         if (!formData.type) {
             newErrors.type = 'Please select a complaint type.';
@@ -95,6 +108,7 @@ const ComplaintPage = ({ navigate }) => {
             formDataToSend.append('reporterMobile', formData.mobile || user?.mobile || 'Unknown');
             formDataToSend.append('type', formData.type);
             formDataToSend.append('description', formData.description);
+            if (formData.ward) formDataToSend.append('ward', formData.ward);
             if (formData.photo) {
                 formDataToSend.append('photo', formData.photo);
             }
@@ -175,6 +189,23 @@ const ComplaintPage = ({ navigate }) => {
                                             <input name="mobile" value={formData.mobile} onChange={handleChange} placeholder="10-digit mobile number" className={`input-field ${errors.mobile ? 'border-red-400 focus:ring-red-300' : ''}`} />
                                             {errors.mobile && <p className="mt-1 text-xs text-red-500">{errors.mobile}</p>}
                                         </div>
+                                    </div>
+
+                                    {/* Ward */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ward <span className="text-red-500">*</span></label>
+                                        <select
+                                            name="ward"
+                                            value={formData.ward}
+                                            onChange={handleChange}
+                                            className={`input-field ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
+                                        >
+                                            <option value="">-- Select your ward --</option>
+                                            {wards.map(w => (
+                                                <option key={w._id} value={w.name}>{w.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.ward && <p className="mt-1 text-xs text-red-500">{errors.ward}</p>}
                                     </div>
 
                                     <div>
