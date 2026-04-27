@@ -103,7 +103,7 @@ export default function LoginScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0f0a2e' }}>
       <StatusBar barStyle="light-content" backgroundColor="#0f0a2e" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
