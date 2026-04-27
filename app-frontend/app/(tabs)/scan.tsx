@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useRouter } from 'expo-router';
-import React, { useState, useEffect, useRef } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Alert, StyleSheet, Text, TouchableOpacity, View, Modal,
   ActivityIndicator, TextInput, Animated, StatusBar,
@@ -34,13 +34,16 @@ export default function ScanScreen() {
   // Manual Entry States
   const [manualModalVisible, setManualModalVisible] = useState(false);
   const [manualTab, setManualTab] = useState<'id' | 'ward'>('id');
-  const [manualBinCode, setManualBinCode] = useState('BIN-');
+  const [manualBinCode, setManualBinCode] = useState('B-');
   const [manualReason, setManualReason] = useState('');
   const [allDustbins, setAllDustbins] = useState<any[]>([]);
   const [selectedWard, setSelectedWard] = useState('');
   const [selectedBinId, setSelectedBinId] = useState('');
   const [wardsList, setWardsList] = useState<string[]>([]);
   const [submittedManualReason, setSubmittedManualReason] = useState('');
+
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [checkingDuty, setCheckingDuty] = useState(true);
 
   const router = useRouter();
 
@@ -65,6 +68,56 @@ export default function ScanScreen() {
   useEffect(() => {
     (async () => { if (!locationPermission?.granted) await requestLocationPermission(); })();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const checkDuty = async () => {
+        setCheckingDuty(true);
+        try {
+          const res = await request('/attendance/dashboard');
+          const data = await res.json();
+          if (res.ok && isActive) {
+            setIsAvailable(data.onDuty ?? true);
+          }
+        } catch (e) {
+          // Fail silently, assume available if network error
+        } finally {
+          if (isActive) setCheckingDuty(false);
+        }
+      };
+      checkDuty();
+      return () => { isActive = false; };
+    }, [])
+  );
+
+  if (checkingDuty) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0f0a2e', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={PRIMARY} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!isAvailable) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0f0a2e', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }} edges={['top']}>
+        <AlertTriangle size={56} color={ORANGE} />
+        <Text style={{ color: 'white', fontSize: 20, fontWeight: '700', textAlign: 'center', marginTop: 20, marginBottom: 10 }}>
+          You are Off Duty
+        </Text>
+        <Text style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginBottom: 32, lineHeight: 22 }}>
+          Please turn on your availability toggle on the dashboard to start scanning bins.
+        </Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)')} style={{
+          backgroundColor: PRIMARY, paddingHorizontal: 32, paddingVertical: 14,
+          borderRadius: 14, shadowColor: PRIMARY, shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
+        }}>
+          <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>Go to Dashboard</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   if (!permission) return <View />;
 
@@ -119,7 +172,7 @@ export default function ScanScreen() {
 
   const openManualEntry = async () => {
     setManualModalVisible(true);
-    setManualBinCode('BIN-');
+    setManualBinCode('B-');
     setManualReason('');
     setSelectedWard('');
     setSelectedBinId('');
@@ -145,7 +198,7 @@ export default function ScanScreen() {
 
     let binCodeToSubmit = '';
     if (manualTab === 'id') {
-      if (!manualBinCode || manualBinCode === 'BIN-') {
+      if (!manualBinCode || manualBinCode === 'B-') {
         setAlertConfig({ title: 'Required', message: 'Please enter a valid Bin ID', type: 'error' });
         setAlertVisible(true);
         return;
@@ -412,7 +465,7 @@ export default function ScanScreen() {
                   style={{ backgroundColor: '#f8fafc', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#e2e8f0', fontSize: 16, color: '#1e293b', fontWeight: '600' }}
                   value={manualBinCode}
                   onChangeText={setManualBinCode}
-                  placeholder="BIN-..."
+                  placeholder="B-..."
                   autoCapitalize="characters"
                 />
               </View>
