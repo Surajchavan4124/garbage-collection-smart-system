@@ -98,6 +98,13 @@ export default function AttendanceManagement() {
     }
   };
 
+  const getDisplaySource = (a) => {
+    if (a.source === "ADMIN") return "Admin";
+    if (a.leaveReason) return "App";
+    if (a.source === "APP_TOGGLE") return "—";
+    return a.source || "—";
+  };
+
   const downloadExcel = () => {
     if (!filteredAttendance.length) { toast.warn("No data to export"); return; }
     const rows = filteredAttendance.map((a) => ({
@@ -106,7 +113,7 @@ export default function AttendanceManagement() {
       Role: a.labour.role,
       Ward: a.labour.wards?.join(', ') || '—',
       Status: a.present ? "Present" : "Absent",
-      Source: a.source || "-",
+      Source: getDisplaySource(a),
       "Leave Reason": a.leaveReason || "—",
     }));
     const sheet = XLSX.utils.json_to_sheet(rows);
@@ -129,7 +136,7 @@ export default function AttendanceManagement() {
       body: filteredAttendance.map((a) => [
         a.labour.employeeCode, a.labour.name, a.labour.role,
         a.labour.wards?.join(', ') || '—',
-        a.present ? "Present" : "Absent", a.source || "-",
+        a.present ? "Present" : "Absent", getDisplaySource(a),
         a.leaveReason || "—",
       ]),
       styles: { fontSize: 9 },
@@ -302,7 +309,9 @@ export default function AttendanceManagement() {
                           <ShieldAlert size={12} /> Admin
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-400">{a.source || "—"}</span>
+                        <span className="text-xs text-gray-400 font-medium">
+                          {getDisplaySource(a)}
+                        </span>
                       )}
                     </td>
                     <td className="px-6 py-3.5">
