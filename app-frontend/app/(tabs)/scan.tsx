@@ -8,7 +8,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CheckCircle, AlertTriangle, MapPin, Info, ArrowLeft, Scale, Scan, X } from 'lucide-react-native';
+import { Picker } from '@react-native-picker/picker';
+import { CheckCircle, AlertTriangle, MapPin, Info, ArrowLeft, Scale, Scan, X, Edit2 } from 'lucide-react-native';
 import CustomAlert from '../../components/CustomAlert';
 import { request } from '../../utils/api';
 
@@ -29,6 +30,18 @@ export default function ScanScreen() {
   const [estimatedWeight, setEstimatedWeight] = useState('');
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({ title: '', message: '', type: 'success' as 'success' | 'error' });
+  
+  // Manual Entry States
+  const [manualModalVisible, setManualModalVisible] = useState(false);
+  const [manualTab, setManualTab] = useState<'id' | 'ward'>('id');
+  const [manualBinCode, setManualBinCode] = useState('BIN-');
+  const [manualReason, setManualReason] = useState('');
+  const [allDustbins, setAllDustbins] = useState<any[]>([]);
+  const [selectedWard, setSelectedWard] = useState('');
+  const [selectedBinId, setSelectedBinId] = useState('');
+  const [wardsList, setWardsList] = useState<string[]>([]);
+  const [submittedManualReason, setSubmittedManualReason] = useState('');
+
   const router = useRouter();
 
   // Pulse animation for the scan ring
@@ -104,6 +117,56 @@ export default function ScanScreen() {
     } finally { setLoading(false); }
   };
 
+  const openManualEntry = async () => {
+    setManualModalVisible(true);
+    setManualBinCode('BIN-');
+    setManualReason('');
+    setSelectedWard('');
+    setSelectedBinId('');
+    try {
+      const res = await request('/dustbins');
+      const data = await res.json();
+      if (res.ok) {
+        setAllDustbins(data);
+        const uniqueWards = Array.from(new Set(data.map((b: any) => b.ward).filter(Boolean))) as string[];
+        setWardsList(uniqueWards);
+      }
+    } catch (e) {
+      console.log('Error fetching dustbins', e);
+    }
+  };
+
+  const submitManualEntry = async () => {
+    if (!manualReason) {
+      setAlertConfig({ title: 'Required', message: 'Please select a reason for manual entry', type: 'error' });
+      setAlertVisible(true);
+      return;
+    }
+
+    let binCodeToSubmit = '';
+    if (manualTab === 'id') {
+      if (!manualBinCode || manualBinCode === 'BIN-') {
+        setAlertConfig({ title: 'Required', message: 'Please enter a valid Bin ID', type: 'error' });
+        setAlertVisible(true);
+        return;
+      }
+      binCodeToSubmit = manualBinCode;
+    } else {
+      if (!selectedBinId) {
+        setAlertConfig({ title: 'Required', message: 'Please select a bin from the ward', type: 'error' });
+        setAlertVisible(true);
+        return;
+      }
+      binCodeToSubmit = selectedBinId;
+    }
+
+    setManualModalVisible(false);
+    setSubmittedManualReason(manualReason);
+    
+    // Trigger existing scan flow
+    await handleBarCodeScanned({ type: 'manual', data: binCodeToSubmit });
+  };
+
   const handleAction = async (action: 'collected' | 'issue') => {
     if (!scanResult?.scanId) return;
     if (action === 'issue' && !issueType) {
@@ -112,9 +175,12 @@ export default function ScanScreen() {
     }
     setLoading(true);
     try {
+      const isIssue = action === 'issue';
+      const finalIssueDesc = isIssue ? issueType : submittedManualReason;
+
       const res = await request('/attendance/update-action', {
         method: 'PUT',
-        body: JSON.stringify({ scanId: scanResult.scanId, action, issueDescription: action === 'issue' ? issueType : undefined, estimatedWeight: action === 'collected' ? estimatedWeight : undefined }),
+        body: JSON.stringify({ scanId: scanResult.scanId, action, issueDescription: finalIssueDesc, estimatedWeight: action === 'collected' ? estimatedWeight : undefined }),
       });
       const resData = await res.json();
       if (res.ok) {
@@ -130,7 +196,7 @@ export default function ScanScreen() {
     } finally { setLoading(false); }
   };
 
-  const closeModal = () => { setModalVisible(false); setScanned(false); setScanResult(null); setReportMode(false); setIssueType(''); setEstimatedWeight(''); };
+  const closeModal = () => { setModalVisible(false); setScanned(false); setScanResult(null); setReportMode(false); setIssueType(''); setEstimatedWeight(''); setSubmittedManualReason(''); };
 
   const ISSUES = ['Waste not segregated', 'Hazardous waste', 'Civic issues (illegal dumping)', 'Bin damaged/missing'];
 
@@ -177,19 +243,34 @@ export default function ScanScreen() {
           )}
         </Animated.View>
 
-        {/* Reset button */}
-        <TouchableOpacity
-          onPress={() => { setScanned(false); setLoading(false); }}
-          style={{
-            marginTop: 32, paddingHorizontal: 28, paddingVertical: 12,
-            backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 50,
-            borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
-            flexDirection: 'row', alignItems: 'center', gap: 8,
-          }}
-        >
-          <Scan size={16} color="rgba(255,255,255,0.7)" />
-          <Text style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>Tap to Reset</Text>
-        </TouchableOpacity>
+        {/* Actions */}
+        <View style={{ flexDirection: 'row', gap: 16, marginTop: 32 }}>
+          <TouchableOpacity
+            onPress={() => { setScanned(false); setLoading(false); }}
+            style={{
+              paddingHorizontal: 20, paddingVertical: 12,
+              backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 50,
+              borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+              flexDirection: 'row', alignItems: 'center', gap: 8,
+            }}
+          >
+            <Scan size={16} color="rgba(255,255,255,0.7)" />
+            <Text style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>Reset</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={openManualEntry}
+            style={{
+              paddingHorizontal: 20, paddingVertical: 12,
+              backgroundColor: 'rgba(245,158,11,0.2)', borderRadius: 50,
+              borderWidth: 1, borderColor: 'rgba(245,158,11,0.5)',
+              flexDirection: 'row', alignItems: 'center', gap: 8,
+            }}
+          >
+            <Edit2 size={16} color={ORANGE} />
+            <Text style={{ color: ORANGE, fontWeight: '600' }}>Enter Manually</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ── Result Bottom Sheet Modal ─────────────── */}
@@ -250,13 +331,15 @@ export default function ScanScreen() {
                   <Text style={{ color: 'white', fontWeight: '800', fontSize: 16, marginLeft: 10 }}>Bin Collected ✓</Text>
                 </TouchableOpacity>
 
-                {/* Report Issue */}
-                <TouchableOpacity
-                  onPress={() => setReportMode(true)}
-                  style={{ borderRadius: 14, paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fde68a', backgroundColor: '#fffbeb' }}>
-                  <AlertTriangle size={22} color={ORANGE} />
-                  <Text style={{ color: ORANGE, fontWeight: '700', fontSize: 15, marginLeft: 10 }}>Report an Issue</Text>
-                </TouchableOpacity>
+                {/* Report Issue - Hidden if manual reason was already provided */}
+                {!submittedManualReason && (
+                  <TouchableOpacity
+                    onPress={() => setReportMode(true)}
+                    style={{ borderRadius: 14, paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fde68a', backgroundColor: '#fffbeb' }}>
+                    <AlertTriangle size={22} color={ORANGE} />
+                    <Text style={{ color: ORANGE, fontWeight: '700', fontSize: 15, marginLeft: 10 }}>Report an Issue</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ) : (
               <View>
@@ -291,6 +374,98 @@ export default function ScanScreen() {
       </Modal>
 
       <CustomAlert visible={alertVisible} title={alertConfig.title} message={alertConfig.message} type={alertConfig.type} onClose={() => setAlertVisible(false)} />
+
+      {/* ── Manual Entry Modal ─────────────── */}
+      <Modal animationType="slide" transparent visible={manualModalVisible} onRequestClose={() => setManualModalVisible(false)}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+          <View style={{ backgroundColor: 'white', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, minHeight: '60%' }}>
+            <View style={{ width: 40, height: 4, backgroundColor: '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: '800', color: '#1e293b' }}>Manual Bin Entry</Text>
+              <TouchableOpacity onPress={() => setManualModalVisible(false)} style={{ padding: 8, backgroundColor: '#f1f5f9', borderRadius: 10 }}>
+                <X size={18} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Pill Tabs */}
+            <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: 20 }}>
+              <TouchableOpacity
+                onPress={() => setManualTab('id')}
+                style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10, backgroundColor: manualTab === 'id' ? 'white' : 'transparent', shadowColor: manualTab === 'id' ? '#000' : 'transparent', shadowOpacity: 0.1, shadowRadius: 4, elevation: manualTab === 'id' ? 2 : 0 }}
+              >
+                <Text style={{ fontWeight: '700', color: manualTab === 'id' ? PRIMARY : '#64748b' }}>By Bin Code</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setManualTab('ward')}
+                style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10, backgroundColor: manualTab === 'ward' ? 'white' : 'transparent', shadowColor: manualTab === 'ward' ? '#000' : 'transparent', shadowOpacity: 0.1, shadowRadius: 4, elevation: manualTab === 'ward' ? 2 : 0 }}
+              >
+                <Text style={{ fontWeight: '700', color: manualTab === 'ward' ? PRIMARY : '#64748b' }}>By Ward Selection</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Tab Content */}
+            {manualTab === 'id' ? (
+              <View style={{ marginBottom: 20 }}>
+                <Text style={{ color: '#475569', fontWeight: '600', marginBottom: 8 }}>Bin Code</Text>
+                <TextInput
+                  style={{ backgroundColor: '#f8fafc', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: '#e2e8f0', fontSize: 16, color: '#1e293b', fontWeight: '600' }}
+                  value={manualBinCode}
+                  onChangeText={setManualBinCode}
+                  placeholder="BIN-..."
+                  autoCapitalize="characters"
+                />
+              </View>
+            ) : (
+              <View style={{ marginBottom: 20 }}>
+                <Text style={{ color: '#475569', fontWeight: '600', marginBottom: 8 }}>Select Ward</Text>
+                <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 16, overflow: 'hidden' }}>
+                  <Picker selectedValue={selectedWard} onValueChange={setSelectedWard}>
+                    <Picker.Item label="-- Choose Ward --" value="" />
+                    {wardsList.map(w => <Picker.Item key={w} label={w} value={w} />)}
+                  </Picker>
+                </View>
+
+                {selectedWard ? (
+                  <>
+                    <Text style={{ color: '#475569', fontWeight: '600', marginBottom: 8 }}>Select Bin</Text>
+                    <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', overflow: 'hidden' }}>
+                      <Picker selectedValue={selectedBinId} onValueChange={setSelectedBinId}>
+                        <Picker.Item label="-- Choose Bin --" value="" />
+                        {allDustbins.filter(b => b.ward === selectedWard).map(b => (
+                          <Picker.Item key={b._id} label={`${b.binCode} (${b.locationText || 'No location'})`} value={b._id} />
+                        ))}
+                      </Picker>
+                    </View>
+                  </>
+                ) : null}
+              </View>
+            )}
+
+            {/* Reason Dropdown */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={{ color: '#475569', fontWeight: '600', marginBottom: 8 }}>Reason for Manual Entry <Text style={{color: RED}}>*</Text></Text>
+              <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', overflow: 'hidden' }}>
+                <Picker selectedValue={manualReason} onValueChange={setManualReason}>
+                  <Picker.Item label="-- Select Reason --" value="" />
+                  <Picker.Item label="QR Code Damaged / Unreadable" value="QR Code Damaged / Unreadable" />
+                  <Picker.Item label="QR Code Missing" value="QR Code Missing" />
+                  <Picker.Item label="Camera / Phone Issue" value="Camera / Phone Issue" />
+                </Picker>
+              </View>
+            </View>
+
+            {/* Submit */}
+            <TouchableOpacity
+              onPress={submitManualEntry}
+              style={{ backgroundColor: PRIMARY, borderRadius: 14, paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: 'white', fontWeight: '800', fontSize: 16 }}>Continue Scan Flow</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }

@@ -1,38 +1,17 @@
-# EAS Ignore
-# This file specifies which files and directories should be excluded from the archive 
-# uploaded to EAS Build. This helps reduce upload size and build time.
-
-# Dependencies
-node_modules
+# Standard ignores
 node_modules/
-**/node_modules
-**/node_modules/*
-
-# Local build artifacts
-.expo
 .expo/
-**/ .expo
 dist/
 web-build/
-
-# Native folders (EAS Build generates these on the server)
-ios/
-android/
-
-# Environment files
-.env*.local
-
-# Logs
-*.log
 npm-debug.*
-yarn-debug.*
 yarn-error.*
 
-# IDE files
-.vscode/
-.idea/
-.DS_Store
+# Native generated folders
+android/
+ios/
 
-# Git
-.git/
-
+# Exclude backend and admin-frontend from the monorepo upload
+../admin-frontend/
+../backend/
+../.git/
+../node_modules/
