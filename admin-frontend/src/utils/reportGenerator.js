@@ -62,12 +62,27 @@ export const generatePDF = (report) => {
             ])
         }
         else if (reportType === 'Employee Attendance Summaries') {
-            head = [['Status (Present/Absent)', 'Count']]
             const rows = Array.isArray(reportData) ? reportData : (reportData.data || [])
-            body = rows.map(item => [
-                item._id ? "Present" : "Absent",
-                item.count
-            ])
+            const isPerEmployee = rows.length > 0 && rows[0].employeeCode !== undefined
+            if (isPerEmployee) {
+                head = [['Code', 'Name', 'Role', 'Ward(s)', 'Present Days', 'Absent Days', 'Total Days', 'Attendance %']]
+                body = rows.map(item => [
+                    item.employeeCode || '—',
+                    item.name || '—',
+                    item.role || '—',
+                    Array.isArray(item.wards) && item.wards.length ? item.wards.join(', ') : '—',
+                    item.presentDays ?? 0,
+                    item.absentDays ?? 0,
+                    item.totalDays ?? 0,
+                    `${item.attendancePercentage ?? 0}%`
+                ])
+            } else {
+                head = [['Status (Present/Absent)', 'Count']]
+                body = rows.map(item => [
+                    item._id ? 'Present' : 'Absent',
+                    item.count
+                ])
+            }
         }
         else if (reportType === 'Year-on-Year comparison charts') {
             const subType = reportData.subType || 'waste'
@@ -116,6 +131,23 @@ export const generateExcel = (report) => {
              wsData = reportData.statusBreakdown
         } else if (reportType === 'Year-on-Year comparison charts') {
              wsData = reportData.stats || []
+        } else if (reportType === 'Employee Attendance Summaries') {
+             const rows = Array.isArray(reportData) ? reportData : (reportData.data || [])
+             const isPerEmployee = rows.length > 0 && rows[0].employeeCode !== undefined
+             if (isPerEmployee) {
+                 wsData = rows.map(item => ({
+                     'Employee Code': item.employeeCode || '—',
+                     'Name': item.name || '—',
+                     'Role': item.role || '—',
+                     'Ward(s)': Array.isArray(item.wards) && item.wards.length ? item.wards.join(', ') : '—',
+                     'Present Days': item.presentDays ?? 0,
+                     'Absent Days': item.absentDays ?? 0,
+                     'Total Days': item.totalDays ?? 0,
+                     'Attendance %': `${item.attendancePercentage ?? 0}%`
+                 }))
+             } else {
+                 wsData = rows.map(item => ({ 'Status': item._id ? 'Present' : 'Absent', 'Count': item.count }))
+             }
         } else {
              wsData = Array.isArray(reportData) ? reportData : (reportData.data || [])
         }

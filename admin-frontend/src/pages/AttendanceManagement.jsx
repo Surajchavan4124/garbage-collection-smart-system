@@ -340,7 +340,7 @@ export default function AttendanceManagement() {
 
       {/* Manual Modal */}
       {showManualModal && (
- <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"> 
+ <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 modal-overlay"> 
           <div ref={manualModalRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
             <div className="p-5 border-b" style={{ background: 'linear-gradient(135deg, #1f9e9a, #16a34a)' }}>
               <h3 className="text-white font-bold text-base">Manual Attendance Override</h3>

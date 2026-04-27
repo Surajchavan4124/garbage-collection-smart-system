@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import WasteData from '../models/WasteData.model.js';
 import Complaint from '../models/Complaint.model.js';
 import Attendance from '../models/attendance.model.js';
@@ -164,24 +165,73 @@ const getSegregationCompliance = async (start, end, panchayatId, filters) => {
 
 const getAttendanceSummary = async (start, end, panchayatId, filters) => {
     const matchQuery = {
-        markedAt: { $gte: start, $lte: end }
+        date: { $gte: start.toISOString().split('T')[0], $lte: end.toISOString().split('T')[0] }
     };
     if (panchayatId) matchQuery.panchayat = panchayatId;
-    
-    // Add Employee/Role filters
-    if (filters.employeeId) matchQuery.labour = filters.employeeId;
+    if (filters.employeeId) matchQuery.labour = new mongoose.Types.ObjectId(filters.employeeId);
 
-    const summary = await Attendance.aggregate([
+    const pipeline = [
         { $match: matchQuery },
+        // Lookup employee details
+        {
+            $lookup: {
+                from: 'employees',
+                localField: 'labour',
+                foreignField: '_id',
+                as: 'employeeInfo'
+            }
+        },
+        { $unwind: { path: '$employeeInfo', preserveNullAndEmptyArrays: false } },
+    ];
+
+    // Ward filter — filter by employee's ward array
+    if (filters.ward) {
+        pipeline.push({ $match: { 'employeeInfo.wards': filters.ward } });
+    }
+    // Role filter
+    if (filters.role) {
+        pipeline.push({ $match: { 'employeeInfo.role': filters.role } });
+    }
+
+    pipeline.push(
+        // Group by employee
         {
             $group: {
-                _id: "$present",
-                count: { $sum: 1 }
+                _id: '$labour',
+                employeeCode: { $first: '$employeeInfo.employeeCode' },
+                name: { $first: '$employeeInfo.name' },
+                role: { $first: '$employeeInfo.role' },
+                wards: { $first: '$employeeInfo.wards' },
+                presentDays: { $sum: { $cond: ['$present', 1, 0] } },
+                absentDays: { $sum: { $cond: ['$present', 0, 1] } },
+                totalDays: { $sum: 1 }
             }
-        }
-    ]);
+        },
+        // Compute attendance percentage
+        {
+            $project: {
+                _id: 0,
+                employeeId: '$_id',
+                employeeCode: 1,
+                name: 1,
+                role: 1,
+                wards: 1,
+                presentDays: 1,
+                absentDays: 1,
+                totalDays: 1,
+                attendancePercentage: {
+                    $round: [
+                        { $multiply: [{ $divide: ['$presentDays', { $max: ['$totalDays', 1] }] }, 100] },
+                        1
+                    ]
+                }
+            }
+        },
+        { $sort: { name: 1 } }
+    );
 
-    return summary;
+    const rows = await Attendance.aggregate(pipeline);
+    return rows;
 };
 
 const getYearOnYearComparison = async (start, end, panchayatId, subType = 'waste', filters) => {
