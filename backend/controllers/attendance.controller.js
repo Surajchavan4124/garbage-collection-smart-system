@@ -321,6 +321,7 @@ export const updateScanAction = async (req, res) => {
 
           // Find or Create WasteData for this ward and date (USE BIN WARD NOW)
           let wasteEntry = await WasteData.findOne({
+            panchayat: bin.panchayat,
             ward: bin.ward,
             date: { $gte: todayStart, $lt: new Date(todayStart.getTime() + 24 * 60 * 60 * 1000) }
           });
@@ -332,13 +333,14 @@ export const updateScanAction = async (req, res) => {
               (wasteEntry.nonBiodegradable || 0) +
               (wasteEntry.mixed || 0);
             await wasteEntry.save();
-            console.log(`Updated WasteData for Ward ${bin.ward}`);
+            console.log(`Updated WasteData for Ward ${bin.ward} in Panchayat ${bin.panchayat}`);
           } else {
-            // Generate Entry ID
-            const count = await WasteData.countDocuments();
+            // Generate Entry ID scoped to panchayat
+            const count = await WasteData.countDocuments({ panchayat: bin.panchayat });
             const entryId = `W-${String(count + 1).padStart(2, '0')}`;
 
             await WasteData.create({
+              panchayat: bin.panchayat,
               entryId,
               date: todayStart,
               ward: bin.ward,
@@ -346,7 +348,7 @@ export const updateScanAction = async (req, res) => {
               [targetField]: weight,
               total: weight
             });
-            console.log(`Created new WasteData for Ward ${bin.ward}`);
+            console.log(`Created new WasteData for Ward ${bin.ward} in Panchayat ${bin.panchayat}`);
           }
         }
       } catch (syncErr) {
@@ -475,7 +477,7 @@ export const getDashboardStats = async (req, res) => {
 // 🔹 GET ALL SCANS (For advanced reporting)
 export const getAllScans = async (req, res) => {
   try {
-    const scans = await AttendanceScan.find({})
+    const scans = await AttendanceScan.find({ panchayat: req.user.panchayatId })
       .populate("labour", "name employeeCode role ward")
       .populate("dustbin", "binCode locationText ward type")
       .sort({ createdAt: -1 });

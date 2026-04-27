@@ -9,8 +9,7 @@ const wasteDataSchema = new mongoose.Schema({
   },
   entryId: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   date: {
     type: Date,
@@ -46,6 +45,7 @@ const wasteDataSchema = new mongoose.Schema({
     default: 0
   }
 }, { timestamps: true })
+wasteDataSchema.index({ panchayat: 1, entryId: 1 }, { unique: true })
 
 const WasteData = mongoose.model('WasteData', wasteDataSchema)
 
