@@ -384,15 +384,13 @@ export default function ScanScreen() {
                   <Text style={{ color: 'white', fontWeight: '800', fontSize: 16, marginLeft: 10 }}>Bin Collected ✓</Text>
                 </TouchableOpacity>
 
-                {/* Report Issue - Hidden if manual reason was already provided */}
-                {!submittedManualReason && (
-                  <TouchableOpacity
-                    onPress={() => setReportMode(true)}
-                    style={{ borderRadius: 14, paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fde68a', backgroundColor: '#fffbeb' }}>
-                    <AlertTriangle size={22} color={ORANGE} />
-                    <Text style={{ color: ORANGE, fontWeight: '700', fontSize: 15, marginLeft: 10 }}>Report an Issue</Text>
-                  </TouchableOpacity>
-                )}
+                {/* Report Issue */}
+                <TouchableOpacity
+                  onPress={() => setReportMode(true)}
+                  style={{ borderRadius: 14, paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fde68a', backgroundColor: '#fffbeb' }}>
+                  <AlertTriangle size={22} color={ORANGE} />
+                  <Text style={{ color: ORANGE, fontWeight: '700', fontSize: 15, marginLeft: 10 }}>Report an Issue</Text>
+                </TouchableOpacity>
               </View>
             ) : (
               <View>
