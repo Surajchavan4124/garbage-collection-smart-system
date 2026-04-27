@@ -16,6 +16,7 @@ interface CustomAlertProps {
     cancelText?: string;
     onConfirm?: () => void;
     destructive?: boolean; // makes confirm button red
+    otp?: string; // renders a big OTP box
 }
 
 // ── Config per type ──────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ const CONFIG: Record<AlertType, { icon: any; color: string; bg: string; border: 
 const CustomAlert: React.FC<CustomAlertProps> = ({
     visible, title, message, type = 'success', onClose,
     confirmText = 'Confirm', cancelText = 'Cancel', onConfirm, destructive = false,
+    otp,
 }) => {
     const scale = useRef(new Animated.Value(0.85)).current;
     const opacity = useRef(new Animated.Value(0)).current;
@@ -77,9 +79,31 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
                         <Text style={{ fontSize: 19, fontWeight: '800', color: '#1e293b', textAlign: 'center', marginBottom: 8 }}>
                             {title}
                         </Text>
-                        <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center', lineHeight: 22, marginBottom: 24 }}>
+                        <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center', lineHeight: 22, marginBottom: otp ? 16 : 24 }}>
                             {message}
                         </Text>
+
+                        {otp && (
+                            <View style={{
+                                backgroundColor: '#f1f5f9',
+                                paddingHorizontal: 24,
+                                paddingVertical: 12,
+                                borderRadius: 12,
+                                marginBottom: 24,
+                                borderWidth: 1,
+                                borderColor: '#e2e8f0',
+                            }}>
+                                <Text style={{
+                                    fontSize: 28,
+                                    fontWeight: '900',
+                                    color: '#0f172a',
+                                    letterSpacing: 6,
+                                    textAlign: 'center',
+                                }}>
+                                    {otp}
+                                </Text>
+                            </View>
+                        )}
 
                         {/* Buttons */}
                         {isConfirm ? (

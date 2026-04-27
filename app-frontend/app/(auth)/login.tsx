@@ -26,7 +26,7 @@ export default function LoginScreen() {
   const [timer, setTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({ title: "", message: "", type: "success" as 'success' | 'error' });
+  const [alertConfig, setAlertConfig] = useState({ title: "", message: "", type: "success" as 'success' | 'error', otp: "" });
 
   // Fade-in animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -56,8 +56,8 @@ export default function LoginScreen() {
     }
   };
 
-  const showAlert = (title: string, message: string, type: 'success' | 'error' = 'success') => {
-    setAlertConfig({ title, message, type }); setAlertVisible(true);
+  const showAlert = (title: string, message: string, type: 'success' | 'error' = 'success', otp: string = "") => {
+    setAlertConfig({ title, message, type, otp }); setAlertVisible(true);
   };
 
   const handleSendOtp = async () => {
@@ -72,7 +72,7 @@ export default function LoginScreen() {
       const data = await res.json();
       if (res.ok) {
         setShowOtpInput(true); startResendTimer();
-        showAlert("OTP Sent ✓", data.otp ? `Your code is: ${data.otp}` : (data.message || "OTP sent to your mobile"), "success");
+        showAlert("OTP Sent ✓", data.message || "Enter the verification code to continue", "success", data.otp);
       } else showAlert("Error", data.message || "Failed to send OTP", "error");
     } catch { showAlert("Error", "Network request failed", "error"); }
     finally { setLoading(false); }
@@ -242,7 +242,7 @@ export default function LoginScreen() {
 
 
 
-      <CustomAlert visible={alertVisible} title={alertConfig.title} message={alertConfig.message} type={alertConfig.type} onClose={() => setAlertVisible(false)} />
+      <CustomAlert visible={alertVisible} title={alertConfig.title} message={alertConfig.message} type={alertConfig.type} otp={alertConfig.otp} onClose={() => setAlertVisible(false)} />
     </SafeAreaView>
   );
 }
