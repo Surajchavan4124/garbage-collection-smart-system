@@ -8,9 +8,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Picker } from '@react-native-picker/picker';
 import { CheckCircle, AlertTriangle, MapPin, Info, ArrowLeft, Scale, Scan, X, Edit2 } from 'lucide-react-native';
 import CustomAlert from '../../components/CustomAlert';
+import CustomDropdown from '../../components/CustomDropdown';
 import { request } from '../../utils/api';
 
 const PRIMARY = '#6B5BFF';
@@ -473,57 +473,44 @@ export default function ScanScreen() {
               </View>
             ) : (
               <View style={{ marginBottom: 20 }}>
-                <Text style={{ color: '#475569', fontWeight: '600', marginBottom: 8 }}>Select Ward</Text>
-                <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 16, overflow: 'hidden' }}>
-                  <Picker 
-                    mode="dropdown"
-                    dropdownIconColor={PRIMARY}
-                    style={{ height: 54, color: '#1e293b' }}
-                    selectedValue={selectedWard} 
-                    onValueChange={setSelectedWard}>
-                    <Picker.Item label="-- Choose Ward --" value="" color="#94a3b8" />
-                    {wardsList.map(w => <Picker.Item key={w} label={w} value={w} color="#1e293b" />)}
-                  </Picker>
-                </View>
+                <CustomDropdown
+                  label="Select Ward"
+                  options={wardsList.map(w => ({ label: w, value: w }))}
+                  selectedValue={selectedWard}
+                  onValueChange={setSelectedWard}
+                  placeholder="-- Choose Ward --"
+                />
 
-                {selectedWard ? (
-                  <>
-                    <Text style={{ color: '#475569', fontWeight: '600', marginBottom: 8 }}>Select Bin</Text>
-                    <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#cbd5e1', overflow: 'hidden' }}>
-                      <Picker 
-                        mode="dropdown"
-                        dropdownIconColor={PRIMARY}
-                        style={{ height: 54, color: '#1e293b' }}
-                        selectedValue={selectedBinId} 
-                        onValueChange={setSelectedBinId}>
-                        <Picker.Item label="-- Choose Bin --" value="" color="#94a3b8" />
-                        {allDustbins.filter(b => b.ward === selectedWard).map(b => (
-                          <Picker.Item key={b._id} label={`${b.binCode} (${b.locationText || 'No location'})`} value={b._id} color="#1e293b" />
-                        ))}
-                      </Picker>
-                    </View>
-                  </>
-                ) : null}
+                {selectedWard && (
+                  <CustomDropdown
+                    label="Select Bin"
+                    options={allDustbins
+                      .filter(b => b.ward === selectedWard)
+                      .map(b => ({
+                        label: b.binCode,
+                        value: b._id,
+                        sublabel: b.locationText || 'No location'
+                      }))}
+                    selectedValue={selectedBinId}
+                    onValueChange={setSelectedBinId}
+                    placeholder="-- Choose Bin --"
+                  />
+                )}
               </View>
             )}
 
             {/* Reason Dropdown */}
-            <View style={{ marginBottom: 24 }}>
-              <Text style={{ color: '#475569', fontWeight: '600', marginBottom: 8 }}>Reason for Manual Entry <Text style={{color: RED}}>*</Text></Text>
-              <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#cbd5e1', overflow: 'hidden' }}>
-                <Picker 
-                  mode="dropdown"
-                  dropdownIconColor={PRIMARY}
-                  style={{ height: 54, color: '#1e293b' }}
-                  selectedValue={manualReason} 
-                  onValueChange={setManualReason}>
-                  <Picker.Item label="-- Select Reason --" value="" color="#94a3b8" />
-                  <Picker.Item label="QR Code Damaged / Unreadable" value="QR Code Damaged / Unreadable" color="#1e293b" />
-                  <Picker.Item label="QR Code Missing" value="QR Code Missing" color="#1e293b" />
-                  <Picker.Item label="Camera / Phone Issue" value="Camera / Phone Issue" color="#1e293b" />
-                </Picker>
-              </View>
-            </View>
+            <CustomDropdown
+              label="Reason for Manual Entry"
+              options={[
+                { label: 'QR Code Damaged / Unreadable', value: 'QR Code Damaged / Unreadable' },
+                { label: 'QR Code Missing', value: 'QR Code Missing' },
+                { label: 'Camera / Phone Issue', value: 'Camera / Phone Issue' },
+              ]}
+              selectedValue={manualReason}
+              onValueChange={setManualReason}
+              placeholder="-- Select Reason --"
+            />
 
             {/* Submit */}
             <TouchableOpacity

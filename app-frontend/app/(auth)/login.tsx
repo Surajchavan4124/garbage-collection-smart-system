@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../../config';
 import CustomAlert from '../../components/CustomAlert';
+import CustomDropdown from '../../components/CustomDropdown';
 
 const PRIMARY = '#6B5BFF';
 const PRIMARY_DARK = '#4f46e5';
@@ -22,7 +23,6 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [panchayats, setPanchayats] = useState<any[]>([]);
   const [selectedPanchayatId, setSelectedPanchayatId] = useState("");
-  const [showPanchayatModal, setShowPanchayatModal] = useState(false);
   const [timer, setTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
@@ -145,21 +145,13 @@ export default function LoginScreen() {
                 <Text style={{ fontSize: 22, fontWeight: '800', color: '#1e293b', marginBottom: 6 }}>Welcome back 👋</Text>
                 <Text style={{ color: '#94a3b8', fontSize: 14, marginBottom: 28 }}>Select panchayat & enter your mobile number</Text>
 
-                {/* Panchayat Dropdown */}
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Panchayat</Text>
-                <TouchableOpacity
-                  onPress={() => setShowPanchayatModal(true)}
-                  style={{
-                    height: 54, borderRadius: 14, paddingHorizontal: 16,
-                    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-                    borderWidth: 1.5, borderColor: selectedPanchayatId ? PRIMARY : '#e2e8f0',
-                    backgroundColor: selectedPanchayatId ? '#eef2ff' : '#f8fafc', marginBottom: 20,
-                  }}>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: selectedPanchayatId ? PRIMARY : '#94a3b8' }}>
-                    {selectedName}
-                  </Text>
-                  <ChevronDown size={20} color={selectedPanchayatId ? PRIMARY : '#94a3b8'} />
-                </TouchableOpacity>
+                <CustomDropdown
+                  label="Panchayat"
+                  options={panchayats.map(p => ({ label: p.name, value: p._id }))}
+                  selectedValue={selectedPanchayatId}
+                  onValueChange={setSelectedPanchayatId}
+                  placeholder="Select your Panchayat"
+                />
 
                 {/* Mobile Number */}
                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Mobile Number</Text>
@@ -248,40 +240,7 @@ export default function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Panchayat Modal */}
-      <Modal animationType="slide" transparent visible={showPanchayatModal} onRequestClose={() => setShowPanchayatModal(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View style={{ backgroundColor: 'white', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '55%' }}>
-            <View style={{ width: 40, height: 4, backgroundColor: '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: '#1e293b' }}>Select Panchayat</Text>
-              <TouchableOpacity onPress={() => setShowPanchayatModal(false)} style={{ padding: 8, backgroundColor: '#f1f5f9', borderRadius: 10 }}>
-                <X size={18} color="#64748b" />
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={panchayats}
-              keyExtractor={(item: any) => item._id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
-              ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#94a3b8', marginTop: 20 }}>No Panchayats found</Text>}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => { setSelectedPanchayatId(item._id); setShowPanchayatModal(false); }}
-                  style={{
-                    padding: 16, marginBottom: 8, borderRadius: 14,
-                    borderWidth: 1.5, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-                    borderColor: selectedPanchayatId === item._id ? PRIMARY : '#e2e8f0',
-                    backgroundColor: selectedPanchayatId === item._id ? '#eef2ff' : '#f8fafc',
-                  }}>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: selectedPanchayatId === item._id ? PRIMARY : '#1e293b' }}>{item.name}</Text>
-                  {selectedPanchayatId === item._id && <Check size={20} color={PRIMARY} />}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
+
 
       <CustomAlert visible={alertVisible} title={alertConfig.title} message={alertConfig.message} type={alertConfig.type} onClose={() => setAlertVisible(false)} />
     </SafeAreaView>
