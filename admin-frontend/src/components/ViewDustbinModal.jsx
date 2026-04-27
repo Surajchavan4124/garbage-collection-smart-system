@@ -36,8 +36,8 @@ export default function ViewDustbinModal({ isOpen, onClose, dustbin, onEdit, onD
 
   return (
     <>
- <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]" onClick={onClose} /> 
- <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4"> 
+ <div className="fixed inset-0 modal-overlay bg-black/50 backdrop-blur-sm z-[9999]" onClick={onClose} /> 
+ <div className="fixed inset-0 modal-overlay z-[9999] flex items-center justify-center p-4"> 
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
 
           {/* Header */}

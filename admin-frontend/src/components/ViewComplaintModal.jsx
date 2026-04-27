@@ -50,8 +50,8 @@ export default function ViewComplaintModal({ isOpen, onClose, complaint, onStatu
 
   return (
     <>
- <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]" onClick={onClose} /> 
- <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none"> 
+ <div className="fixed inset-0 modal-overlay bg-black/50 backdrop-blur-sm z-[9999]" onClick={onClose} /> 
+ <div className="fixed inset-0 modal-overlay flex items-center justify-center z-[9999] p-4 pointer-events-none"> 
         <div ref={modalRef} className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-gray-100 animate-fade-in-up overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto">
 
           {/* Header */}

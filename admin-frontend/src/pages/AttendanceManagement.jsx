@@ -306,7 +306,7 @@ export default function AttendanceManagement() {
                       )}
                     </td>
                     <td className="px-6 py-3.5">
-                      {!a.present && (
+                      {!a.present && !a.leaveReason && (
                         <button
                           onClick={() => openManualModal(a)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white"
@@ -314,6 +314,11 @@ export default function AttendanceManagement() {
                         >
                           <UserCheck size={12} /> Mark Present
                         </button>
+                      )}
+                      {!a.present && a.leaveReason && (
+                        <span className="inline-flex items-center gap-1 text-amber-600 text-[10px] font-semibold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+                          🏖 Leave Submitted
+                        </span>
                       )}
                     </td>
                   </tr>

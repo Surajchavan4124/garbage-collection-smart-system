@@ -220,9 +220,53 @@ tbody tr:last-child {
 .forced-light .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important; }
 
 /* ==============================
+   MODAL LAYOUT — CONTENT AREA SCOPED
+   Z-Index hierarchy:
+     Toast:       99999  (always visible, highest)
+     Sidebar:     10001  (above modals — always accessible)
+     TopHeader:   10001  (above modals — always accessible)
+     Modals:       9999  (content area only)
+     Mobile bg:      40
+
+   On desktop (lg) the sidebar is 256px wide and header is
+   64px tall. Modal backdrops must NOT cover them.
+   We achieve this by:
+   1. Sidebar + TopHeader z-index > modal z-index (already done).
+   2. On lg, shift fixed modal backdrops to start after sidebar/header.
+   ============================== */
+
+/* Utility class added to every modal backdrop & centering wrapper.
+   On mobile: full-screen overlay.
+   On desktop: starts at right-of-sidebar (256px) and below-header (64px). */
+@media (min-width: 1024px) {
+  .modal-overlay {
+    left: 256px !important;
+    top: 64px !important;
+    /* Switch from items-center to items-start so tall modals
+       don't overflow the top/bottom of the content zone */
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+    /* Add vertical padding so modal has breathing room */
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
+  }
+}
+
+/* Cap all modal inner boxes to the visible content area on desktop.
+   Available height = 100vh - 64px header - 48px top+bottom padding.
+   No overflow-y here — each modal handles its own internal scroll. */
+@media (min-width: 1024px) {
+  .modal-overlay > div {
+    max-height: calc(100vh - 64px - 48px) !important;
+  }
+}
+
+/* ==============================
    PREMIUM TOAST UI/UX
    ============================== */
+/* Toasts MUST be above everything — including modals and sidebar */
 .Toastify__toast-container {
+  z-index: 99999 !important;
   width: 400px !important;
   padding: 16px !important;
 }

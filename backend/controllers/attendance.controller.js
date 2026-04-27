@@ -28,11 +28,11 @@ export const scanAttendance = async (req, res) => {
     const attendance = await Attendance.findOne({
       labour: labourId,
       date,
-      panchayat: panchayatId,
-      onDuty: true
+      panchayat: panchayatId
     });
 
-    if (!attendance) {
+    // Default is ON. Only reject if an attendance record exists AND onDuty is explicitly false
+    if (attendance && attendance.onDuty === false) {
       return res.status(403).json({
         message: "Please toggle 'Available On Duty' on your dashboard to start scanning.",
         success: false
@@ -182,6 +182,7 @@ export const manualAttendance = async (req, res) => {
       labour: labourId,
       panchayat: panchayatId,
       date,
+      onDuty: true,
       present: true,
       source: "ADMIN",
       reason,
@@ -282,6 +283,7 @@ export const updateScanAction = async (req, res) => {
 
       if (existingAtt && !existingAtt.present) {
         existingAtt.present = true;
+        existingAtt.onDuty = true;
         existingAtt.source = "QR";
         existingAtt.geo = scan.geo;
         await existingAtt.save();
@@ -450,13 +452,16 @@ export const getDashboardStats = async (req, res) => {
     // Check if present/onDuty today
     const attendance = await Attendance.findOne({ labour: _id, date: todayStr });
 
+    const onDutyValue = attendance ? (attendance.present ? true : attendance.onDuty) : true;
+    console.log("DASHBOARD STATS FOR:", _id, "ATTENDANCE RECORD:", attendance, "FINAL ONDUTY:", onDutyValue);
+
     const stats = {
       location: panchayat ? panchayat.name : (req.user.wards?.[0] || "General"),
       wards: req.user.wards || [],
       total: collectedTodayByMe + pendingInWard, // denominator = my collections + what remains
       completed: collectedTodayByMe,
       pending: pendingInWard,
-      onDuty: attendance ? attendance.onDuty : false,
+      onDuty: onDutyValue,
       present: attendance ? attendance.present : false
     };
 

@@ -3,11 +3,10 @@ import { useEffect } from 'react';
 export default function GlobalScrollLock() {
   useEffect(() => {
     const checkScrollLock = () => {
-      // Find all fixed full-screen overlays (modals, sidebars, loaders)
-      const overlays = document.querySelectorAll('.fixed.inset-0');
+      // Find all modal overlays (modals use .modal-overlay class)
+      const overlays = document.querySelectorAll('.modal-overlay');
       
-      // Some overlays might be visually hidden via classes, but React usually unmounts them entirely.
-      // If there are any overlays present in the DOM, lock the scroll.
+      // If there are any modal overlays present in the DOM, lock the scroll.
       if (overlays.length > 0) {
         document.body.style.overflow = 'hidden';
       } else {

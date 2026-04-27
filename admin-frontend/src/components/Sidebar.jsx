@@ -53,7 +53,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
   return (
     <div 
-      className={`fixed left-0 top-0 w-64 h-screen overflow-y-auto flex flex-col transition-all duration-300 z-50 
+      className={`fixed left-0 top-0 w-64 h-screen overflow-y-auto flex flex-col transition-all duration-300 z-[10001] 
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         border-r lg:border-r-0`}
       style={{

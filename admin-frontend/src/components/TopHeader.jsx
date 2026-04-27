@@ -122,7 +122,7 @@ export default function TopHeader({ onMenuClick }) {
 
   return (
     <>
-      <div className="fixed top-0 right-0 left-0 lg:left-64 h-16 flex items-center justify-between px-4 sm:px-6 z-40"
+      <div className="fixed top-0 right-0 left-0 lg:left-64 h-16 flex items-center justify-between px-4 sm:px-6 z-[10001]"
         style={{
           background: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(12px)',

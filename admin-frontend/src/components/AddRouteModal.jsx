@@ -95,7 +95,7 @@ export default function AddRouteModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
- <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto"> 
+ <div className="fixed inset-0 modal-overlay z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto"> 
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-100 animate-fade-in-up overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-5 flex-shrink-0"

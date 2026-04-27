@@ -20,12 +20,12 @@ export default function AttendanceChartModal({ isOpen, onClose, presentCount, ab
     <>
       {/* Overlay */}
       <div
- className="fixed inset-0 bg-black bg-opacity-40 z-[9999]" 
+ className="fixed inset-0 modal-overlay bg-black bg-opacity-40 z-[9999]" 
         onClick={onClose}
       ></div>
 
       {/* Modal */}
- <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4"> 
+ <div className="fixed inset-0 modal-overlay flex items-center justify-center z-[9999] p-4"> 
         <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between px-8 py-6 border-b border-gray-200 sticky top-0 bg-white">
