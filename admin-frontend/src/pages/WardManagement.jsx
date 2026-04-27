@@ -157,9 +157,9 @@ export default function WardManagement() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+              <tr>
                 {['#', 'Ward Name', 'Dustbins', 'Actions'].map(h => (
-                  <th key={h} className={`px-6 py-3.5 text-white text-[10px] font-bold uppercase tracking-wider ${h === 'Actions' ? 'text-center' : 'text-left'}`}>{h}</th>
+                  <th key={h} className={`px-6 py-3.5 text-white text-[10px] font-bold uppercase tracking-wider bg-[#1f9e9a] ${h === 'Actions' ? 'text-center' : 'text-left'}`}>{h}</th>
                 ))}
               </tr>
             </thead>

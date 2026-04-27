@@ -321,9 +321,9 @@ export default function ReportAndComplaintManagement() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+              <tr>
                 {['Complaint ID', 'Date', 'Name', 'Category', 'Ward', 'Photo', 'Status', 'Assigned', 'View'].map(h => (
-                  <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider bg-[#1f9e9a]">{h}</th>
                 ))}
               </tr>
             </thead>

@@ -469,9 +469,9 @@ export default function HouseholdManagement() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                  <tr>
                     {['Household ID', 'Head of Household', 'Ward', 'Contact', 'Status', 'Actions'].map(h => (
-                      <th key={h} className="px-5 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-5 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider bg-[#1f9e9a]">{h}</th>
                     ))}
                   </tr>
                 </thead>

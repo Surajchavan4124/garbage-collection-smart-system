@@ -184,9 +184,9 @@ export default function EmployeeManagement() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                  <tr>
                     {['Code', 'Name', 'Role', 'Ward(s)', 'Contact', 'Status', 'Actions'].map(h => (
-                      <th key={h} className="px-6 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-6 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider bg-[#1f9e9a]">{h}</th>
                     ))}
                   </tr>
                 </thead>

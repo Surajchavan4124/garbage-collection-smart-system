@@ -343,9 +343,9 @@ export default function WasteDataManagement() {
               {viewMode === 'ward' ? (
                 <table className="w-full text-sm">
                   <thead>
-                    <tr style={{ background: 'linear-gradient(135deg, #1f9e9a, #16847f)' }}>
+                    <tr>
                       {['Entry ID', 'Date', 'Ward', 'Bio (kg)', 'Non-Bio (kg)', 'Recyclable (kg)', 'Total (kg)', 'Actions'].map(h => (
-                        <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                        <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider bg-[#1f9e9a]">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -388,9 +388,9 @@ export default function WasteDataManagement() {
               ) : (
                 <table className="w-full text-sm">
                   <thead>
-                    <tr style={{ background: 'linear-gradient(135deg, #1e293b, #334155)' }}>
+                    <tr>
                       {['Bin Code', 'Ward', 'Location', 'Collector', 'Type', 'Weight (kg)', 'Scanned At', 'Status'].map(h => (
-                        <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider">{h}</th>
+                        <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider bg-slate-800">{h}</th>
                       ))}
                     </tr>
                   </thead>
