@@ -303,12 +303,13 @@ export const updateScanAction = async (req, res) => {
       // 🔄 🔹 WASTE DATA SYNC: Update Admin Dashboard Waste Records
       try {
         const bin = await Dustbin.findById(scan.dustbin);
-        const employee = await Employee.findById(scan.labour);
-
-        if (bin && employee) {
+        if (bin && estimatedWeight > 0) {
           const weight = Number(estimatedWeight) || 0;
-          const todayStart = new Date();
-          todayStart.setHours(0, 0, 0, 0);
+          
+          // Use the scan's date (YYYY-MM-DD) for a deterministic midnight UTC date
+          const scanDate = scan.date || new Date().toISOString().split('T')[0];
+          const normalizedDate = new Date(scanDate);
+          normalizedDate.setUTCHours(0, 0, 0, 0);
 
           // Map Bin Type to WasteData field
           const typeMap = {
@@ -316,44 +317,43 @@ export const updateScanAction = async (req, res) => {
             "Recyclable": "recyclable",
             "General": "nonBiodegradable"
           };
-
           const targetField = typeMap[bin.type] || "mixed";
 
-          // Find or Create WasteData for this ward and date (USE BIN WARD NOW)
+          // Find or Create WasteData for this ward and date
           let wasteEntry = await WasteData.findOne({
             panchayat: bin.panchayat,
             ward: bin.ward,
-            date: { $gte: todayStart, $lt: new Date(todayStart.getTime() + 24 * 60 * 60 * 1000) }
+            date: normalizedDate
           });
 
           if (wasteEntry) {
+            // Update existing entry
             wasteEntry[targetField] = (wasteEntry[targetField] || 0) + weight;
             wasteEntry.total = (wasteEntry.biodegradable || 0) +
               (wasteEntry.recyclable || 0) +
               (wasteEntry.nonBiodegradable || 0) +
               (wasteEntry.mixed || 0);
             await wasteEntry.save();
-            console.log(`Updated WasteData for Ward ${bin.ward} in Panchayat ${bin.panchayat}`);
+            console.log(`✅ Synced: Updated Ward ${bin.ward} waste (+${weight}kg ${targetField})`);
           } else {
-            // Generate Entry ID scoped to panchayat
+            // Create new entry
             const count = await WasteData.countDocuments({ panchayat: bin.panchayat });
             const entryId = `W-${String(count + 1).padStart(2, '0')}`;
 
             await WasteData.create({
               panchayat: bin.panchayat,
               entryId,
-              date: todayStart,
+              date: normalizedDate,
               ward: bin.ward,
               collectionType: "Daily",
               [targetField]: weight,
               total: weight
             });
-            console.log(`Created new WasteData for Ward ${bin.ward} in Panchayat ${bin.panchayat}`);
+            console.log(`✅ Synced: Created new WasteData for Ward ${bin.ward} (${weight}kg)`);
           }
         }
       } catch (syncErr) {
-        console.error("Waste Sync Error:", syncErr);
-        // Don't fail the whole request if sync fails
+        console.error("❌ Waste Sync Error:", syncErr);
       }
     }
 
