@@ -473,6 +473,7 @@ export default function ScanScreen() {
                 <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 16, overflow: 'hidden' }}>
                   <Picker 
                     mode="dropdown"
+                    dropdownIconColor={PRIMARY}
                     style={{ height: 54, color: '#1e293b' }}
                     selectedValue={selectedWard} 
                     onValueChange={setSelectedWard}>
@@ -487,6 +488,7 @@ export default function ScanScreen() {
                     <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#cbd5e1', overflow: 'hidden' }}>
                       <Picker 
                         mode="dropdown"
+                        dropdownIconColor={PRIMARY}
                         style={{ height: 54, color: '#1e293b' }}
                         selectedValue={selectedBinId} 
                         onValueChange={setSelectedBinId}>
@@ -507,6 +509,7 @@ export default function ScanScreen() {
               <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#cbd5e1', overflow: 'hidden' }}>
                 <Picker 
                   mode="dropdown"
+                  dropdownIconColor={PRIMARY}
                   style={{ height: 54, color: '#1e293b' }}
                   selectedValue={manualReason} 
                   onValueChange={setManualReason}>
