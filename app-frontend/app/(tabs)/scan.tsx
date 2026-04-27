@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { CheckCircle, AlertTriangle, MapPin, Info, ArrowLeft, Scale, Scan, X, Edit2 } from 'lucide-react-native';
 import CustomAlert from '../../components/CustomAlert';
 import CustomDropdown from '../../components/CustomDropdown';
@@ -144,6 +145,7 @@ export default function ScanScreen() {
   const handleBarCodeScanned = async ({ data }: { type: string; data: string }) => {
     if (scanned || loading) return;
     setScanned(true); setLoading(true); setEstimatedWeight('');
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
