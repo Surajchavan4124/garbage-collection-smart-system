@@ -226,6 +226,10 @@ export default function ScanScreen() {
       setAlertConfig({ title: 'Required', message: 'Please select an issue type', type: 'error' });
       setAlertVisible(true); return;
     }
+    if (action === 'collected' && !estimatedWeight.trim()) {
+      setAlertConfig({ title: 'Required', message: 'Please enter the estimated waste volume', type: 'error' });
+      setAlertVisible(true); return;
+    }
     setLoading(true);
     try {
       const isIssue = action === 'issue';
