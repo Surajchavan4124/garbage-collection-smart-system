@@ -4,22 +4,28 @@ import WasteData from '../models/WasteData.model.js'
 // Create new waste data entry
 export const createWasteData = async (req, res) => {
   try {
-    const { date, collectionType, ward, biodegradable, recyclable, nonBiodegradable, mixed } = req.body
+    const { date, collectionType, ward, organic, recyclable, general } = req.body
 
     // Simple validation
     if (!date || !ward) {
       return res.status(400).json({ message: "Date and Ward are required" })
     }
 
-    const biodeg = parseFloat(biodegradable) || 0
+    const org = parseFloat(organic) || 0
     const recycl = parseFloat(recyclable) || 0
-    const nonBiodeg = parseFloat(nonBiodegradable) || 0
-    const mix = parseFloat(mixed) || 0
-    const total = biodeg + recycl + nonBiodeg + mix
+    const gen = parseFloat(general) || 0
+    const total = org + recycl + gen
 
-    // Generate Entry ID (W-01, W-02, etc.) isolated by panchayat
-    const count = await WasteData.countDocuments({ panchayat: req.user.panchayatId })
-    const entryId = `W-${String(count + 1).padStart(2, '0')}`
+    // Generate Entry ID robustly by finding max existing ID
+    const allEntries = await WasteData.find({ panchayat: req.user.panchayatId }).select('entryId');
+    let maxId = 0;
+    allEntries.forEach(entry => {
+      if (entry.entryId && entry.entryId.startsWith('W-')) {
+        const num = parseInt(entry.entryId.replace('W-', ''), 10);
+        if (!isNaN(num) && num > maxId) maxId = num;
+      }
+    });
+    const entryId = `W-${String(maxId + 1).padStart(2, '0')}`;
 
     const newEntry = new WasteData({
       panchayat: req.user.panchayatId,
@@ -27,10 +33,9 @@ export const createWasteData = async (req, res) => {
       date,
       collectionType,
       ward,
-      biodegradable: biodeg,
+      organic: org,
       recyclable: recycl,
-      nonBiodegradable: nonBiodeg,
-      mixed: mix,
+      general: gen,
       total
     })
 
@@ -73,13 +78,7 @@ export const deleteWasteData = async (req, res) => {
 export const updateWasteData = async (req, res) => {
   try {
     const { id } = req.params
-    const { date, collectionType, ward, biodegradable, recyclable, nonBiodegradable, mixed } = req.body
-
-    const biodeg = parseFloat(biodegradable) || 0
-    const recycl = parseFloat(recyclable) || 0
-    const nonBiodeg = parseFloat(nonBiodegradable) || 0
-    const mix = parseFloat(mixed) || 0
-    const total = biodeg + recycl + nonBiodeg + mix
+    const { date, collectionType, ward, organic, recyclable, general } = req.body
 
     const entry = await WasteData.findById(id)
     if (!entry) return res.status(404).json({ message: "Entry not found" })
@@ -88,16 +87,20 @@ export const updateWasteData = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to update this entry" })
     }
 
+    const org = parseFloat(organic) || 0
+    const recycl = parseFloat(recyclable) || 0
+    const gen = parseFloat(general) || 0
+    const total = org + recycl + gen
+
     const updatedEntry = await WasteData.findByIdAndUpdate(
       id,
       {
         date,
         collectionType,
         ward,
-        biodegradable: biodeg,
+        organic: org,
         recyclable: recycl,
-        nonBiodegradable: nonBiodeg,
-        mixed: mix,
+        general: gen,
         total
       },
       { new: true }
@@ -164,10 +167,9 @@ export const getWasteStats = async (req, res) => {
       {
         $group: {
           _id: null,
-          organic: { $sum: "$biodegradable" },
+          organic: { $sum: "$organic" },
           recyclable: { $sum: "$recyclable" },
-          general: { $sum: "$nonBiodegradable" },
-          mixed: { $sum: "$mixed" },
+          general: { $sum: "$general" },
         }
       }
     ])
@@ -176,7 +178,6 @@ export const getWasteStats = async (req, res) => {
       { name: "Organic", value: typeBreakdown[0]?.organic || 0 },
       { name: "Recyclable", value: typeBreakdown[0]?.recyclable || 0 },
       { name: "General", value: typeBreakdown[0]?.general || 0 },
-      { name: "Mixed", value: typeBreakdown[0]?.mixed || 0 },
     ].filter(item => item.value > 0);
 
     const recentCollections = await WasteData.find({ panchayat: req.user.panchayatId }).sort({ date: -1 }).limit(10)

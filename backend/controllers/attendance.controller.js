@@ -314,11 +314,11 @@ export const updateScanAction = async (req, res) => {
 
           // Map Bin Type to WasteData field
           const typeMap = {
-            "Organic": "biodegradable",
+            "Organic": "organic",
             "Recyclable": "recyclable",
-            "General": "nonBiodegradable"
+            "General": "general"
           };
-          const targetField = typeMap[bin.type] || "mixed";
+          const targetField = typeMap[bin.type] || "general"; // fallback to general
 
           // Find or Create WasteData for this ward and date
           let wasteEntry = await WasteData.findOne({
@@ -330,16 +330,22 @@ export const updateScanAction = async (req, res) => {
           if (wasteEntry) {
             // Update existing entry
             wasteEntry[targetField] = (wasteEntry[targetField] || 0) + weight;
-            wasteEntry.total = (wasteEntry.biodegradable || 0) +
+            wasteEntry.total = (wasteEntry.organic || 0) +
               (wasteEntry.recyclable || 0) +
-              (wasteEntry.nonBiodegradable || 0) +
-              (wasteEntry.mixed || 0);
+              (wasteEntry.general || 0);
             await wasteEntry.save();
             console.log(`✅ Synced: Updated Ward ${bin.ward} waste (+${weight}kg ${targetField})`);
           } else {
             // Create new entry
-            const count = await WasteData.countDocuments({ panchayat: bin.panchayat });
-            const entryId = `W-${String(count + 1).padStart(2, '0')}`;
+            const allEntries = await WasteData.find({ panchayat: bin.panchayat }).select('entryId');
+            let maxId = 0;
+            allEntries.forEach(entry => {
+              if (entry.entryId && entry.entryId.startsWith('W-')) {
+                const num = parseInt(entry.entryId.replace('W-', ''), 10);
+                if (!isNaN(num) && num > maxId) maxId = num;
+              }
+            });
+            const entryId = `W-${String(maxId + 1).padStart(2, '0')}`;
 
             await WasteData.create({
               panchayat: bin.panchayat,

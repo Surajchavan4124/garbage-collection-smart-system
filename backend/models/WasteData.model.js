@@ -24,7 +24,7 @@ const wasteDataSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  biodegradable: {
+  organic: {
     type: Number,
     default: 0
   },
@@ -32,11 +32,7 @@ const wasteDataSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  nonBiodegradable: {
-    type: Number,
-    default: 0
-  },
-  mixed: {
+  general: {
     type: Number,
     default: 0
   },

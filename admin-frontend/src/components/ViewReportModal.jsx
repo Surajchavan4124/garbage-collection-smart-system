@@ -78,9 +78,9 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="border p-2 text-left text-xs font-bold uppercase text-gray-500">Ward</th>
-                                    <th className="border p-2 text-right text-xs font-bold uppercase text-gray-500">Bio (kg)</th>
+                                    <th className="border p-2 text-right text-xs font-bold uppercase text-gray-500">Organic (kg)</th>
                                     <th className="border p-2 text-right text-xs font-bold uppercase text-gray-500">Recyclable (kg)</th>
-                                    <th className="border p-2 text-right text-xs font-bold uppercase text-gray-500">Non-Bio (kg)</th>
+                                    <th className="border p-2 text-right text-xs font-bold uppercase text-gray-500">General (kg)</th>
                                     <th className="border p-2 text-right text-xs font-bold uppercase text-gray-500">Total (kg)</th>
                                     <th className="border p-2 text-center text-xs font-bold uppercase text-gray-500">Collections</th>
                                 </tr>
@@ -89,9 +89,9 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                                 {rows.map((row, i) => (
                                     <tr key={row?._id || i} className="hover:bg-gray-50 transition-colors">
                                         <td className="border p-2 text-sm font-medium text-gray-700">{row?._id || 'N/A'}</td>
-                                        <td className="border p-2 text-right text-sm text-gray-600">{row?.totalBiodegradable ?? 0}</td>
+                                        <td className="border p-2 text-right text-sm text-gray-600">{row?.totalOrganic ?? 0}</td>
                                         <td className="border p-2 text-right text-sm text-gray-600">{row?.totalRecyclable ?? 0}</td>
-                                        <td className="border p-2 text-right text-sm text-gray-600">{row?.totalNonBiodegradable ?? 0}</td>
+                                        <td className="border p-2 text-right text-sm text-gray-600">{row?.totalGeneral ?? 0}</td>
                                         <td className="border p-2 text-right text-sm font-bold text-teal-600">{row?.totalWaste ?? 0}</td>
                                         <td className="border p-2 text-center text-sm text-gray-600">{row?.collectionCount ?? 0}</td>
                                     </tr>

@@ -43,9 +43,9 @@ export default function WasteDataManagement() {
     date: new Date().toISOString().split('T')[0],
     collectionType: 'Daily',
     ward: '',
-    biodegradable: '',
+    organic: '',
     recyclable: '',
-    nonBiodegradable: '',
+    general: '',
   })
   const [wasteRecords, setWasteRecords] = useState([])
   const [loading, setLoading] = useState(true)
@@ -129,8 +129,8 @@ export default function WasteDataManagement() {
     try {
       const payload = {
         date: formData.date, collectionType: formData.collectionType, ward: formData.ward,
-        biodegradable: formData.biodegradable, recyclable: formData.recyclable,
-        nonBiodegradable: formData.nonBiodegradable
+        organic: formData.organic, recyclable: formData.recyclable,
+        general: formData.general
       }
       if (editingId) {
         await api.put(`/waste-data/${editingId}`, payload)
@@ -152,9 +152,9 @@ export default function WasteDataManagement() {
       date: new Date(record.date).toISOString().split('T')[0],
       collectionType: record.collectionType,
       ward: record.ward,
-      biodegradable: record.biodegradable,
+      organic: record.organic,
       recyclable: record.recyclable,
-      nonBiodegradable: record.nonBiodegradable,
+      general: record.general,
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -166,7 +166,7 @@ export default function WasteDataManagement() {
       date: new Date().toISOString().split('T')[0],
       collectionType: 'Daily',
       ward: wards.length > 0 ? wards[0].name : '',
-      biodegradable: '', recyclable: '', nonBiodegradable: ''
+      organic: '', recyclable: '', general: ''
     })
   }
 
@@ -188,15 +188,15 @@ export default function WasteDataManagement() {
   }
 
   const wardRecords = wasteRecords.filter(r => r.ward === selectedWard)
-  const avgBiodegradable = wardRecords.length > 0
-    ? (wardRecords.reduce((sum, r) => sum + r.biodegradable, 0) / wardRecords.length).toFixed(0) : 0
+  const avgOrganic = wardRecords.length > 0
+    ? (wardRecords.reduce((sum, r) => sum + (r.organic || 0), 0) / wardRecords.length).toFixed(0) : 0
   const avgRecyclable = wardRecords.length > 0
-    ? (wardRecords.reduce((sum, r) => sum + r.recyclable, 0) / wardRecords.length).toFixed(0) : 0
-  const avgNonBiodegradable = wardRecords.length > 0
-    ? (wardRecords.reduce((sum, r) => sum + r.nonBiodegradable, 0) / wardRecords.length).toFixed(0) : 0
+    ? (wardRecords.reduce((sum, r) => sum + (r.recyclable || 0), 0) / wardRecords.length).toFixed(0) : 0
+  const avgGeneral = wardRecords.length > 0
+    ? (wardRecords.reduce((sum, r) => sum + (r.general || 0), 0) / wardRecords.length).toFixed(0) : 0
   const barData = [
-    { label: 'Bio', value: avgBiodegradable, color: '#22c55e', icon: Leaf },
-    { label: 'Non-Bio', value: avgNonBiodegradable, color: '#ef4444', icon: AlertTriangle },
+    { label: 'Organic', value: avgOrganic, color: '#22c55e', icon: Leaf },
+    { label: 'General', value: avgGeneral, color: '#ef4444', icon: AlertTriangle },
     { label: 'Recyclable', value: avgRecyclable, color: '#3b82f6', icon: Recycle },
   ]
   const maxBar = Math.max(...barData.map(b => Number(b.value))) || 100
@@ -245,9 +245,9 @@ export default function WasteDataManagement() {
                 </Field>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Biodegradable (kgs)" name="biodegradable" value={formData.biodegradable} onChange={handleInputChange} type="number" min={0} />
+                  <Field label="Organic (kgs)" name="organic" value={formData.organic} onChange={handleInputChange} type="number" min={0} />
                   <Field label="Recyclable (kgs)" name="recyclable" value={formData.recyclable} onChange={handleInputChange} type="number" min={0} />
-                  <Field label="Non-Biodegradable (kgs)" name="nonBiodegradable" value={formData.nonBiodegradable} onChange={handleInputChange} type="number" min={0} />
+                  <Field label="General (kgs)" name="general" value={formData.general} onChange={handleInputChange} type="number" min={0} />
                 </div>
 
                 <div className="flex gap-3 pt-2">
@@ -344,7 +344,7 @@ export default function WasteDataManagement() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr>
-                      {['Entry ID', 'Date', 'Ward', 'Bio (kg)', 'Non-Bio (kg)', 'Recyclable (kg)', 'Total (kg)', 'Actions'].map(h => (
+                      {['Entry ID', 'Date', 'Ward', 'Organic (kg)', 'General (kg)', 'Recyclable (kg)', 'Total (kg)', 'Actions'].map(h => (
                         <th key={h} className="px-4 py-3.5 text-left text-white text-[10px] font-bold uppercase tracking-wider bg-[#1f9e9a]">{h}</th>
                       ))}
                     </tr>
@@ -364,9 +364,9 @@ export default function WasteDataManagement() {
                           <td className="px-4 py-3.5">
                             <span className="text-xs font-semibold text-gray-700 bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-100">{record.ward}</span>
                           </td>
-                          <td className="px-4 py-3.5 text-xs font-semibold text-emerald-600">{record.biodegradable}</td>
-                          <td className="px-4 py-3.5 text-xs font-semibold text-red-500">{record.nonBiodegradable}</td>
-                          <td className="px-4 py-3.5 text-xs font-semibold text-blue-500">{record.recyclable}</td>
+                          <td className="px-4 py-3.5 text-xs font-semibold text-emerald-600">{record.organic || 0}</td>
+                          <td className="px-4 py-3.5 text-xs font-semibold text-red-500">{record.general || 0}</td>
+                          <td className="px-4 py-3.5 text-xs font-semibold text-blue-500">{record.recyclable || 0}</td>
                           <td className="px-4 py-3.5">
                             <span className="text-xs font-black text-gray-800">{record.total}</span>
                           </td>

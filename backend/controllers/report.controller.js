@@ -74,10 +74,9 @@ const getWasteCollectionSummary = async (start, end, panchayatId, filters) => {
         {
             $group: {
                 _id: "$ward",
-                totalBiodegradable: { $sum: "$biodegradable" },
+                totalOrganic: { $sum: "$organic" },
                 totalRecyclable: { $sum: "$recyclable" },
-                totalNonBiodegradable: { $sum: "$nonBiodegradable" },
-                totalMixed: { $sum: "$mixed" },
+                totalGeneral: { $sum: "$general" },
                 totalWaste: { $sum: "$total" },
                 collectionCount: { $sum: 1 }
             }
@@ -145,7 +144,7 @@ const getSegregationCompliance = async (start, end, panchayatId, filters) => {
             $group: {
                 _id: "$ward",
                 totalWhoSegregated: {
-                    $sum: { $cond: [{ $eq: ["$mixed", 0] }, 1, 0] }
+                    $sum: { $cond: [{ $gt: ["$organic", 0] }, 1, 0] }
                 },
                 totalCollections: { $sum: 1 }
             }
@@ -298,7 +297,7 @@ const getYearOnYearComparison = async (start, end, panchayatId, subType = 'waste
                 $group: {
                     _id: { $year: "$date" },
                     totalSegregated: {
-                        $sum: { $cond: [{ $eq: ["$mixed", 0] }, 1, 0] }
+                        $sum: { $cond: [{ $gt: ["$organic", 0] }, 1, 0] }
                     },
                     totalCollections: { $sum: 1 }
                 }
