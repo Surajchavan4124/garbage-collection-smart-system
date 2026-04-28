@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
-import TopHeader from "../components/TopHeader";
+import Layout from "../components/Layout";
 import VerificationTable from "../components/VerificationTable";
 import AddPanchayatModal from "../components/AddPanchayatModal";
 import api from "../api/axios";
@@ -8,13 +7,13 @@ import { Building2, CheckCircle2, Clock3, Plus } from "lucide-react";
 
 function StatCard({ icon: Icon, label, value, loading, color, bg }) {
   return (
-    <div style={{ background: "white", borderRadius: 16, padding: "22px 24px", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9" }}>
-      <div style={{ width: 52, height: 52, borderRadius: 14, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <div className="bg-white rounded-2xl p-5 md:p-6 flex items-center gap-4 border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04)]">
+      <div className="w-[52px] h-[52px] rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
         <Icon size={24} color={color} />
       </div>
       <div>
-        <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{label}</div>
-        <div style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>{loading ? "—" : value}</div>
+        <div className="text-[12px] text-slate-400 font-semibold uppercase tracking-wide mb-1">{label}</div>
+        <div className="text-[28px] md:text-[30px] font-extrabold text-slate-900 leading-none">{loading ? "—" : value}</div>
       </div>
     </div>
   );
@@ -41,42 +40,36 @@ export default function Dashboard() {
   }, [refreshKey]);
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#f8fafc", fontFamily: "Inter, sans-serif" }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <TopHeader />
-        <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px 40px" }}>
+    <Layout>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-7">
+        <StatCard icon={Building2}     label="Total Panchayats"    value={stats.totalPanchayats}    loading={loading} color="#6366f1" bg="rgba(99,102,241,0.1)"  />
+        <StatCard icon={CheckCircle2}  label="Active Subscriptions" value={stats.activeSubscriptions} loading={loading} color="#10b981" bg="rgba(16,185,129,0.1)"  />
+        <StatCard icon={Clock3}        label="Pending Requests"    value={stats.pendingRequests}    loading={loading} color="#f59e0b" bg="rgba(245,158,11,0.1)"  />
+      </div>
 
-          {/* Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 }}>
-            <StatCard icon={Building2}     label="Total Panchayats"    value={stats.totalPanchayats}    loading={loading} color="#6366f1" bg="rgba(99,102,241,0.1)"  />
-            <StatCard icon={CheckCircle2}  label="Active Subscriptions" value={stats.activeSubscriptions} loading={loading} color="#10b981" bg="rgba(16,185,129,0.1)"  />
-            <StatCard icon={Clock3}        label="Pending Requests"    value={stats.pendingRequests}    loading={loading} color="#f59e0b" bg="rgba(245,158,11,0.1)"  />
+      {/* Table card */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="p-5 md:p-6 border-b border-slate-100 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div>
+            <div className="text-[16px] font-bold text-slate-900">Verification Requests</div>
+            <div className="text-[13px] text-slate-400 mt-1">Review and process panchayat registrations</div>
           </div>
-
-          {/* Table card */}
-          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", overflow: "hidden" }}>
-            <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Verification Requests</div>
-                <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>Review and process panchayat registrations</div>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", border: "none", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", boxShadow: "0 4px 12px rgba(99,102,241,0.3)", fontFamily: "inherit" }}
-              >
-                <Plus size={16} />
-                Add Panchayat
-              </button>
-            </div>
-            <div style={{ padding: "0 24px 24px" }}>
-              <VerificationTable refreshKey={refreshKey} onChange={() => setRefreshKey((p) => p + 1)} />
-            </div>
-          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 text-white rounded-xl font-semibold text-[13px] cursor-pointer shadow-[0_4px_12px_rgba(99,102,241,0.3)] transition-transform active:scale-95"
+            style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}
+          >
+            <Plus size={16} />
+            Add Panchayat
+          </button>
+        </div>
+        <div className="p-0 md:px-6 md:pb-6 overflow-x-auto custom-scrollbar">
+          <VerificationTable refreshKey={refreshKey} onChange={() => setRefreshKey((p) => p + 1)} />
         </div>
       </div>
 
       <AddPanchayatModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => setRefreshKey((p) => p + 1)} />
-    </div>
+    </Layout>
   );
 }

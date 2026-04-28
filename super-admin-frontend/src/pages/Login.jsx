@@ -52,33 +52,33 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f1f5f9", fontFamily: "Inter, sans-serif" }}>
-      <div style={{ width: "100%", maxWidth: 900, margin: "0 16px", borderRadius: 20, overflow: "hidden", boxShadow: "0 25px 80px rgba(0,0,0,0.18)", display: "flex", minHeight: 560 }}>
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 font-sans p-4">
+      <div className="w-full max-w-[900px] rounded-[20px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.18)] flex flex-col lg:flex-row min-h-[560px]">
 
         {/* ── Left Panel ── */}
-        <div style={{ flex: 1, background: "#0f172a", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "center", padding: "48px 44px" }}>
+        <div className="flex-1 bg-slate-900 relative overflow-hidden flex flex-col justify-center p-8 md:p-11 lg:min-h-[560px]">
           {/* Floating circles */}
-          <div className="animate-float"  style={{ position:"absolute", top:"10%",  left:"15%",  width:180, height:180, borderRadius:"50%", background:"rgba(99,102,241,0.15)" }} />
-          <div className="animate-float2" style={{ position:"absolute", bottom:"15%",right:"-5%", width:220, height:220, borderRadius:"50%", background:"rgba(139,92,246,0.12)" }} />
-          <div className="animate-float3" style={{ position:"absolute", top:"50%",  right:"20%", width:100, height:100, borderRadius:"50%", background:"rgba(99,102,241,0.1)"  }} />
+          <div className="animate-float absolute top-[10%] left-[15%] w-[180px] h-[180px] rounded-full bg-indigo-500/15" />
+          <div className="animate-float2 absolute bottom-[15%] -right-[5%] w-[220px] h-[220px] rounded-full bg-purple-500/10" />
+          <div className="animate-float3 absolute top-[50%] right-[20%] w-[100px] h-[100px] rounded-full bg-indigo-500/10" />
 
-          <div style={{ position:"relative", zIndex:1 }}>
+          <div className="relative z-10">
             {/* Logo */}
-            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:40 }}>
-              <div style={{ width:52, height:52, borderRadius:16, background:"linear-gradient(135deg,#6366f1,#8b5cf6)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 24px rgba(99,102,241,0.5)" }}>
+            <div className="flex items-center gap-3.5 mb-10">
+              <div className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center shadow-[0_8px_24px_rgba(99,102,241,0.5)]" style={{ background:"linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
                 <Leaf size={26} color="white" />
               </div>
               <div>
-                <div style={{ fontSize:22, fontWeight:800, color:"white", letterSpacing:"-0.5px" }}>EcoSyz</div>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", fontWeight:500 }}>Smart Waste Management</div>
+                <div className="text-[22px] font-extrabold text-white tracking-tight">EcoSyz</div>
+                <div className="text-[12px] text-white/40 font-medium">Smart Waste Management</div>
               </div>
             </div>
 
-            <h1 style={{ fontSize:32, fontWeight:800, color:"white", lineHeight:1.25, marginBottom:14, letterSpacing:"-0.5px" }}>
+            <h1 className="text-[28px] md:text-[32px] font-extrabold text-white leading-tight mb-3 tracking-tight">
               Welcome back,<br />
               <span style={{ background:"linear-gradient(90deg,#818cf8,#c4b5fd)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Super Admin</span>
             </h1>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.45)", lineHeight:1.7, marginBottom:36 }}>
+            <p className="text-[14px] text-white/45 leading-relaxed mb-9">
               Sign in to manage panchayat registrations, subscriptions, payments, and support queries across the EcoSyz network.
             </p>
 
@@ -89,63 +89,59 @@ export default function Login({ onLoginSuccess }) {
               "Payment monitoring dashboard",
               "Support ticket resolution",
             ].map((f) => (
-              <div key={f} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                <div style={{ width:20, height:20, borderRadius:6, background:"rgba(99,102,241,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <div style={{ width:6, height:6, borderRadius:"50%", background:"#818cf8" }} />
+              <div key={f} className="flex items-center gap-2.5 mb-2.5">
+                <div className="w-5 h-5 rounded-md bg-indigo-500/30 flex items-center justify-center shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
                 </div>
-                <span style={{ fontSize:13, color:"rgba(255,255,255,0.55)", fontWeight:500 }}>{f}</span>
+                <span className="text-[13px] text-white/55 font-medium">{f}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* ── Right Panel ── */}
-        <div style={{ width:400, background:"white", display:"flex", flexDirection:"column", justifyContent:"center", padding:"48px 40px", flexShrink:0 }}>
-          <div style={{ marginBottom:32 }}>
-            <div style={{ fontSize:24, fontWeight:800, color:"#0f172a", marginBottom:6 }}>
+        <div className="w-full lg:w-[400px] bg-white flex flex-col justify-center p-8 md:p-10 shrink-0">
+          <div className="mb-8">
+            <div className="text-[24px] font-extrabold text-slate-900 mb-1.5">
               {step === 1 ? "Sign In" : "Verify OTP"}
             </div>
-            <div style={{ fontSize:13, color:"#94a3b8" }}>
+            <div className="text-[13px] text-slate-400">
               {step === 1 ? "Enter your registered mobile number to continue" : `OTP sent to +91 ${mobile}`}
             </div>
           </div>
 
           <form onSubmit={handleLogin}>
             {/* Mobile */}
-            <div style={{ marginBottom:16 }}>
-              <label style={{ fontSize:12, fontWeight:600, color:"#374151", display:"block", marginBottom:6 }}>Mobile Number</label>
-              <div style={{ position:"relative" }}>
-                <Phone size={16} style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: step===2 ? "#cbd5e1" : "#94a3b8" }} />
+            <div className="mb-4">
+              <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">Mobile Number</label>
+              <div className="relative">
+                <Phone size={16} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${step===2 ? "text-slate-300" : "text-slate-400"}`} />
                 <input
                   type="tel" inputMode="numeric" pattern="[0-9]{10}"
                   placeholder="10-digit mobile number"
                   value={mobile} disabled={step === 2}
                   onChange={(e) => { const v = e.target.value.replace(/\D/g,""); if(v.length<=10) setMobile(v); }}
-                  style={{ width:"100%", paddingLeft:42, paddingRight:14, paddingTop:12, paddingBottom:12, border:"1.5px solid #e2e8f0", borderRadius:10, fontSize:14, color: step===2 ? "#9ca3af" : "#0f172a", background: step===2 ? "#f9fafb" : "white", fontFamily:"inherit", outline:"none" }}
-                  onFocus={e => { if(step!==2) e.target.style.borderColor="#6366f1"; }}
-                  onBlur={e => e.target.style.borderColor="#e2e8f0"}
+                  className={`w-full pl-10 pr-3.5 py-3 border-[1.5px] border-slate-200 rounded-xl text-[14px] font-sans outline-none focus:border-indigo-500 transition-colors ${step===2 ? "text-slate-400 bg-slate-50" : "text-slate-900 bg-white"}`}
                 />
               </div>
             </div>
 
             {/* OTP */}
-            <div style={{ marginBottom:8 }}>
-              <label style={{ fontSize:12, fontWeight:600, color:"#374151", display:"block", marginBottom:6 }}>
+            <div className="mb-2">
+              <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">
                 {step === 1 ? "OTP" : "Enter OTP"}
               </label>
-              <div style={{ position:"relative" }}>
-                <Lock size={16} style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: step===1 ? "#cbd5e1" : "#94a3b8" }} />
+              <div className="relative">
+                <Lock size={16} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${step===1 ? "text-slate-300" : "text-slate-400"}`} />
                 <input
                   type={showPass ? "text" : "password"}
                   placeholder={step === 1 ? "Will be sent after mobile entry" : "6-digit OTP"}
                   value={password} disabled={step === 1}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ width:"100%", paddingLeft:42, paddingRight:44, paddingTop:12, paddingBottom:12, border:"1.5px solid #e2e8f0", borderRadius:10, fontSize:14, color: step===1 ? "#9ca3af" : "#0f172a", background: step===1 ? "#f9fafb" : "white", fontFamily:"inherit", outline:"none" }}
-                  onFocus={e => { if(step!==1) e.target.style.borderColor="#6366f1"; }}
-                  onBlur={e => e.target.style.borderColor="#e2e8f0"}
+                  className={`w-full pl-10 pr-11 py-3 border-[1.5px] border-slate-200 rounded-xl text-[14px] font-sans outline-none focus:border-indigo-500 transition-colors ${step===1 ? "text-slate-400 bg-slate-50" : "text-slate-900 bg-white"}`}
                 />
                 {step === 2 && (
-                  <button type="button" onClick={() => setShowPass(!showPass)} style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#94a3b8" }}>
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3.5 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-slate-400 hover:text-slate-600 transition-colors">
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 )}
@@ -154,13 +150,13 @@ export default function Login({ onLoginSuccess }) {
 
             {/* Step 2 helpers */}
             {step === 2 && (
-              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16, marginTop:8 }}>
+              <div className="flex justify-between mb-4 mt-2">
                 <button type="button" onClick={() => { setStep(1); setPassword(""); }}
-                  style={{ fontSize:12, color:"#6366f1", fontWeight:600, background:"none", border:"none", cursor:"pointer", fontFamily:"inherit" }}>
+                  className="text-[12px] text-indigo-500 font-semibold bg-transparent border-none cursor-pointer font-sans hover:text-indigo-600 transition-colors">
                   ← Edit number
                 </button>
                 <button type="button" onClick={resendOtp} disabled={loading}
-                  style={{ fontSize:12, color:"#6366f1", fontWeight:600, background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", opacity: loading ? 0.5 : 1 }}>
+                  className={`text-[12px] text-indigo-500 font-semibold bg-transparent border-none cursor-pointer font-sans transition-opacity ${loading ? "opacity-50" : "hover:text-indigo-600"}`}>
                   Resend OTP
                 </button>
               </div>
@@ -169,10 +165,11 @@ export default function Login({ onLoginSuccess }) {
             {/* Submit */}
             <button
               type="submit" disabled={loading}
-              style={{ width:"100%", padding:"13px", borderRadius:10, border:"none", cursor: loading ? "not-allowed" : "pointer", fontFamily:"inherit", fontSize:14, fontWeight:700, color:"white", background: loading ? "#94a3b8" : "linear-gradient(135deg,#6366f1,#8b5cf6)", boxShadow: loading ? "none" : "0 4px 15px rgba(99,102,241,0.4)", marginTop: step===1 ? 24 : 0, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
+              className={`w-full p-[13px] rounded-xl border-none font-sans text-[14px] font-bold text-white flex items-center justify-center gap-2 transition-all ${step===1 ? "mt-6" : "mt-0"} ${loading ? "bg-slate-400 cursor-not-allowed" : "cursor-pointer shadow-[0_4px_15px_rgba(99,102,241,0.4)] active:scale-[0.98]"}`}
+              style={loading ? {} : { background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}
             >
               {loading ? (
-                <><div style={{ width:16, height:16, border:"2px solid rgba(255,255,255,0.3)", borderTopColor:"white", borderRadius:"50%" }} className="spinner" /> Processing…</>
+                <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white spinner" /> Processing…</>
               ) : step === 1 ? "Send OTP" : "Verify & Sign In"}
             </button>
           </form>
@@ -181,36 +178,36 @@ export default function Login({ onLoginSuccess }) {
 
       {/* Popup */}
       {popup.show && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
-          <div style={{ background:"white", borderRadius:16, padding:"28px 32px", boxShadow:"0 20px 60px rgba(0,0,0,0.2)", textAlign:"center", minWidth:280 }}>
-            <div style={{ width:48, height:48, borderRadius:"50%", background: popup.type==="error" ? "#fef2f2" : "#f0fdf4", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
-              <span style={{ fontSize:22 }}>{popup.type==="error" ? "✕" : "✓"}</span>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4">
+          <div className="bg-white rounded-2xl p-7 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.2)] text-center min-w-[280px]">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${popup.type==="error" ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500"}`}>
+              <span className="text-[22px]">{popup.type==="error" ? "✕" : "✓"}</span>
             </div>
-            <p style={{ fontWeight:600, color: popup.type==="error" ? "#dc2626" : "#16a34a", marginBottom:16, fontSize:15 }}>{popup.message}</p>
-            <button onClick={closePopup} style={{ padding:"8px 24px", borderRadius:8, border:"none", background: popup.type==="error" ? "#dc2626" : "#16a34a", color:"white", fontWeight:600, cursor:"pointer", fontFamily:"inherit", fontSize:13 }}>OK</button>
+            <p className={`font-semibold mb-4 text-[15px] ${popup.type==="error" ? "text-red-600" : "text-green-600"}`}>{popup.message}</p>
+            <button onClick={closePopup} className={`px-6 py-2 rounded-lg border-none text-white font-semibold cursor-pointer font-sans text-[13px] transition-colors ${popup.type==="error" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}>OK</button>
           </div>
         </div>
       )}
 
       {/* OTP Display Modal */}
       {showOtpModal && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
-          <div style={{ background:"white", borderRadius:20, boxShadow:"0 25px 70px rgba(0,0,0,0.2)", width:"100%", maxWidth:400, overflow:"hidden" }}>
-            <div style={{ background:"linear-gradient(135deg,#6366f1,#8b5cf6)", padding:"20px 24px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-4">
+          <div className="bg-white rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.2)] w-full max-w-[400px] overflow-hidden">
+            <div className="px-6 py-5 flex justify-between items-center" style={{ background:"linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
               <div>
-                <div style={{ fontSize:16, fontWeight:700, color:"white" }}>Your OTP Code</div>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)", marginTop:2 }}>Use this to complete sign in</div>
+                <div className="text-[16px] font-bold text-white">Your OTP Code</div>
+                <div className="text-[12px] text-white/70 mt-0.5">Use this to complete sign in</div>
               </div>
-              <button onClick={() => setShowOtpModal(false)} style={{ background:"rgba(255,255,255,0.2)", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
+              <button onClick={() => setShowOtpModal(false)} className="bg-white/20 hover:bg-white/30 border-none rounded-lg w-8 h-8 flex items-center justify-center cursor-pointer transition-colors">
                 <X size={18} color="white" />
               </button>
             </div>
-            <div style={{ padding:"32px 24px", textAlign:"center" }}>
-              <div style={{ background:"#f8fafc", borderRadius:12, padding:"20px 24px", border:"1.5px dashed #e2e8f0", marginBottom:24 }}>
-                <div style={{ fontSize:42, fontWeight:800, letterSpacing:"0.4em", color:"#0f172a", fontVariantNumeric:"tabular-nums" }}>{otpToShow}</div>
+            <div className="px-6 py-8 text-center">
+              <div className="bg-slate-50 rounded-xl px-6 py-5 border-[1.5px] border-dashed border-slate-200 mb-6">
+                <div className="text-[42px] font-extrabold tracking-[0.4em] text-slate-900 tabular-nums">{otpToShow}</div>
               </div>
-              <p style={{ fontSize:13, color:"#94a3b8", marginBottom:20 }}>Paste this OTP in the verification field to sign in.</p>
-              <button onClick={() => setShowOtpModal(false)} style={{ width:"100%", padding:"12px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#6366f1,#8b5cf6)", color:"white", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>
+              <p className="text-[13px] text-slate-400 mb-5">Paste this OTP in the verification field to sign in.</p>
+              <button onClick={() => setShowOtpModal(false)} className="w-full py-3 rounded-xl border-none text-white font-bold text-[14px] cursor-pointer font-sans shadow-[0_4px_12px_rgba(99,102,241,0.3)] hover:opacity-90 transition-opacity active:scale-[0.98]" style={{ background:"linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
                 Got it, continue
               </button>
             </div>

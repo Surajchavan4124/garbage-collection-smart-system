@@ -1,4 +1,4 @@
-import { LayoutDashboard, CreditCard, HelpCircle, Layers, Leaf, ChevronRight } from "lucide-react";
+import { LayoutDashboard, CreditCard, HelpCircle, Layers, Leaf, ChevronRight, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
@@ -8,68 +8,64 @@ const navItems = [
   { id: 4, name: "Support & Queries",      sub: "Handle tickets & issues",        icon: HelpCircle,      path: "/support" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }) {
   return (
-    <div style={{ width: 260, background: "#0f172a", color: "white", display: "flex", flexDirection: "column", height: "100vh", flexShrink: 0, position: "relative", overflow: "hidden" }}>
+    <div className="w-[260px] bg-slate-900 text-white flex flex-col h-screen shrink-0 relative overflow-hidden">
       {/* Subtle top glow */}
-      <div style={{ position: "absolute", top: -60, left: "50%", transform: "translateX(-50%)", width: 300, height: 200, background: "radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div className="absolute -top-[60px] left-1/2 -translate-x-1/2 w-[300px] h-[200px] pointer-events-none" style={{ background: "radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)" }} />
 
-      {/* Logo */}
-      <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 15px rgba(99,102,241,0.4)", flexShrink: 0 }}>
+      {/* Logo & Close Button (Mobile) */}
+      <div className="flex items-center justify-between px-5 pt-6 pb-5 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-[0_4px_15px_rgba(99,102,241,0.4)]" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
             <Leaf size={20} color="white" />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.3px", color: "white" }}>EcoSyz</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginTop: 1 }}>Super Admin Portal</div>
+            <div className="font-extrabold text-[15px] tracking-tight text-white">EcoSyz</div>
+            <div className="text-[11px] text-white/45 font-medium mt-0.5">Super Admin Portal</div>
           </div>
         </div>
+        {/* Close Button only visible on small screens */}
+        {onClose && (
+          <button onClick={onClose} className="lg:hidden p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       {/* Nav label */}
-      <div style={{ padding: "20px 20px 8px", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "1px", textTransform: "uppercase" }}>
+      <div className="px-5 pt-5 pb-2 text-[10px] font-bold text-white/30 tracking-widest uppercase">
         Navigation
       </div>
 
       {/* Nav Items */}
-      <nav style={{ flex: 1, padding: "0 12px", overflow: "auto" }}>
+      <nav className="flex-1 px-3 overflow-y-auto custom-scrollbar">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
               key={item.id}
               to={item.path}
-              style={({ isActive }) => ({
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "11px 12px",
-                borderRadius: 10,
-                marginBottom: 4,
-                cursor: "pointer",
-                textDecoration: "none",
-                position: "relative",
-                background: isActive ? "rgba(99,102,241,0.18)" : "transparent",
-                border: isActive ? "1px solid rgba(99,102,241,0.3)" : "1px solid transparent",
-                transition: "all 0.15s ease",
-              })}
-              className={({ isActive }) => isActive ? "" : "sidebar-nav-item"}
+              onClick={() => { if(window.innerWidth < 1024 && onClose) onClose(); }}
+              className={({ isActive }) => `
+                flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 cursor-pointer no-underline relative transition-all duration-150
+                ${isActive ? "bg-indigo-500/20 border border-indigo-500/30" : "bg-transparent border border-transparent hover:bg-white/5 hover:border-white/10 sidebar-nav-item"}
+              `}
             >
               {({ isActive }) => (
                 <>
                   {/* Active left bar */}
                   {isActive && (
-                    <div style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", width: 3, height: "60%", background: "#6366f1", borderRadius: "0 3px 3px 0" }} />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[60%] bg-indigo-500 rounded-r-sm" />
                   )}
-                  <div style={{ width: 34, height: 34, borderRadius: 9, background: isActive ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                  <div className={`w-[34px] h-[34px] rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 ${isActive ? "bg-indigo-500/25" : "bg-white/5"}`}>
                     <Icon size={17} color={isActive ? "#818cf8" : "rgba(255,255,255,0.45)"} />
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: isActive ? 700 : 500, color: isActive ? "#e0e7ff" : "rgba(255,255,255,0.7)", lineHeight: 1.2 }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.sub}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-[13px] leading-[1.2] ${isActive ? "font-bold text-indigo-100" : "font-medium text-white/70"}`}>{item.name}</div>
+                    <div className="text-[11px] text-white/30 mt-0.5 truncate">{item.sub}</div>
                   </div>
-                  {isActive && <ChevronRight size={14} color="#6366f1" style={{ flexShrink: 0 }} />}
+                  {isActive && <ChevronRight size={14} color="#6366f1" className="shrink-0" />}
                 </>
               )}
             </NavLink>
@@ -78,22 +74,15 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom bar */}
-      <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, color: "white", flexShrink: 0 }}>S</div>
+      <div className="p-4 border-t border-white/5 mx-1 mb-1">
+        <div className="flex items-center gap-2.5">
+          <div className="w-[34px] h-[34px] rounded-full flex items-center justify-center font-extrabold text-[14px] text-white shrink-0" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>S</div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>Super Admin</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>ecosyz.in</div>
+            <div className="text-[13px] font-semibold text-white/85">Super Admin</div>
+            <div className="text-[11px] text-white/35">ecosyz.in</div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .sidebar-nav-item:hover {
-          background: rgba(255,255,255,0.05) !important;
-          border-color: rgba(255,255,255,0.08) !important;
-        }
-      `}</style>
     </div>
   );
 }

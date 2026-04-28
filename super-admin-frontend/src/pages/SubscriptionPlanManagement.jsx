@@ -1,5 +1,4 @@
-import Sidebar from "../components/Sidebar";
-import TopHeader from "../components/TopHeader";
+import Layout from "../components/Layout";
 import PlanCard from "../components/PlanCard";
 import SubscriptionTable from "../components/SubscriptionTable";
 import { useEffect, useState } from "react";
@@ -29,39 +28,32 @@ export default function SubscriptionPlanManagement() {
   useEffect(() => { fetchSubscriptions(); }, []);
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#f8fafc", fontFamily: "Inter, sans-serif" }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <TopHeader />
-        <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px 40px" }}>
-
-          {/* Plans */}
-          <div style={{ marginBottom: 28 }}>
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Available Plans</div>
-              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>Choose the right tier for each panchayat</div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
-              {plans.map(p => <PlanCard key={p.id} plan={p} />)}
-            </div>
-          </div>
-
-          {/* Subscriptions table */}
-          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", overflow: "hidden" }}>
-            <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9" }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Panchayat Subscriptions</div>
-              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>Active & past subscriptions across all panchayats</div>
-            </div>
-            <div style={{ padding: "0 24px 24px" }}>
-              {loading ? (
-                <div style={{ padding: "40px 0", textAlign: "center", color: "#94a3b8" }}>Loading subscriptions…</div>
-              ) : (
-                <SubscriptionTable subscriptions={subscriptions} plans={plans} onSubscriptionUpdated={fetchSubscriptions} />
-              )}
-            </div>
-          </div>
+    <Layout>
+      {/* Plans */}
+      <div className="mb-7">
+        <div className="mb-5">
+          <div className="text-[16px] font-bold text-slate-900">Available Plans</div>
+          <div className="text-[13px] text-slate-400 mt-1">Choose the right tier for each panchayat</div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {plans.map(p => <PlanCard key={p.id} plan={p} />)}
         </div>
       </div>
-    </div>
+
+      {/* Subscriptions table */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="p-5 md:p-6 border-b border-slate-100">
+          <div className="text-[16px] font-bold text-slate-900">Panchayat Subscriptions</div>
+          <div className="text-[13px] text-slate-400 mt-1">Active & past subscriptions across all panchayats</div>
+        </div>
+        <div className="p-0 md:px-6 md:pb-6 overflow-x-auto custom-scrollbar">
+          {loading ? (
+            <div className="p-10 text-center text-slate-400">Loading subscriptions…</div>
+          ) : (
+            <SubscriptionTable subscriptions={subscriptions} plans={plans} onSubscriptionUpdated={fetchSubscriptions} />
+          )}
+        </div>
+      </div>
+    </Layout>
   );
 }

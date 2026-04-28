@@ -1,5 +1,4 @@
-import Sidebar from '../components/Sidebar';
-import TopHeader from '../components/TopHeader';
+import Layout from '../components/Layout';
 import PaymentOverviewCard from '../components/PaymentOverviewCard';
 import PaymentTable from '../components/PaymentTable';
 
@@ -18,29 +17,22 @@ const paymentData = [
 
 export default function PaymentMonitoring() {
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#f8fafc", fontFamily: "Inter, sans-serif" }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <TopHeader />
-        <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px 40px" }}>
+    <Layout>
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7">
+        {overviewStats.map(s => <PaymentOverviewCard key={s.id} stat={s} />)}
+      </div>
 
-          {/* Stat cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 28 }}>
-            {overviewStats.map(s => <PaymentOverviewCard key={s.id} stat={s} />)}
-          </div>
-
-          {/* Table card */}
-          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border: "1px solid #f1f5f9", overflow: "hidden" }}>
-            <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9" }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Payment Records</div>
-              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>Track all panchayat transactions</div>
-            </div>
-            <div style={{ padding: "0 24px 24px" }}>
-              <PaymentTable paymentData={paymentData} />
-            </div>
-          </div>
+      {/* Table card */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="p-5 md:p-6 border-b border-slate-100">
+          <div className="text-[16px] font-bold text-slate-900">Payment Records</div>
+          <div className="text-[13px] text-slate-400 mt-1">Track all panchayat transactions</div>
+        </div>
+        <div className="p-0 md:px-6 md:pb-6 overflow-x-auto custom-scrollbar">
+          <PaymentTable paymentData={paymentData} />
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
