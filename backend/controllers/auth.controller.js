@@ -186,10 +186,11 @@ export const verifyOtpAndLogin = async (req, res) => {
   });
 
   // 5️⃣ Set cookie
+  const isProd = process.env.NODE_ENV === "production" || process.env.RENDER === "true" || process.env.RENDER_SERVICE_ID;
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Secure only in production
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // none for cross-site prod, lax for localhost
+    secure: isProd, // Secure only in production/render
+    sameSite: isProd ? "none" : "lax", // none for cross-site prod, lax for localhost
     maxAge: 24 * 60 * 60 * 1000, // 1 day
   });
 
@@ -211,11 +212,12 @@ export const verifyOtpAndLogin = async (req, res) => {
  * Logout
  */
 export const logout = (req, res) => {
+  const isProd = process.env.NODE_ENV === "production" || process.env.RENDER === "true" || process.env.RENDER_SERVICE_ID;
   return res
     .clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
     })
     .status(200)
     .json({
