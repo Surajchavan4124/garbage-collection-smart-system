@@ -26,7 +26,10 @@ export default function Login({ onLoginSuccess }) {
         else showPopup("OTP sent to your registered number");
         setStep(2);
       } else {
-        await api.post("/auth/verify-otp", { mobile, otp: password });
+        const res = await api.post("/auth/verify-otp", { mobile, otp: password });
+        if (res.data.token) {
+          localStorage.setItem("token", res.data.token);
+        }
         await api.get("/company/dashboard");
         showPopup("Login successful! Welcome back.");
         setTimeout(onLoginSuccess, 900);
