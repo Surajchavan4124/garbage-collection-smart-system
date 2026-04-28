@@ -39,7 +39,7 @@ const attendanceSchema = new mongoose.Schema(
 
     source: {
       type: String,
-      enum: ["QR", "ADMIN", "APP_TOGGLE"],
+      enum: ["QR", "ADMIN", "APP_TOGGLE", "SYSTEM"],
     },
 
     geo: {
