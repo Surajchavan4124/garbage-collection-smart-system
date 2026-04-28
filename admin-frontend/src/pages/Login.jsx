@@ -41,7 +41,10 @@ export default function Login() {
     if (otp.length !== 6) { toast.error("Enter valid 6-digit OTP"); return; }
     try {
       setLoading(true);
-      await api.post("/auth/verify-otp", { mobile, otp });
+      const res = await api.post("/auth/verify-otp", { mobile, otp });
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
       toast.success("Login successful");
       navigate("/dashboard", { replace: true });
     } catch (err) {
