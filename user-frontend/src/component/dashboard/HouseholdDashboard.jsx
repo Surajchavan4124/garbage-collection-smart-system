@@ -147,9 +147,6 @@ const HouseholdDashboard = ({ navigate }) => {
                     </div>
 
                     <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <button className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400 hover:text-green-600 hover:border-green-200 transition-colors">
-                            <Bell className="w-4 h-4" />
-                        </button>
                         <motion.button
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.97 }}

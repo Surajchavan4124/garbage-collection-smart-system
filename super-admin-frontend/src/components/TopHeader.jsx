@@ -69,14 +69,6 @@ export default function TopHeader({ onMenuClick }) {
         />
       </div>
 
-      {/* Bell */}
-      <div className="relative shrink-0">
-        <button className="w-[38px] h-[38px] rounded-xl bg-slate-50 border-[1.5px] border-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors">
-          <Bell size={17} className="text-slate-500" />
-        </button>
-        <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white" />
-      </div>
-
       {/* Avatar dropdown */}
       <div className="relative shrink-0" ref={dropdownRef}>
         <button
