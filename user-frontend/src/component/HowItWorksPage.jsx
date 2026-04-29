@@ -8,7 +8,7 @@ const steps = [
     {
         step: '01',
         icon: Smartphone,
-        title: 'Download & Open EcoSyz',
+        title: 'Open EcoSyz',
         description: 'Access EcoSyz on any device — no app download needed. Open the website and select your Panchayat from the header to get started.',
         color: 'from-blue-500 to-cyan-400',
         bg: 'bg-blue-50 text-blue-600',
