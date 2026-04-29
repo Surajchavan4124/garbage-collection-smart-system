@@ -8,16 +8,20 @@ export const PanchayatProvider = ({ children }) => {
         return stored ? JSON.parse(stored) : null;
     });
 
+    const [isPanchayatModalOpen, setIsPanchayatModalOpen] = useState(false);
+
     useEffect(() => {
         if (selectedPanchayat) {
             localStorage.setItem('selectedPanchayat', JSON.stringify(selectedPanchayat));
+            setIsPanchayatModalOpen(false);
         } else {
             localStorage.removeItem('selectedPanchayat');
+            setIsPanchayatModalOpen(true);
         }
     }, [selectedPanchayat]);
 
     return (
-        <PanchayatContext.Provider value={{ selectedPanchayat, setSelectedPanchayat }}>
+        <PanchayatContext.Provider value={{ selectedPanchayat, setSelectedPanchayat, isPanchayatModalOpen, setIsPanchayatModalOpen }}>
             {children}
         </PanchayatContext.Provider>
     );

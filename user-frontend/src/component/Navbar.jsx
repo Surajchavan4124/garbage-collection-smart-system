@@ -6,7 +6,7 @@ import { usePanchayat } from '../context/PanchayatContext';
 import LogoutConfirmModal from './shared/LogoutConfirmModal';
 
 const Navbar = ({ currentPage, navigate }) => {
-    const { selectedPanchayat, setSelectedPanchayat } = usePanchayat();
+    const { selectedPanchayat, setIsPanchayatModalOpen } = usePanchayat();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -98,7 +98,7 @@ const Navbar = ({ currentPage, navigate }) => {
                                 {selectedPanchayat.name}
                             </span>
                             <button
-                                onClick={() => setSelectedPanchayat(null)}
+                                onClick={() => setIsPanchayatModalOpen(true)}
                                 title="Change Panchayat"
                                 className="ml-1 text-green-500 hover:text-green-700 transition-colors"
                             >
@@ -280,7 +280,7 @@ const Navbar = ({ currentPage, navigate }) => {
                                 <div className="flex items-center gap-2 px-4 py-2.5 bg-green-50 rounded-xl border border-green-200 mt-2">
                                     <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
                                     <span className="text-sm font-medium text-green-800 flex-1 truncate">{selectedPanchayat.name}</span>
-                                    <button onClick={() => setSelectedPanchayat(null)} className="text-green-500 hover:text-green-700">
+                                    <button onClick={() => setIsPanchayatModalOpen(true)} className="text-green-500 hover:text-green-700">
                                         <Edit3 className="w-3.5 h-3.5" />
                                     </button>
                                 </div>

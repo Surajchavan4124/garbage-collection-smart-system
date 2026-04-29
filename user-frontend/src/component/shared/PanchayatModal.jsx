@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Building2, Leaf, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Building2, Leaf, ArrowRight, X } from 'lucide-react';
 import { usePanchayat } from '../../context/PanchayatContext';
 import api from '../../api/axios';
 import { toast } from 'react-toastify';
 
 const PanchayatModal = () => {
-    const { selectedPanchayat, setSelectedPanchayat } = usePanchayat();
+    const { selectedPanchayat, setSelectedPanchayat, isPanchayatModalOpen, setIsPanchayatModalOpen } = usePanchayat();
     const [panchayats, setPanchayats] = useState([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
@@ -21,7 +21,9 @@ const PanchayatModal = () => {
             // Fetch all panchayats — no status filter so work in dev/staging too
             const res = await api.get('/panchayat');
             if (res.data && res.data.length > 0) {
-                setPanchayats(res.data);
+                const approved = res.data.filter(p => p.status === 'active');
+                setPanchayats(approved);
+                if (approved.length === 0) setError('No approved Panchayats are registered yet.');
             } else {
                 setError('No Panchayats are registered yet. Please contact your administrator.');
             }
@@ -40,7 +42,7 @@ const PanchayatModal = () => {
         p.address?.toLowerCase().includes(search.toLowerCase())
     );
 
-    if (selectedPanchayat) return null;
+    if (!isPanchayatModalOpen) return null;
 
     return (
         <motion.div
@@ -56,7 +58,15 @@ const PanchayatModal = () => {
                 className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
             >
                 {/* Header */}
-                <div className="bg-gradient-to-br from-green-700 to-emerald-500 p-8 text-white text-center">
+                <div className="bg-gradient-to-br from-green-700 to-emerald-500 p-8 text-white text-center relative">
+                    {selectedPanchayat && (
+                        <button
+                            onClick={() => setIsPanchayatModalOpen(false)}
+                            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                        >
+                            <X className="w-5 h-5 text-white" />
+                        </button>
+                    )}
                     <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <Leaf className="w-7 h-7 text-white" />
                     </div>
@@ -73,7 +83,7 @@ const PanchayatModal = () => {
                             placeholder="Search by name or location..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="input-field pl-10"
+                            className="input-field !pl-10"
                         />
                     </div>
                 </div>
