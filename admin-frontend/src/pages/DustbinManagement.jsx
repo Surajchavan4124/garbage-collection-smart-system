@@ -344,14 +344,16 @@ export default function DustbinManagement() {
               <h2 className="text-lg font-bold text-gray-800">DUSTBIN REGISTRY</h2>
 
               <div className="flex items-center gap-3">
-                <Search size={18} className="text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by Bin ID or location"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-white border-0 focus:outline-none text-sm"
-                />
+                <div className="flex items-center gap-2 px-3 py-1 bg-white border border-gray-300 rounded-lg focus-within:ring-1 focus-within:ring-teal-500 focus-within:border-teal-500 shadow-sm w-full sm:w-64">
+                  <Search size={18} className="text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by Bin ID or location"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1 bg-transparent border-0 focus:outline-none text-sm w-full py-1"
+                  />
+                </div>
                 <div className="relative">
                   <button
                     onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
