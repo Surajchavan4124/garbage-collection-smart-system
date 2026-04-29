@@ -70,8 +70,8 @@ const RegisterPage = ({ navigate }) => {
                 try {
                     const res = await api.get(`/wards/public?panchayatId=${selectedPanchayat._id}`);
                     setWards(Array.isArray(res.data) ? res.data : []);
-                    // Set default ward to panchayat name
-                    setForm(p => ({ ...p, ward: selectedPanchayat.name }));
+                    // Reset ward
+                    setForm(p => ({ ...p, ward: '' }));
                 } catch (err) {
                     console.error('Error fetching wards:', err);
                     toast.error('Could not fetch wards for the selected Panchayat.');
@@ -297,10 +297,7 @@ const RegisterPage = ({ navigate }) => {
                                         disabled={fetchingWards || !selectedPanchayat}
                                     >
                                         <option value="">{fetchingWards ? 'Loading wards...' : 'Select Ward'}</option>
-                                        {selectedPanchayat && (
-                                            <option value={selectedPanchayat.name}>{selectedPanchayat.name} (Default)</option>
-                                        )}
-                                        {wards.filter(w => w.name !== selectedPanchayat?.name).map(w => (
+                                        {wards.map(w => (
                                             <option key={w._id} value={w.name}>{w.name}</option>
                                         ))}
                                     </select>
