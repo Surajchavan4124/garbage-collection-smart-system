@@ -169,7 +169,7 @@ export default function ManageSchedule() {
       </div>
 
       <AnimatePresence mode="wait">
-        {activeTab === 'ward-schedule' ? (
+        {activeTab === 'ward-schedule' && (
           <motion.div
             key="ward-schedule"
             initial={{ opacity: 0, y: 10 }}
@@ -225,7 +225,8 @@ export default function ManageSchedule() {
               )}
             </div>
           </motion.div>
-        ) : (
+        )}
+        {activeTab === 'pickup-requests' && (
           <motion.div
             key="pickup-requests"
             initial={{ opacity: 0, y: 10 }}
