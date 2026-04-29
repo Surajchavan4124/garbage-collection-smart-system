@@ -149,7 +149,7 @@ const FAQsPage = ({ navigate }) => {
                         placeholder="Search FAQs…"
                         value={search}
                         onChange={(e) => { setSearch(e.target.value); setExpanded(null); }}
-                        className="input-field pl-11 text-sm"
+                        className="input-field !pl-11 text-sm"
                     />
                     {search && (
                         <button
