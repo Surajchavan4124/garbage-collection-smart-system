@@ -63,20 +63,24 @@ export default function WasteDataManagement() {
   const [allScans, setAllScans] = useState([])
 
   useEffect(() => {
-    refreshData()
-    const interval = setInterval(refreshData, 5000)
+    fetchWards()
+    fetchWasteData()
+    fetchAllScans()
+    const interval = setInterval(() => {
+      fetchWasteData()
+      fetchAllScans()
+    }, 5000)
     return () => clearInterval(interval)
   }, [])
-
-  const refreshData = () => { fetchWasteData(); fetchAllScans(); fetchWards(); }
 
   const fetchWards = async () => {
     try {
       const res = await api.get('/wards')
       setWards(res.data)
       if (res.data.length > 0) {
-        if (!selectedWard) setSelectedWard(res.data[0].name)
-        if (!formData.ward) setFormData(prev => ({ ...prev, ward: res.data[0].name }))
+        // Only set defaults if not already set
+        setSelectedWard(prev => prev || res.data[0].name)
+        setFormData(prev => ({ ...prev, ward: prev.ward || res.data[0].name }))
       }
     } catch (error) { console.error("Failed to fetch wards", error) }
   }
