@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { FileText, Download, BarChart3, TrendingUp, Users, Eye, ChevronDown, FileSpreadsheet, Trash2, Calendar } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import GenerationOfReportModal from '../components/GenerationOfReportModal'
 import ViewReportModal from '../components/ViewReportModal'
 import { generatePDF, generateExcel } from '../utils/reportGenerator'
+import { toast } from 'react-toastify'
 
 export default function ReportGenerationAnalytics() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -10,8 +12,13 @@ export default function ReportGenerationAnalytics() {
 
   // Initialize from localStorage
   const [generatedReports, setGeneratedReports] = useState(() => {
-    const saved = localStorage.getItem('generatedReports')
-    return saved ? JSON.parse(saved) : []
+    try {
+      const saved = localStorage.getItem('generatedReports')
+      return saved ? JSON.parse(saved) : []
+    } catch (e) {
+      console.error("Failed to parse reports:", e)
+      return []
+    }
   })
 
   const [viewReport, setViewReport] = useState(null)
@@ -34,8 +41,13 @@ export default function ReportGenerationAnalytics() {
   ]
 
   const handleGenerateReport = (report) => {
-    setSelectedReport(report)
-    setIsModalOpen(true)
+    try {
+      setSelectedReport(report)
+      setIsModalOpen(true)
+    } catch (error) {
+      console.error("Error setting report:", error)
+      toast.error("Could not open report generator")
+    }
   }
 
   const [reportToDelete, setReportToDelete] = useState(null)
@@ -106,7 +118,7 @@ export default function ReportGenerationAnalytics() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg uppercase tracking-wide border border-emerald-100">
-                          {report.status}
+                          {report.status || 'Success'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -135,39 +147,69 @@ export default function ReportGenerationAnalytics() {
         )}
       </div>
 
-      <GenerationOfReportModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        reportType={selectedReport?.title}
-        onReportGenerated={(data) => {
-          const newReport = {
-            id: Date.now(),
-            title: selectedReport.title,
-            generatedAt: new Date().toLocaleString(),
-            status: 'Success',
-            data: data
-          }
-          setGeneratedReports([newReport, ...generatedReports])
-          setViewReport(newReport)
-        }}
-      />
+      <AnimatePresence mode="wait">
+        {isModalOpen && (
+          <GenerationOfReportModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            reportType={selectedReport?.title}
+            onReportGenerated={(data) => {
+              if (!selectedReport) return
+              const newReport = {
+                id: Date.now(),
+                title: selectedReport.title,
+                generatedAt: new Date().toLocaleString(),
+                status: 'Success',
+                data: data
+              }
+              const updated = [newReport, ...generatedReports]
+              setGeneratedReports(updated)
+              localStorage.setItem('generatedReports', JSON.stringify(updated))
+              setIsModalOpen(false)
+              setViewReport(newReport)
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-      <ViewReportModal isOpen={!!viewReport} onClose={() => setViewReport(null)} report={viewReport} />
+      <AnimatePresence>
+        {viewReport && (
+          <ViewReportModal 
+            isOpen={!!viewReport} 
+            onClose={() => setViewReport(null)} 
+            report={viewReport} 
+          />
+        )}
+      </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
-      {reportToDelete && (
- <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 modal-overlay"> 
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-            <div className="p-3 bg-red-50 text-red-600 w-fit rounded-xl mb-4"><Trash2 size={24} /></div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Report?</h3>
-            <p className="text-sm text-gray-500 mb-8 leading-relaxed">This report will be permanently removed from your history. This action cannot be reversed.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setReportToDelete(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition">Cancel</button>
-              <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition">Delete Report</button>
-            </div>
+      <AnimatePresence>
+        {reportToDelete && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 modal-overlay">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setReportToDelete(null)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm relative z-10"
+            >
+              <div className="p-3 bg-red-50 text-red-600 w-fit rounded-xl mb-4"><Trash2 size={24} /></div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Report?</h3>
+              <p className="text-sm text-gray-500 mb-8 leading-relaxed">This report will be permanently removed from your history. This action cannot be reversed.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setReportToDelete(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition">Cancel</button>
+                <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition">Delete Report</button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { X, Download, FileSpreadsheet, ImageIcon, AlertCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { generatePDF, generateExcel } from '../utils/reportGenerator'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import html2canvas from 'html2canvas'
@@ -48,7 +49,8 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
             const image = canvas.toDataURL('image/png')
             const link = document.createElement('a')
             link.href = image
-            link.download = `${report.title.replace(/\s+/g, '_')}_Chart_${Date.now()}.png`
+            const fileName = (report.title || 'Report').replace(/\s+/g, '_')
+            link.download = `${fileName}_Chart_${Date.now()}.png`
             link.click()
         } catch (error) {
             console.error("Error downloading chart image", error)
@@ -67,7 +69,7 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
             const title = report.title || ""
             
             // Normalize type for comparison (handle & vs and)
-            const type = title.replace(/ and /g, ' & ')
+            const type = title ? title.replace(/ and /g, ' & ') : ""
 
             // Case 1: Waste Collection
             if (type === 'Waste Collection Summaries') {
@@ -89,10 +91,10 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                                 {rows.map((row, i) => (
                                     <tr key={row?._id || i} className="hover:bg-gray-50 transition-colors">
                                         <td className="border p-2 text-sm font-medium text-gray-700">{row?._id || 'N/A'}</td>
-                                        <td className="border p-2 text-right text-sm text-gray-600">{row?.totalOrganic ?? 0}</td>
-                                        <td className="border p-2 text-right text-sm text-gray-600">{row?.totalRecyclable ?? 0}</td>
-                                        <td className="border p-2 text-right text-sm text-gray-600">{row?.totalGeneral ?? 0}</td>
-                                        <td className="border p-2 text-right text-sm font-bold text-teal-600">{row?.totalWaste ?? 0}</td>
+                                        <td className="border p-2 text-right text-sm text-gray-600">{typeof row?.totalOrganic === 'number' ? row.totalOrganic.toFixed(2) : (row?.totalOrganic ?? 0)}</td>
+                                        <td className="border p-2 text-right text-sm text-gray-600">{typeof row?.totalRecyclable === 'number' ? row.totalRecyclable.toFixed(2) : (row?.totalRecyclable ?? 0)}</td>
+                                        <td className="border p-2 text-right text-sm text-gray-600">{typeof row?.totalGeneral === 'number' ? row.totalGeneral.toFixed(2) : (row?.totalGeneral ?? 0)}</td>
+                                        <td className="border p-2 text-right text-sm font-bold text-teal-600">{typeof row?.totalWaste === 'number' ? row.totalWaste.toFixed(2) : (row?.totalWaste ?? 0)}</td>
                                         <td className="border p-2 text-center text-sm text-gray-600">{row?.collectionCount ?? 0}</td>
                                     </tr>
                                 ))}
@@ -109,7 +111,10 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="bg-teal-50 border border-teal-100 p-5 rounded-2xl">
                                 <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-1">Avg Resolution Time</h3>
-                                <p className="text-3xl font-black text-teal-600">{data?.avgResolutionTimeHours ?? 0} <span className="text-sm font-bold opacity-70">Hours</span></p>
+                                <p className="text-3xl font-black text-teal-600">
+                                    {typeof data?.avgResolutionTimeHours === 'number' ? data.avgResolutionTimeHours.toFixed(1) : (data?.avgResolutionTimeHours ?? 0)} 
+                                    <span className="text-sm font-bold opacity-70 ml-1">Hours</span>
+                                </p>
                             </div>
                         </div>
                         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
@@ -151,7 +156,7 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                                     <tr key={row?.ward || i} className="hover:bg-gray-50 transition-colors">
                                         <td className="p-3 text-sm font-medium text-gray-700">{row?.ward || 'N/A'}</td>
                                         <td className="p-3 text-right text-sm font-black text-teal-600">
-                                            {(row?.compliancePercentage ?? 0).toFixed(2)}%
+                                            {typeof row?.compliancePercentage === 'number' ? row.compliancePercentage.toFixed(2) : (row?.compliancePercentage ?? 0)}%
                                         </td>
                                         <td className="p-3 text-right text-sm text-gray-600">{row?.totalCollections ?? 0}</td>
                                     </tr>
@@ -330,7 +335,7 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                                                     : (row?.[dataKey] ?? 0)}
                                             </td>
                                             {subType === 'waste' && (
-                                                <td className="p-3 text-right text-sm text-gray-600 font-medium">{row?.avgDailyWaste ?? 0}</td>
+                                                <td className="p-3 text-right text-sm text-gray-600 font-medium">{typeof row?.avgDailyWaste === 'number' ? row.avgDailyWaste.toFixed(2) : (row?.avgDailyWaste ?? 0)}</td>
                                             )}
                                             {subType === 'complaint' && (
                                                 <td className="p-3 text-right text-sm text-emerald-600 font-bold">{row?.resolvedCount ?? 0}</td>
@@ -363,8 +368,21 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
     }
 
     return (
-        <div className="fixed inset-0 modal-overlay z-[10002] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300"> 
-            <div ref={modalContentRef} className="bg-white rounded-[3rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border border-white/20 animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 modal-overlay z-[10002] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md"> 
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0"
+                onClick={onClose}
+            />
+            
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                ref={modalContentRef} 
+                className="bg-white rounded-[3rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border border-white/20 relative z-10">
                 
                 {/* Header */}
                 <div className="px-10 py-8 border-b border-gray-50 flex items-center justify-between bg-white relative">
@@ -424,7 +442,7 @@ export default function ViewReportModal({ isOpen, onClose, report }) {
                         Dismiss
                     </button>
                 </div>
-            </div>
+            </motion.div>
         </div>
     )
 }
