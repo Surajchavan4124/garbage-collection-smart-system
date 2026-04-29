@@ -184,16 +184,17 @@ export default function WardManagement() {
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">{w.dustbinCount} Bins</span>
-                        <button
-                          onClick={() => openViewModal(w)}
-                          className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1 hover:underline"
-                        >
-                          <Eye size={12} /> View
-                        </button>
                       </div>
                     </td>
                     <td className="px-6 py-3.5">
                       <div className="flex justify-center items-center gap-2">
+                        <button
+                          onClick={() => openViewModal(w)}
+                          className="p-1.5 rounded-lg text-teal-600 hover:bg-teal-50 transition-colors"
+                          title="View"
+                        >
+                          <Eye size={15} />
+                        </button>
                         <button
                           onClick={() => { setSelectedWard(w); setIsEditModalOpen(true); }}
                           className="p-1.5 rounded-lg text-orange-500 hover:bg-orange-50 transition-colors"
