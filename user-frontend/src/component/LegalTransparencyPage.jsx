@@ -5,6 +5,7 @@ import Breadcrumb from './shared/Breadcrumb';
 import Footer from './shared/Footer';
 import { usePanchayat } from '../context/PanchayatContext';
 import api from '../api/axios';
+import { toast } from 'react-toastify';
 
 const defaultDocs = [
     { title: 'Waste Management Bylaws 2024', description: 'Official regulations for household waste segregation and collection frequency.', date: 'Jan 15, 2024', size: '1.2 MB', url: '#' },
@@ -46,7 +47,10 @@ const LegalTransparencyPage = ({ navigate }) => {
     }, [selectedPanchayat]);
 
     const handleDownload = (url, title) => {
-        if (!url || url === '#') return;
+        if (!url || url === '#') {
+            toast.info("Download will be available soon");
+            return;
+        }
         window.open(url, '_blank');
     };
 
