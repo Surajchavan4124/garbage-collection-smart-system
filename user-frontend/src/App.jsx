@@ -50,6 +50,7 @@ function App() {
 
     const navigate = (newView) => {
         setView(newView);
+        window.scrollTo(0, 0);
     };
 
     const renderView = () => {
