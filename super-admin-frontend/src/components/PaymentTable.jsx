@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, Download, Eye } from 'lucide-react';
+import PaymentDetailsModal from './PaymentDetailsModal';
 
 const planConfig = {
   Basic:    { bg:"rgba(14,165,233,0.1)",  color:"#0ea5e9"  },
@@ -21,11 +22,34 @@ const TH = ({ children }) => (
 export default function PaymentTable({ paymentData }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   const filtered = paymentData.filter(r =>
     (r.panchayatName.toLowerCase().includes(search.toLowerCase()) || r.transactionId.toLowerCase().includes(search.toLowerCase())) &&
     (statusFilter === 'All' || r.status === statusFilter)
   );
+
+  const handleExport = () => {
+    const headers = ['Panchayat', 'Plan', 'Amount', 'Date', 'Transaction ID', 'Status'];
+    const rows = filtered.map(r => [
+      `"${r.panchayatName}"`,
+      r.planName,
+      `"${r.amount.replace('₹', '')}"`,
+      `"${r.paymentDate}"`,
+      r.transactionId,
+      r.status
+    ]);
+    
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `payment_records_${new Date().toLocaleDateString()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div>
@@ -44,7 +68,12 @@ export default function PaymentTable({ paymentData }) {
             {f}
           </button>
         ))}
-        <button style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 14px", border:"1.5px solid #e2e8f0", borderRadius:10, background:"white", fontSize:13, color:"#374151", cursor:"pointer", fontFamily:"inherit", fontWeight:500 }}>
+        <button 
+          onClick={handleExport}
+          style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 14px", border:"1.5px solid #e2e8f0", borderRadius:10, background:"white", fontSize:13, color:"#374151", cursor:"pointer", fontFamily:"inherit", fontWeight:500 }}
+          onMouseEnter={e => e.currentTarget.style.background="#f8fafc"}
+          onMouseLeave={e => e.currentTarget.style.background="white"}
+        >
           <Download size={14} color="#94a3b8" /> Export
         </button>
       </div>
@@ -77,7 +106,12 @@ export default function PaymentTable({ paymentData }) {
                     <span style={{ background:st.bg, color:st.color, border:`1px solid ${st.border}`, fontSize:12, fontWeight:600, padding:"3px 10px", borderRadius:20 }}>{row.status}</span>
                   </td>
                   <td style={{ padding:"14px 16px" }}>
-                    <button style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:8, color:"#64748b", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                    <button 
+                      onClick={() => setSelectedPayment(row)}
+                      style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:8, color:"#64748b", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}
+                      onMouseEnter={e => { e.currentTarget.style.background="#6366f1"; e.currentTarget.style.color="white"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background="#f8fafc"; e.currentTarget.style.color="#64748b"; }}
+                    >
                       <Eye size={13} /> Details
                     </button>
                   </td>
@@ -87,6 +121,13 @@ export default function PaymentTable({ paymentData }) {
           </tbody>
         </table>
       </div>
+
+      <PaymentDetailsModal 
+        open={!!selectedPayment} 
+        onClose={() => setSelectedPayment(null)} 
+        payment={selectedPayment} 
+      />
     </div>
   );
 }
+
