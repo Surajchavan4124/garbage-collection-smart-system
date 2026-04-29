@@ -32,8 +32,7 @@ const InputField = ({ label, icon: Icon, type = 'text', value, onChange, placeho
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className={`input-field ${error ? 'border-red-400 focus:ring-red-300' : ''}`}
-                style={Icon ? { paddingLeft: '2.5rem' } : {}}
+                className={`input-field ${error ? 'border-red-400 focus:ring-red-300' : ''} ${Icon ? '!pl-10' : ''}`}
             />
         </div>
         {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
@@ -299,8 +298,7 @@ const RegisterPage = ({ navigate }) => {
                                         <select
                                             value={form.ward}
                                             onChange={(e) => { update('ward')(e); clearError('ward'); }}
-                                            className={`input-field appearance-none pr-8 ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
-                                            style={{ paddingLeft: '2.25rem' }}
+                                            className={`input-field appearance-none pr-8 !pl-10 ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
                                             disabled={fetchingWards || !selectedPanchayat}
                                         >
                                             <option value="">{fetchingWards ? 'Loading wards...' : 'Select Ward'}</option>
