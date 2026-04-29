@@ -241,9 +241,6 @@ export default function TopHeader({ onMenuClick }) {
                   <button onClick={handleProfileSettings} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all">
                     <User size={16} /> Profile Settings
                   </button>
-                  <button className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-all">
-                    <Settings size={16} /> General Settings
-                  </button>
                   <div className="h-px bg-gray-50 dark:bg-gray-700/50 mx-2 my-1" />
                   <button onClick={handleLogoutClick} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
                     <LogOut size={16} /> Sign Out Account
