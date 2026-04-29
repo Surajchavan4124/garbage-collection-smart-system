@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Search, Upload, User as UserIcon, Settings, Plus } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
 import api from '../api/axios'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
@@ -379,36 +380,69 @@ export default function UserManagementSettings() {
         </div>
       </div>
 
-      <ProfileSettingsModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
-      <ViewProfileModal isOpen={!!viewUser} onClose={() => setViewUser(null)} user={viewUser} onEdit={handleEditUser} onDelete={handleDeleteUser} />
-      <EditProfileModal isOpen={!!editUser} onClose={() => setEditUser(null)} user={editUser} onSave={async (updatedData) => {
-        try {
-          const formData = new FormData()
-          formData.append('name', updatedData.name)
-          formData.append('mobile', updatedData.mobile)
-          formData.append('email', updatedData.email)
-          formData.append('role', updatedData.role)
-          formData.append('isActive', updatedData.isActive)
-          if (updatedData.photo instanceof File) formData.append('photo', updatedData.photo)
-          updatedData.permissions?.forEach(p => formData.append('permissions[]', p))
-          const res = await api.put(`/users/${updatedData._id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-          setUsers(users.map(u => u._id === res.data._id ? res.data : u))
-          setEditUser(null)
-          toast.success('User updated successfully')
-        } catch (err) {
-          toast.error(err.response?.data?.message || 'Failed to update user')
-        }
-      }} />
-      <DeactivateUserModal isOpen={!!deleteUser} onClose={() => setDeleteUser(null)} user={deleteUser} onDeactivate={async (user) => {
-        try {
-          await api.delete(`/users/${user._id}`)
-          setUsers(users.filter(u => u._id !== user._id))
-          setDeleteUser(null)
-          toast.success('User deleted successfully')
-        } catch (err) {
-          toast.error('Failed to delete user')
-        }
-      }} />
+      <AnimatePresence mode="wait">
+        {isProfileModalOpen && (
+          <ProfileSettingsModal 
+            key="profile-modal"
+            isOpen={isProfileModalOpen} 
+            onClose={() => setIsProfileModalOpen(false)} 
+          />
+        )}
+        {viewUser && (
+          <ViewProfileModal 
+            key="view-modal"
+            isOpen={!!viewUser} 
+            onClose={() => setViewUser(null)} 
+            user={viewUser} 
+            onEdit={handleEditUser} 
+            onDelete={handleDeleteUser} 
+          />
+        )}
+        {editUser && (
+          <EditProfileModal 
+            key="edit-modal"
+            isOpen={!!editUser} 
+            onClose={() => setEditUser(null)} 
+            user={editUser} 
+            onSave={async (updatedData) => {
+              try {
+                const formData = new FormData()
+                formData.append('name', updatedData.name)
+                formData.append('mobile', updatedData.mobile)
+                formData.append('email', updatedData.email)
+                formData.append('role', updatedData.role)
+                formData.append('isActive', updatedData.isActive)
+                if (updatedData.photo instanceof File) formData.append('photo', updatedData.photo)
+                updatedData.permissions?.forEach(p => formData.append('permissions[]', p))
+                const res = await api.put(`/users/${updatedData._id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+                setUsers(users.map(u => u._id === res.data._id ? res.data : u))
+                setEditUser(null)
+                toast.success('User updated successfully')
+              } catch (err) {
+                toast.error(err.response?.data?.message || 'Failed to update user')
+              }
+            }} 
+          />
+        )}
+        {deleteUser && (
+          <DeactivateUserModal 
+            key="delete-modal"
+            isOpen={!!deleteUser} 
+            onClose={() => setDeleteUser(null)} 
+            user={deleteUser} 
+            onDeactivate={async (user) => {
+              try {
+                await api.delete(`/users/${user._id}`)
+                setUsers(users.filter(u => u._id !== user._id))
+                setDeleteUser(null)
+                toast.success('User deleted successfully')
+              } catch (err) {
+                toast.error('Failed to delete user')
+              }
+            }} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
