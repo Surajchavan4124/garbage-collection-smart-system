@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Upload, User as UserIcon, Settings, Plus } from 'lucide-react'
+import { Search, Upload, User as UserIcon, Settings, Plus, Eye } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'
 import api from '../api/axios'
 import { toast } from 'react-toastify'
@@ -367,7 +367,7 @@ export default function UserManagementSettings() {
                       <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded">ROOT ADMIN</span>
                     ) : (
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => handleViewUser(user)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><Search size={16} /></button>
+                        <button onClick={() => handleViewUser(user)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><Eye size={16} /></button>
                         <button onClick={() => handleEditUser(user)} className="p-2 text-gray-400 hover:text-orange-600 transition-colors"><Settings size={16} /></button>
                         <button onClick={() => handleDeleteUser(user)} className="p-2 text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
                       </div>
