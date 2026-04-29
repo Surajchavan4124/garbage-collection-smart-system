@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, Eye } from 'lucide-react';
+import TicketDetailsModal from './TicketDetailsModal';
 
 const statusConfig = {
   Open:        { bg:"#fef2f2", color:"#dc2626", border:"#fecaca" },
@@ -17,6 +18,7 @@ const FILTERS = ['All', 'Open', 'In Progress', 'Resolved'];
 
 export default function TicketsTable({ ticketData, selectedFilter, onFilterChange }) {
   const [search, setSearch] = useState('');
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   const filtered = ticketData.filter(r =>
     (r.ticketId.toLowerCase().includes(search.toLowerCase()) || r.panchayatName.toLowerCase().includes(search.toLowerCase())) &&
@@ -70,7 +72,12 @@ export default function TicketsTable({ ticketData, selectedFilter, onFilterChang
                     <span style={{ background:st.bg, color:st.color, border:`1px solid ${st.border}`, fontSize:12, fontWeight:600, padding:"3px 10px", borderRadius:20 }}>{row.status}</span>
                   </td>
                   <td style={{ padding:"14px 16px" }}>
-                    <button style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:8, color:"#64748b", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                    <button 
+                      onClick={() => setSelectedTicket(row)}
+                      style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:8, color:"#64748b", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}
+                      onMouseEnter={e => { e.currentTarget.style.background="#6366f1"; e.currentTarget.style.color="white"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background="#f8fafc"; e.currentTarget.style.color="#64748b"; }}
+                    >
                       <Eye size={13} /> View
                     </button>
                   </td>
@@ -80,6 +87,12 @@ export default function TicketsTable({ ticketData, selectedFilter, onFilterChang
           </tbody>
         </table>
       </div>
+
+      <TicketDetailsModal 
+        open={!!selectedTicket} 
+        onClose={() => setSelectedTicket(null)} 
+        ticket={selectedTicket} 
+      />
     </div>
   );
 }
