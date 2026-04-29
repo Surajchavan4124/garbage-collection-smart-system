@@ -70,7 +70,7 @@ const QuickAction = ({ label, icon: Icon, bg, iconColor, onClick, delay }) => (
 );
 
 const HouseholdDashboard = ({ navigate }) => {
-    const { selectedPanchayat } = usePanchayat();
+    const { selectedPanchayat, refreshPanchayatData } = usePanchayat();
     const [complaints, setComplaints] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -89,6 +89,9 @@ const HouseholdDashboard = ({ navigate }) => {
     useEffect(() => {
         if (!user) return;
         
+        // Refresh panchayat status (feature toggles etc.)
+        refreshPanchayatData();
+
         // Fetch Complaints (for recent complaints list)
         api.get('/complaints/me')
             .then(r => setComplaints(r.data))
@@ -172,8 +175,10 @@ const HouseholdDashboard = ({ navigate }) => {
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-base font-display font-bold text-gray-900">Quick Actions</h2>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <QuickAction delay={5} label="Schedule Pickup"    icon={Calendar}   bg="bg-blue-50/60 border-blue-100 hover:border-blue-300"    iconColor="bg-blue-100 text-blue-600"    onClick={() => navigate('schedule-booking')} />
+                    <div className={`grid ${selectedPanchayat?.isScheduleEnabled !== false ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+                        {selectedPanchayat?.isScheduleEnabled !== false && (
+                            <QuickAction delay={5} label="Schedule Pickup"    icon={Calendar}   bg="bg-blue-50/60 border-blue-100 hover:border-blue-300"    iconColor="bg-blue-100 text-blue-600"    onClick={() => navigate('schedule-booking')} />
+                        )}
                         <QuickAction delay={6} label="Submit Complaint"   icon={AlertCircle} bg="bg-red-50/60 border-red-100 hover:border-red-300"       iconColor="bg-red-100 text-red-500"      onClick={() => navigate('complaint')} />
                     </div>
                 </motion.div>
@@ -188,14 +193,16 @@ const HouseholdDashboard = ({ navigate }) => {
                                 <h2 className="text-base font-display font-bold text-gray-900">Upcoming Pickups</h2>
                                 <p className="text-xs text-gray-400 mt-0.5">{schedules.length} scheduled</p>
                             </div>
-                            <motion.button
-                                whileHover={{ scale: 1.04 }}
-                                whileTap={{ scale: 0.96 }}
-                                onClick={() => navigate('schedule-booking')}
-                                className="btn-primary text-xs px-3.5 py-2 flex items-center gap-1.5"
-                            >
-                                <Plus className="w-3.5 h-3.5" /> New Pickup
-                            </motion.button>
+                            {selectedPanchayat?.isScheduleEnabled !== false && (
+                                <motion.button
+                                    whileHover={{ scale: 1.04 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    onClick={() => navigate('schedule-booking')}
+                                    className="btn-primary text-xs px-3.5 py-2 flex items-center gap-1.5"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> New Pickup
+                                </motion.button>
+                            )}
                         </div>
 
                         <div className="space-y-3">

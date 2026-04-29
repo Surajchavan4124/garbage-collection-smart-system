@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../api/axios';
 
 const PanchayatContext = createContext(null);
 
@@ -9,6 +10,19 @@ export const PanchayatProvider = ({ children }) => {
     });
 
     const [isPanchayatModalOpen, setIsPanchayatModalOpen] = useState(false);
+
+    // Function to refresh the selected panchayat's data from the server
+    const refreshPanchayatData = async () => {
+        if (!selectedPanchayat?._id) return;
+        try {
+            const res = await api.get(`/panchayat/${selectedPanchayat._id}`);
+            if (res.data) {
+                setSelectedPanchayat(res.data);
+            }
+        } catch (err) {
+            console.error("Failed to refresh panchayat data:", err);
+        }
+    };
 
     useEffect(() => {
         if (selectedPanchayat) {
@@ -21,7 +35,13 @@ export const PanchayatProvider = ({ children }) => {
     }, [selectedPanchayat]);
 
     return (
-        <PanchayatContext.Provider value={{ selectedPanchayat, setSelectedPanchayat, isPanchayatModalOpen, setIsPanchayatModalOpen }}>
+        <PanchayatContext.Provider value={{ 
+            selectedPanchayat, 
+            setSelectedPanchayat, 
+            isPanchayatModalOpen, 
+            setIsPanchayatModalOpen,
+            refreshPanchayatData
+        }}>
             {children}
         </PanchayatContext.Provider>
     );

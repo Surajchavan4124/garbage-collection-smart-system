@@ -265,6 +265,9 @@ export const getProfile = async (req, res) => {
         endDate: sub.endDate,
       }
       : "Contact your provider for subscription details",
+    
+    // Add full panchayat data for admin panel
+    panchayat: panchayat
   });
 };
 
