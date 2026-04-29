@@ -29,8 +29,14 @@ const ComplaintPage = ({ navigate }) => {
     useEffect(() => {
         if (!selectedPanchayat?._id) return;
         api.get(`/wards/public?panchayatId=${selectedPanchayat._id}`)
-            .then(res => setWards(res.data || []))
-            .catch(() => setWards([]));
+            .then(res => {
+                setWards(Array.isArray(res.data) ? res.data : []);
+                setFormData(p => ({ ...p, ward: selectedPanchayat.name }));
+            })
+            .catch(() => {
+                setWards([]);
+                setFormData(p => ({ ...p, ward: selectedPanchayat.name }));
+            });
     }, [selectedPanchayat]);
 
     const clearError = (field) => setErrors(prev => ({ ...prev, [field]: '' }));
@@ -201,7 +207,10 @@ const ComplaintPage = ({ navigate }) => {
                                             className={`input-field ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
                                         >
                                             <option value="">-- Select your ward --</option>
-                                            {wards.map(w => (
+                                            {selectedPanchayat && (
+                                                <option value={selectedPanchayat.name}>{selectedPanchayat.name} (Default)</option>
+                                            )}
+                                            {wards.filter(w => w.name !== selectedPanchayat?.name).map(w => (
                                                 <option key={w._id} value={w.name}>{w.name}</option>
                                             ))}
                                         </select>
