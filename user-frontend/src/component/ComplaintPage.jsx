@@ -81,7 +81,7 @@ const ComplaintPage = ({ navigate }) => {
             newErrors.mobile = 'Enter a valid 10-digit Indian mobile number.';
         }
         // Ward
-        if (!formData.ward) {
+        if (wards.length > 0 && !formData.ward) {
             newErrors.ward = 'Please select your ward.';
         }
         // Type
@@ -198,21 +198,23 @@ const ComplaintPage = ({ navigate }) => {
                                     </div>
 
                                     {/* Ward */}
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ward <span className="text-red-500">*</span></label>
-                                        <select
-                                            name="ward"
-                                            value={formData.ward}
-                                            onChange={handleChange}
-                                            className={`input-field ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
-                                        >
-                                            <option value="">-- Select your ward --</option>
-                                            {wards.map(w => (
-                                                <option key={w._id} value={w.name}>{w.name}</option>
-                                            ))}
-                                        </select>
-                                        {errors.ward && <p className="mt-1 text-xs text-red-500">{errors.ward}</p>}
-                                    </div>
+                                    {wards.length > 0 && (
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ward <span className="text-red-500">*</span></label>
+                                            <select
+                                                name="ward"
+                                                value={formData.ward}
+                                                onChange={handleChange}
+                                                className={`input-field ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
+                                            >
+                                                <option value="">-- Select your ward --</option>
+                                                {wards.map(w => (
+                                                    <option key={w._id} value={w.name}>{w.name}</option>
+                                                ))}
+                                            </select>
+                                            {errors.ward && <p className="mt-1 text-xs text-red-500">{errors.ward}</p>}
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Complaint Type <span className="text-red-500">*</span></label>

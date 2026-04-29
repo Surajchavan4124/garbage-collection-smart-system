@@ -128,7 +128,7 @@ const RegisterPage = ({ navigate }) => {
         }
 
         // Ward
-        if (!form.ward) {
+        if (wards.length > 0 && !form.ward) {
             newErrors.ward = 'Please select a ward.';
         }
 
@@ -171,7 +171,13 @@ const RegisterPage = ({ navigate }) => {
         setLoading(true);
         try {
             const data = new FormData();
-            Object.entries(form).forEach(([k, v]) => data.append(k, v));
+            data.append('ownerName', form.ownerName);
+            data.append('email', form.email);
+            data.append('mobile', form.mobile);
+            data.append('houseNumber', form.houseNumber);
+            data.append('address', form.address);
+            data.append('ward', wards.length > 0 ? form.ward : 'Unassigned');
+            data.append('pincode', form.pincode);
             data.append('panchayatId', selectedPanchayat._id);
             if (identityFile) data.append('identity', identityFile);
             if (premisesFile) data.append('premises', premisesFile);
@@ -281,32 +287,34 @@ const RegisterPage = ({ navigate }) => {
                         </h2>
                         <div className="grid sm:grid-cols-2 gap-4">
                             <InputField label="House Number" icon={Home} value={form.houseNumber} onChange={update('houseNumber')} placeholder="Enter house number" required error={errors.houseNumber} />
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                                    Area / Ward<span className="text-red-500 ml-0.5">*</span>
-                                </label>
-                                <div className="relative">
-                                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                        <MapPin className="w-4 h-4 text-gray-400" />
-                                    </span>
-                                    <select
-                                        value={form.ward}
-                                        onChange={(e) => { update('ward')(e); clearError('ward'); }}
-                                        className={`input-field appearance-none pr-8 ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
-                                        style={{ paddingLeft: '2.25rem' }}
-                                        disabled={fetchingWards || !selectedPanchayat}
-                                    >
-                                        <option value="">{fetchingWards ? 'Loading wards...' : 'Select Ward'}</option>
-                                        {wards.map(w => (
-                                            <option key={w._id} value={w.name}>{w.name}</option>
-                                        ))}
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-                                        <ChevronRight className="w-4 h-4 rotate-90" />
+                            {wards.length > 0 && (
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                                        Area / Ward<span className="text-red-500 ml-0.5">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                            <MapPin className="w-4 h-4 text-gray-400" />
+                                        </span>
+                                        <select
+                                            value={form.ward}
+                                            onChange={(e) => { update('ward')(e); clearError('ward'); }}
+                                            className={`input-field appearance-none pr-8 ${errors.ward ? 'border-red-400 focus:ring-red-300' : ''}`}
+                                            style={{ paddingLeft: '2.25rem' }}
+                                            disabled={fetchingWards || !selectedPanchayat}
+                                        >
+                                            <option value="">{fetchingWards ? 'Loading wards...' : 'Select Ward'}</option>
+                                            {wards.map(w => (
+                                                <option key={w._id} value={w.name}>{w.name}</option>
+                                            ))}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                            <ChevronRight className="w-4 h-4 rotate-90" />
+                                        </div>
                                     </div>
+                                    {errors.ward && <p className="mt-1 text-xs text-red-500">{errors.ward}</p>}
                                 </div>
-                                {errors.ward && <p className="mt-1 text-xs text-red-500">{errors.ward}</p>}
-                            </div>
+                            )}
                             <InputField label="Pincode" icon={MapPin} value={form.pincode} onChange={update('pincode')} placeholder="Enter 6-digit pincode" required error={errors.pincode} />
                             <div className="sm:col-span-2">
                                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">
