@@ -207,8 +207,8 @@ export default function AttendanceManagement() {
             {isRefreshing && <RefreshCw size={14} className="text-teal-500 animate-spin" />}
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-transparent focus-within:border-teal-300/50 w-52">
+          <div className="ml-auto flex flex-wrap items-center gap-2 mt-3 sm:mt-0 w-full sm:w-auto">
+            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-transparent focus-within:border-teal-300/50 w-full sm:w-52">
               <Search size={14} className="text-gray-400" />
               <input
                 value={searchEmployee}

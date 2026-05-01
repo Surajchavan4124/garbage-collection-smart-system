@@ -348,7 +348,7 @@ export default function HouseholdManagement() {
             <div className="px-6 py-4 border-b border-gray-50">
               <h2 className="text-lg font-bold text-gray-800 mb-4">HOUSEHOLD REGISTRY</h2>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                 <div className="flex items-center gap-2 px-3 py-1 bg-white border border-gray-300 rounded-lg focus-within:ring-1 focus-within:ring-teal-500 focus-within:border-teal-500 shadow-sm w-full sm:w-64">
                   <Search size={18} className="text-gray-400" />
                   <input
@@ -573,43 +573,6 @@ export default function HouseholdManagement() {
 
             <p className="text-sm text-gray-600 font-medium mt-4">Visuals:</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Compliance Chart */}
-              <div className="bg-cyan-100 rounded-lg p-4 min-h-64 flex flex-col items-center justify-center">
-                <svg viewBox="0 0 200 200" className="w-40 h-40">
-                  {/* Background circle */}
-                  <circle cx="100" cy="100" r="80" fill="#f0f0f0" />
-
-                  {/* Compliance (large pie slice - teal) */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="80"
-                    fill="none"
-                    stroke="#2c5f5f"
-                    strokeWidth="60"
-                    strokeDasharray={`${(compliancePercentage / 100) * 502.65} 502.65`}
-                    strokeDashoffset="0"
-                    transform="rotate(-90 100 100)"
-                  />
-
-                  {/* Non-Compliance (small pie slice - dark grey) */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="80"
-                    fill="none"
-                    stroke="#4a4a4a"
-                    strokeWidth="60"
-                    strokeDasharray={`${(nonCompliancePercentage / 100) * 502.65} 502.65`}
-                    strokeDashoffset={`-${(compliancePercentage / 100) * 502.65}`}
-                    transform="rotate(-90 100 100)"
-                  />
-                </svg>
-                <h3 className="text-center font-bold text-gray-800 mt-2 text-xs">
-                  Compliance vs Non-Compliance
-                </h3>
-              </div>
-
               {/* Complaints Chart */}
               <div className="bg-orange-100 rounded-lg p-4 min-h-64 flex flex-col items-center justify-center">
                 <ResponsiveContainer width="100%" height={160}>

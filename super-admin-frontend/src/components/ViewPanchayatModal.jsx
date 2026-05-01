@@ -67,7 +67,7 @@ export default function ViewPanchayatModal({ isOpen, onClose, data, onApprove, o
         <div style={{ flex:1, overflowY:"auto", padding:"24px 28px" }}>
           {/* Info grid */}
           <div style={{ fontSize:11, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:14 }}>Panchayat Information</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"16px 24px", padding:"20px", background:"#f8fafc", borderRadius:14, border:"1px solid #f1f5f9", marginBottom:20 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:"16px 24px", padding:"20px", background:"#f8fafc", borderRadius:14, border:"1px solid #f1f5f9", marginBottom:20 }}>
             <InfoItem label="Panchayat Name" value={data.name} />
             <InfoItem label="Incharge Person" value={data.inchargeName} />
             <div style={{ gridColumn:"1/-1" }}><InfoItem label="Address" value={data.address} /></div>
@@ -79,7 +79,7 @@ export default function ViewPanchayatModal({ isOpen, onClose, data, onApprove, o
 
           {/* Documents */}
           <div style={{ fontSize:11, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:14 }}>Submitted Documents</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:16 }}>
             <div>
               <div style={{ fontSize:13, fontWeight:600, color:"#374151", marginBottom:8 }}>Incharge ID Proof</div>
               <DocCard title="Incharge ID Proof" file={data.documents?.inchargeIdProof} baseURL={baseURL} />

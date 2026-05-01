@@ -73,7 +73,7 @@ export default function SubscriptionTable({ subscriptions, plans, onSubscription
   return (
     <div>
       {/* Toolbar */}
-      <div style={{ display:"flex", gap:10, paddingTop:16, paddingBottom:12 }}>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:10, paddingTop:16, paddingBottom:12 }}>
         <div style={{ flex:1, position:"relative" }}>
           <Search size={15} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#94a3b8" }} />
           <input type="text" placeholder="Search panchayat…" value={search} onChange={e => setSearch(e.target.value)}

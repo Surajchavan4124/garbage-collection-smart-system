@@ -343,7 +343,7 @@ export default function DustbinManagement() {
             <div className="px-6 py-4 border-b border-gray-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <h2 className="text-lg font-bold text-gray-800">DUSTBIN REGISTRY</h2>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                 <div className="flex items-center gap-2 px-3 py-1 bg-white border border-gray-300 rounded-lg focus-within:ring-1 focus-within:ring-teal-500 focus-within:border-teal-500 shadow-sm w-full sm:w-64">
                   <Search size={18} className="text-gray-400" />
                   <input

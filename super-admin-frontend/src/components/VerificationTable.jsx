@@ -79,7 +79,7 @@ export default function VerificationTable({ refreshKey, onChange }) {
   return (
     <>
       {/* Search bar */}
-      <div style={{ display:"flex", gap:12, padding:"16px 0 12px" }}>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:12, padding:"16px 0 12px" }}>
         <div style={{ flex:1, position:"relative" }}>
           <Search size={15} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#94a3b8" }} />
           <input
@@ -132,7 +132,7 @@ export default function VerificationTable({ refreshKey, onChange }) {
                   <td style={{ padding:"14px 16px" }}><StatusBadge status={uiStatus} /></td>
                   <td style={{ padding:"14px 16px" }}>
                     {uiStatus === "Pending" ? (
-                      <div style={{ display:"flex", gap:8 }}>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                         <button onClick={() => handleViewClick(row)} title="View details"
                           style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", background:"rgba(99,102,241,0.08)", border:"1px solid rgba(99,102,241,0.2)", borderRadius:8, color:"#6366f1", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
                           <Eye size={13} /> View
