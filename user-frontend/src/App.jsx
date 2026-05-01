@@ -46,10 +46,13 @@ import ComplaintsManagement from './component/management/ComplaintsManagement';
 import SystemSettings from './component/management/SystemSettings';
 
 function App() {
-    const [view, setView] = useState('home');
+    const [view, setView] = useState(() => {
+        return sessionStorage.getItem('currentView') || 'home';
+    });
 
     const navigate = (newView) => {
         setView(newView);
+        sessionStorage.setItem('currentView', newView);
         window.scrollTo(0, 0);
     };
 

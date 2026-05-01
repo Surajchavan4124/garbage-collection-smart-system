@@ -36,6 +36,14 @@ const DEFAULT_PRINCIPLES = [
   { emoji: '🔒', title: 'Accountability', desc: 'Every pickup, every worker, every complaint — tracked.' },
 ];
 
+/* ─── SECTION WRAPPER (must be at module scope to avoid remount on re-render) ─── */
+const Section = ({ title, children }) => (
+  <div className="space-y-4 pt-4 border-t border-gray-200">
+    <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+    {children}
+  </div>
+)
+
 /* ─────────────────────────── COMPONENT ─────────────────────────── */
 export default function EditAboutUs() {
   const [content,      setContent]      = useState('')
@@ -182,14 +190,6 @@ export default function EditAboutUs() {
   }
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>
-
-  /* ─── SECTION WRAPPER ─── */
-  const Section = ({ title, children }) => (
-    <div className="space-y-4 pt-4 border-t border-gray-200">
-      <h3 className="text-lg font-bold text-gray-800">{title}</h3>
-      {children}
-    </div>
-  )
 
   return (
     <div className="space-y-6">

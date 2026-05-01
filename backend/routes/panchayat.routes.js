@@ -22,14 +22,14 @@ router.patch("/:id/settings", protect, updatePanchayatSettings);
 router.patch(
   "/:id/approve",
   protect,
-  allowRoles("COMPANY_ADMIN"),
+  allowRoles("COMPANY_ADMIN", "SUPER_ADMIN"),
   approvePanchayat
 );
 
 router.patch(
   "/:id/reject",
   protect,
-  allowRoles("COMPANY_ADMIN"),
+  allowRoles("COMPANY_ADMIN", "SUPER_ADMIN"),
   rejectPanchayat
 );
 

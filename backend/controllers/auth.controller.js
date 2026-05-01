@@ -151,8 +151,10 @@ export const verifyOtpAndLogin = async (req, res) => {
     // 2️⃣ Try Normal User login
     user = await User.findOne({ mobile });
 
-    // 3️⃣ Fallback → Panchayat ADMIN
-    if (!user) {
+    if (user) {
+      role = user.role;
+    } else {
+      // 3️⃣ Fallback → Panchayat ADMIN
       const panchayat = await Panchayat.findOne({
         contactPhone: mobile,
         status: "active",

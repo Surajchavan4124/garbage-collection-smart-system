@@ -22,6 +22,14 @@ const DEFAULT_GUIDES = [
 
 const TYPE_OPTIONS = ['PDF Guide', 'Video Guide', 'Article'];
 
+/* ─── SECTION WRAPPER (must be at module scope to avoid remount on re-render) ─── */
+const Section = ({ title, children }) => (
+  <div className="space-y-4 pt-4 border-t border-gray-200">
+    <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+    {children}
+  </div>
+)
+
 export default function EditSegregationGuide() {
   const [content,       setContent]       = useState('')
   const [tutorialVideo, setTutorialVideo] = useState(null)
@@ -117,13 +125,6 @@ export default function EditSegregationGuide() {
   const removeGuide = (i) => setGuides(guides.filter((_, idx) => idx !== i))
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>
-
-  const Section = ({ title, children }) => (
-    <div className="space-y-4 pt-4 border-t border-gray-200">
-      <h3 className="text-lg font-bold text-gray-800">{title}</h3>
-      {children}
-    </div>
-  )
 
   return (
     <div className="space-y-6">

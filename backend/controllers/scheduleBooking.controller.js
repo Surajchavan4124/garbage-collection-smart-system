@@ -15,12 +15,18 @@ export const createBooking = async (req, res) => {
         }
 
         const user = req.user;
+        // req.user.mobile is populated from DB by auth middleware — use it as the
+        // authoritative phone source so the number is always saved even when the
+        // user leaves the optional phone field blank in the form.
+        const resolvedPhone = phone?.trim() || user?.mobile || "";
         const booking = await ScheduleBooking.create({
             panchayat: panchayatId,
-            household: user?.householdId || undefined,
+            household: user?._id || undefined,
             userName: user?.name || req.body.userName,
-            userMobile: user?.mobile || phone,
-            wasteType, date, time, address, phone, note,
+            userMobile: resolvedPhone,
+            wasteType, date, time, address,
+            phone: resolvedPhone,
+            note,
         });
         res.status(201).json(booking);
     } catch (err) {
@@ -32,8 +38,18 @@ export const createBooking = async (req, res) => {
 export const getBookings = async (req, res) => {
     try {
         const bookings = await ScheduleBooking.find({ panchayat: req.user.panchayatId })
+            .populate("household", "mobile ownerName")
             .sort({ createdAt: -1 });
-        res.json(bookings);
+
+        // Normalise phone: for old records that have no phone/userMobile stored,
+        // fall back to the populated household's mobile.
+        const normalised = bookings.map(b => {
+            const doc = b.toObject();
+            doc.phone = doc.phone || doc.userMobile || b.household?.mobile || "";
+            return doc;
+        });
+
+        res.json(normalised);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
