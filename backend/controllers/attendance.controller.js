@@ -168,33 +168,27 @@ export const manualAttendance = async (req, res) => {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    const existing = await Attendance.findOne({
-      labour: labourId,
-      date,
-    });
+    // 🔹 UPSERT ATTENDANCE (Update if exists, Create if not)
+    // This allows overriding system-generated 'absent' records or app toggles
+    const attendance = await Attendance.findOneAndUpdate(
+      { labour: labourId, date, panchayat: panchayatId },
+      {
+        onDuty: true,
+        present: true,
+        source: "ADMIN",
+        overrideReason: reason,
+        markedAt: new Date(),
+      },
+      { upsert: true, new: true }
+    );
 
-    if (existing) {
-      return res
-        .status(400)
-        .json({ message: "Attendance already exists for today" });
-    }
-
-    const attendance = await Attendance.create({
-      labour: labourId,
-      panchayat: panchayatId,
-      date,
-      onDuty: true,
-      present: true,
-      source: "ADMIN",
-      reason,
-    });
-
-    res.status(201).json(attendance);
+    res.status(200).json(attendance);
   } catch (err) {
-    console.error(err);
+    console.error("Manual Attendance Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // 🔹 TOGGLE AVAILABILITY (Employee switches ON/OFF duty)
 export const updateAvailability = async (req, res) => {
