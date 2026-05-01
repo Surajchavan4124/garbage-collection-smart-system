@@ -53,7 +53,7 @@ export default function VerificationTable({ refreshKey, onChange }) {
       await api.patch(`/panchayat/${id}/approve`);
       toast.success("Panchayat approved ✓");
       setViewOpen(false); fetchPanchayats(); onChange?.();
-    } catch { toast.error("Approval failed"); }
+    } catch (err) { toast.error("Approval failed: " + (err.response?.data?.message || err.message)); }
   };
 
   const handleReject = async (id) => {
@@ -61,7 +61,7 @@ export default function VerificationTable({ refreshKey, onChange }) {
       await api.patch(`/panchayat/${id}/reject`);
       toast.success("Panchayat rejected");
       setViewOpen(false); fetchPanchayats(); onChange?.();
-    } catch { toast.error("Rejection failed"); }
+    } catch (err) { toast.error("Rejection failed: " + (err.response?.data?.message || err.message)); }
   };
 
   const handleViewClick = async (row) => {
