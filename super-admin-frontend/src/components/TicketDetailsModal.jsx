@@ -27,7 +27,7 @@ export default function TicketDetailsModal({ open, onClose, ticket }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}>
-      <div style={{ position: "relative", background: "white", borderRadius: 24, boxShadow: "0 25px 80px rgba(0,0,0,0.2)", width: "100%", maxWidth: 500, overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ position: "relative", background: "white", borderRadius: 24, boxShadow: "0 25px 80px rgba(0,0,0,0.2)", width: "100%", maxWidth: 500, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
         
         {/* Close Button */}
         <button 
@@ -40,13 +40,13 @@ export default function TicketDetailsModal({ open, onClose, ticket }) {
         </button>
 
         {/* Header */}
-        <div style={{ background: "linear-gradient(135deg, #f8fafc, #f1f5f9)", padding: "24px 30px", borderBottom: "1px solid #e2e8f0" }}>
+        <div style={{ background: "linear-gradient(135deg, #f8fafc, #f1f5f9)", padding: "24px 30px", borderBottom: "1px solid #e2e8f0", flexShrink: 0 }}>
           <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: 0 }}>Ticket Details</h3>
           <p style={{ fontSize: 12, color: "#64748b", margin: "4px 0 0" }}>Review support query from panchayat</p>
         </div>
 
         {/* Body */}
-        <div style={{ padding: "10px 30px 30px" }}>
+        <div style={{ padding: "10px 30px 30px", overflowY: "auto", flexGrow: 1 }}>
           <DetailRow icon={Ticket} label="Ticket ID" value={ticket.ticketId} color="#6366f1" />
           <DetailRow icon={Building2} label="Panchayat" value={ticket.panchayatName} color="#0f172a" />
           <DetailRow icon={Layout} label="Issue Type" value={ticket.issueType} />
@@ -56,7 +56,7 @@ export default function TicketDetailsModal({ open, onClose, ticket }) {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "20px 30px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ padding: "20px 30px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
           <button onClick={onClose} style={{ padding: "10px 24px", borderRadius: 12, border: "none", background: "#6366f1", color: "white", fontWeight: 700, fontSize: 14, cursor: "pointer", boxShadow: "0 4px 12px rgba(99,102,241,0.24)", transition: "all 0.2s" }}
             onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}>

@@ -33,10 +33,10 @@ export default function ProfileSettingsModal({ open, onClose }) {
 
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(15,23,42,0.6)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200, padding:16 }}>
-      <div style={{ background:"white", borderRadius:20, boxShadow:"0 25px 80px rgba(0,0,0,0.2)", width:"100%", maxWidth:480, overflow:"hidden", fontFamily:"Inter, sans-serif" }}>
+      <div style={{ background:"white", borderRadius:20, boxShadow:"0 25px 80px rgba(0,0,0,0.2)", width:"100%", maxWidth:480, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow:"hidden", fontFamily:"Inter, sans-serif" }}>
 
         {/* Header */}
-        <div style={{ background:"linear-gradient(135deg,#0f172a,#1e293b)", padding:"24px 28px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ background:"linear-gradient(135deg,#0f172a,#1e293b)", padding:"24px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink: 0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:14 }}>
             <div style={{ width:48, height:48, borderRadius:14, background:"linear-gradient(135deg,#6366f1,#8b5cf6)", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:20, color:"white" }}>S</div>
             <div>
@@ -55,7 +55,7 @@ export default function ProfileSettingsModal({ open, onClose }) {
         </div>
 
         {/* Body */}
-        <div style={{ padding:"8px 24px 24px" }}>
+        <div style={{ padding:"8px 24px 24px", overflowY: "auto", flexGrow: 1 }}>
           <div style={{ padding:"12px 0", fontSize:12, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.8px" }}>Company Details</div>
 
           {loading ? (
@@ -82,7 +82,7 @@ export default function ProfileSettingsModal({ open, onClose }) {
         </div>
 
         {/* Footer */}
-        <div style={{ padding:"16px 24px", borderTop:"1px solid #f1f5f9", display:"flex", justifyContent:"flex-end" }}>
+        <div style={{ padding:"16px 24px", borderTop:"1px solid #f1f5f9", display:"flex", justifyContent:"flex-end", flexShrink: 0, background: "white" }}>
           <button onClick={onClose} style={{ padding:"10px 24px", borderRadius:10, border:"1.5px solid #e2e8f0", background:"white", color:"#374151", fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}
             onMouseEnter={e => e.currentTarget.style.background="#f8fafc"}
             onMouseLeave={e => e.currentTarget.style.background="white"}>

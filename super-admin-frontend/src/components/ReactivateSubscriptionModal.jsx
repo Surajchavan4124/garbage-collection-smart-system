@@ -18,10 +18,10 @@ export default function ReactivateSubscriptionModal({ isOpen, onClose, plans, cu
 
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(15,23,42,0.6)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200, padding:16 }}>
-      <div style={{ background:"white", borderRadius:20, boxShadow:"0 25px 80px rgba(0,0,0,0.2)", width:"100%", maxWidth:500, overflow:"hidden", fontFamily:"Inter, sans-serif" }}>
+      <div style={{ background:"white", borderRadius:20, boxShadow:"0 25px 80px rgba(0,0,0,0.2)", width:"100%", maxWidth:500, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow:"hidden", fontFamily:"Inter, sans-serif" }}>
 
         {/* Header */}
-        <div style={{ background:"linear-gradient(135deg,#0f172a,#1e293b)", padding:"24px 28px", display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
+        <div style={{ background:"linear-gradient(135deg,#0f172a,#1e293b)", padding:"24px 28px", display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexShrink: 0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:14 }}>
             <div style={{ width:44, height:44, borderRadius:13, background:"rgba(99,102,241,0.2)", border:"1px solid rgba(99,102,241,0.3)", display:"flex", alignItems:"center", justifyContent:"center" }}>
               <Layers size={20} color="#818cf8" />
@@ -39,13 +39,13 @@ export default function ReactivateSubscriptionModal({ isOpen, onClose, plans, cu
         </div>
 
         {/* Panchayat info band */}
-        <div style={{ padding:"12px 28px", background:"#f8fafc", borderBottom:"1px solid #f1f5f9" }}>
+        <div style={{ padding:"12px 28px", background:"#f8fafc", borderBottom:"1px solid #f1f5f9", flexShrink: 0 }}>
           <span style={{ fontSize:12, color:"#94a3b8", fontWeight:600 }}>Panchayat: </span>
           <span style={{ fontSize:13, color:"#0f172a", fontWeight:700 }}>{panchayatName}</span>
         </div>
 
         {/* Plans */}
-        <div style={{ padding:"20px 24px 24px" }}>
+        <div style={{ padding:"20px 24px 24px", overflowY: "auto", flexGrow: 1 }}>
           <div style={{ fontSize:11, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:14 }}>Available Plans</div>
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {plans.map((plan) => {
